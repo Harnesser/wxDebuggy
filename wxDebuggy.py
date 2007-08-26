@@ -19,6 +19,9 @@
 # Resizing can act a bit funny...
 #
 
+# 26-AUG-07: Version 0.1
+# Checked in both Linux and Windows land, and everything's OK!
+
 import wx
 import sys
 import GUI
