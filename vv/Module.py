@@ -4,7 +4,7 @@ from Object import Object
 class Module( Object ):
     """
     A class to hold the information for a verilog module.
-
+    me?
     
     """
 
