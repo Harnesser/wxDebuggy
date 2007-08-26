@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<note version="0.2" xmlns:link="http://beatniksoftware.com/tomboy/link" xmlns:size="http://beatniksoftware.com/tomboy/size" xmlns="http://beatniksoftware.com/tomboy">
+  <title>wxDebuggy</title>
+  <text xml:space="preserve"><note-content version="0.1">wxDebuggy
+My Python/wxWidgets based RTL visualization tool. 
+
+Read in Verilog source files and display them as a circuit.  Allow nets to be highlighted, hierarchy navigated and drivers found.
+
+<list><list-item dir="ltr">Read in Verilog Files
+<list><list-item dir="ltr">Determine which files to read 
+<list><list-item dir="ltr">Verilog-style command line options
+</list-item><list-item dir="ltr">GUI file browser
+</list-item></list></list-item><list-item dir="ltr">Parse files (using pyParsing)
+</list-item><list-item dir="ltr">build data structure</list-item></list></list-item></list>
+
+<list><list-item dir="ltr">Display Circuit
+<list><list-item dir="ltr">Determine hierarchy tree</list-item></list></list-item></list>
+	
+
+
+
+<link:internal>wxDebuggy RoadMap</link:internal>
+
+</note-content></text>
+  <last-change-date>2007-08-25T05:03:34.1592720+01:00</last-change-date>
+  <create-date>2007-08-10T04:32:32.8676540+01:00</create-date>
+  <cursor-position>408</cursor-position>
+  <width>554</width>
+  <height>491</height>
+  <x>170</x>
+  <y>167</y>
+</note>

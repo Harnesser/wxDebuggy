@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<note version="0.2" xmlns:link="http://beatniksoftware.com/tomboy/link" xmlns:size="http://beatniksoftware.com/tomboy/size" xmlns="http://beatniksoftware.com/tomboy">
+  <title>Verilog Parser</title>
+  <text xml:space="preserve"><note-content version="0.1">Verilog Parser
+
+Verilog is parsed using the pyparsing package, with the rules copied from the Verilog-2001 BNF in the standard.
+
+In the <monospace>Verilog-2001</monospace> directory, there are two sub-directories of note. The <monospace>BNF</monospace> directory contains the parsing rules for verilog in pyparsing format. In the <monospace>parse</monospace> directory is the code which takes the parse info and builds the <link:internal>circuit data structure</link:internal>.
+
+</note-content></text>
+  <last-change-date>2007-08-25T01:51:25.6979340+01:00</last-change-date>
+  <create-date>2007-08-25T01:15:01.3923500+01:00</create-date>
+  <cursor-position>379</cursor-position>
+  <width>611</width>
+  <height>626</height>
+  <x>717</x>
+  <y>109</y>
+</note>

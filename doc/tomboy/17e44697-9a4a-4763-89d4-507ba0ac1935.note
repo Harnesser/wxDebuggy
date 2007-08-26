@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<note version="0.2" xmlns:link="http://beatniksoftware.com/tomboy/link" xmlns:size="http://beatniksoftware.com/tomboy/size" xmlns="http://beatniksoftware.com/tomboy">
+  <title>Circuit Data Structure</title>
+  <text xml:space="preserve"><note-content version="0.1">Circuit Data Structure
+
+After running the <link:internal>Verilog Parser</link:internal> on the input Verilog files, I have to build a data structure of circuit elements that I can use to build the hierarchy of the circuit and to figure out what to draw.
+
+The package <bold><monospace>vv</monospace></bold> contains objects for each of the main types of circuit elements, all with the base object called <bold><monospace>Object</monospace></bold>.  Currently, I've objects for/called:
+<list><list-item dir="ltr"><bold><monospace>Net</monospace></bold>
+</list-item><list-item dir="ltr"><bold><monospace>Port</monospace></bold>
+</list-item><list-item dir="ltr"><bold><monospace>Instance</monospace></bold>
+</list-item><list-item dir="ltr"><bold><link:broken><monospace>Module</monospace></link:broken></bold></list-item></list>
+
+The circuit data structure (CDS) is a dictionary of <bold><link:broken><monospace>Module</monospace></link:broken></bold> objects, referenced by <link:broken>module</link:broken> names.  The CDS is built by assigning parse actions to selec
+
+<size:large>The Module Object</size:large>
+This stores the info needed to draw each HDL module.  It contains 4 dictionaries which must be built by the parser, namely: a dict of ports, a dict of nets, a dict of instanciations and a dict of parameters
+</note-content></text>
+  <last-change-date>2007-08-25T01:30:36.8850870+01:00</last-change-date>
+  <create-date>2007-08-25T01:05:47.6006300+01:00</create-date>
+  <cursor-position>791</cursor-position>
+  <width>642</width>
+  <height>559</height>
+  <x>723</x>
+  <y>196</y>
+</note>
