@@ -1,14 +1,12 @@
-"""
-    A module class...
-
-
-
-"""
-
 # $Id: Module.py,v 1.3 2007-08-25 03:09:03 marty Exp $
 from Object import Object
 
 class Module( Object ):
+    """
+    A class to hold the information for a verilog module.
+
+    
+    """
 
     def __init__(self, name = '' ):
         Object.__init__( self, name )
