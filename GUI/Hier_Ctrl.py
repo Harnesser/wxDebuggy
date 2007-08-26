@@ -7,7 +7,9 @@ import GUI.artwork.hier_tree_icons as hier_tree_icons
 # Hier_Ctrl
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    
 class Hier_Ctrl(wx.gizmos.TreeListCtrl):
-        
+    """
+    Another test comment
+    """
     def __init__(self, parent):
     
         #
