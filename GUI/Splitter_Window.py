@@ -70,7 +70,7 @@ class Splitter_Window( wx.SplitterWindow ):
         if module.inst_dict.values() :
             for iii,inst in enumerate(module.inst_dict.values()):
 
-                x_pos = 100 + ( 100 * inst_col_dict[inst.name] )
+                x_pos = ( 150 * inst_col_dict[inst.name] )
                 y_pos = prev_y_pos[ inst_col_dict[inst.name] ] + 10         
 
                 drawobj = Drawing_Object( name=inst.module_ref,
@@ -81,7 +81,8 @@ class Splitter_Window( wx.SplitterWindow ):
                                         )
 
                 submod = self.p1.module_dict[ inst.module_ref ]
-                for port in submod.port_dict.values():
+                for port_name in submod.port_name_list:
+                    port = submod.port_dict[ port_name ] # This preserves port ordering
                     if port.direction == 'input':
                         drawobj.lhs_ports.append( port.GetLabelStr() )
                     else:
@@ -115,7 +116,7 @@ class Splitter_Window( wx.SplitterWindow ):
                 else:
                     key = '_oport'
 
-                x_pos = 100 + ( 100 * inst_col_dict[key] )
+                x_pos = 50 + ( 150 * inst_col_dict[key] )
                 y_pos = prev_y_pos[ inst_col_dict[key] ] + 10    
      
                 print prev_y_pos
