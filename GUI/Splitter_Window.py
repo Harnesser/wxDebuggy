@@ -12,6 +12,9 @@ class Splitter_Window( wx.SplitterWindow ):
 
     def __init__(self, parent) :
         wx.SplitterWindow.__init__( self, parent )
+
+        self.driver_net_dict = {}
+        self.connection_list = []
         
         self.filename = None
         self.p1 = Hier_Ctrl( self )
@@ -23,8 +26,8 @@ class Splitter_Window( wx.SplitterWindow ):
 
         self.BuildDrawObjList()
         
-        self.driver_net_dict = {}
-        self.net_sink_dict = {}
+
+
 
 
     def onTreeSelChanged( self, event ):
@@ -99,7 +102,10 @@ class Splitter_Window( wx.SplitterWindow ):
         else:
             print "Woops, modules should have ports, " + \
                   module.name + " doesn't seem to have ones!"
-                    
+
+        # My checks
+        self.build_connection_dicts( module )
+        self.connection_list = self.get_block_connections()
 
         # Now generate the ratsnest connections.
         self.BuildRatsnest(module)
@@ -107,114 +113,29 @@ class Splitter_Window( wx.SplitterWindow ):
         # Make a call to redraw the schematic
         self.p2.Refresh()
 
-        # Check the 'FindDriver' Method
-        output_ports = module.GetOutputPinNames()
-        for port_name in output_ports:
-            driver = self.FindDriver( module, port_name )
-            print "***Port:", port_name, "; Driver:", driver
-
-        # My checks
-        self.build_connection_dicts( module )
-        self.get_block_connections()
 
     def BuildRatsnest( self, module ):
-        """Build the list of connections.
-
-        Connection list is constructed by first listing the net names
-        and instance_name.pin name pairs followed by the port and netname
-        pairs. These are kept in strings so that the first list may be
-        sorted.
-
-        For example double-ff schematic, see notebook 13-NOV-06.
-        eg [ 'A=U1.D', 'CLK=U1.CK', 'n1=U1.Q', 'n1=U2.D',
-          'CLK=U2.CK', 'B=U2.Q',
-          'A=A', 'B=B', 'CLK=CLK' ] # ports
-
-        This list is then sorted so I can tell which pin is connected
-        to what.  Again, see notebook for more details.
+        """Draw the ratsnest connections
         """
 
-        # Build list of pin/net connections
-        raw_conn_list = []
-        for inst in module.inst_dict.values():
-            for pin,net in inst.port_dict.iteritems():
-                conn_str = net + '=' + inst.name + '.' + pin
-                raw_conn_list.append( conn_str )
-                #print conn_str
+        for connection in self.connection_list:
 
+            conn1,conn2 = connection.split('=')
+            conn1 = conn1.replace('_iport.','')
+            conn1 = conn1.replace('_oport.','')                                             
+            conn2 = conn2.replace('_iport.','')
+            conn2 = conn2.replace('_oport.','')   
 
-        # Now add the port names
-        for port in module.port_dict.values():
-            conn_str = port.name + '=' + port.name
-            raw_conn_list.append( conn_str )
-            #print conn_str
-
-        #  Now we build the pin/pin connection list.  Do this
-        # by sorting the raw list, and taking list item off in pairs
-        # of matching netnames.
-        raw_conn_list.sort()    # an in-place sort, whatever that means...
-        #print "Sorted Connection List", raw_conn_list
-        
-        max_index = len( raw_conn_list )
-        iii = 0
-        last_net = ''
-        
-        while iii < max_index - 1:
-
-            # Split string into net/inst_name.pin pairs
-            net1,conn1 = raw_conn_list[iii].split('=')
-            net2,conn2 = raw_conn_list[iii+1].split('=')
-            #print 'Bits: "' + net1 + '", "'+ conn1 + \
-            #      '", "' + net2 + '", "' + conn2 +'"'
-            # Check that we've a pairing
-            if net1 != net2 :
-                #print "Warning - unconnected net.." #not correct...
-                #print "  NetName:", net1
-                #print "         :", raw_conn_list[iii]
-                #print "         :", raw_conn_list[iii+1]
-                pass
-            else:
-                # Create the flightline
-                #print net1 + '=' + conn1 + ';' + conn2
-                drawobj = Drawing_Object( name='conn',
-                                           parent=self,
-                                           label=net1,
-                                           obj_type='conn' )
-                
-                drawobj.startpt  = conn1
-                drawobj.endpt    = conn2
-                self.p2.drawobj_list.append( drawobj )
-
-            last_net = net1
-            iii = iii + 1
-
-
+            # Create the flightline
+            drawobj = Drawing_Object( name='conn',
+                                        parent=self,
+                                        label=conn1,
+                                        obj_type='conn' )
             
-    def PlaceAndRoute(self, module):
-        """ Schematic Place and Route.
-
-        The instances are to be placed in virtual columns depending
-        on the drivers of each instance.  The output port column is 0
-        with the column to the left, -1 etc.
-
-        The column number for each instance is calculated by first
-        determining the drivers of each of the instances.  Starting
-        from the output ports, this instaciation/driver dictionary
-        is traversed, updating the driver instanciation's column number
-        at each stage.
-
-        Then each column is given a width dependant on its fattest member.
-        """
-
-        # First, find the drivers of each instanciation in the schematic
-        for inst in module.inst_dict.values():
-
-            input_port_list = []
+            drawobj.startpt  = conn1
+            drawobj.endpt    = conn2
+            self.p2.drawobj_list.append( drawobj )
             
-            inst_module = self.p1.module_dict[ inst.module_ref ]
-            for port in inst_module.port_dict.values():
-                if port.direction == 'input':
-                    input_port_list.append
 
 
     def build_connection_dicts(self, module ):
@@ -233,8 +154,6 @@ class Splitter_Window( wx.SplitterWindow ):
             # Get the pin:net connections.    
             for pin,net in inst.port_dict.iteritems():
                 conn_str = net + '=' + inst.name + '.' + pin
-                
-                print "Pin,Net:", pin, net
 
                 # is 'net' actually a schematic port? if so, rename it
                 if net in module.port_dict:
@@ -246,7 +165,6 @@ class Splitter_Window( wx.SplitterWindow ):
 
                 # Add to driver_net_dict if inst.pin is an output...
                 if inst_module.GetPinDirection( pin ) == 'output':
-                    print "   Output Pin:", pin
                     driver_name = '.'.join( [inst.name, pin] )
                     if driver_name in self.driver_net_dict:
                         self.driver_net_dict[driver_name].append(net)
@@ -255,18 +173,12 @@ class Splitter_Window( wx.SplitterWindow ):
 
                 # ...else add to the net_sink_dict
                 else:
-                    print "   Input Pin:", pin
                     sink_name = '.'.join( [inst.name, pin] )
                     if net in self.driver_net_dict:
                         self.driver_net_dict[net].append(sink_name)
                     else:
                         self.driver_net_dict[net] = [ sink_name]    
-                    
-        print "Drivers"
-        print self.driver_net_dict
-        print "Driver Keys"
-        print self.driver_net_dict.keys()
-
+                 
 
     def get_block_connections( self ):
         """
@@ -291,15 +203,8 @@ class Splitter_Window( wx.SplitterWindow ):
                     for sink in sink_list:
                         block_to_block_connection_list.append( driver + '=' + sink )
 
-        #for net in self.net_sink_dict.keys():
-        #    sinks = self.net_sink_dict.keys()
-        #    for sink in sinks:
-        #        if sink.startswith('_'):
-        #            block_to_block_connection_list.append( net + '=' + sink )
-
-        print "Connection List"
-        print block_to_block_connection_list
-                
+         
+        return block_to_block_connection_list   
             
 
     def Columnize( self, inst, col_dict, load = []):
