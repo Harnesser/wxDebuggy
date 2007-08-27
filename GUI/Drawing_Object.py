@@ -173,13 +173,13 @@ class Drawing_Object:
 
     def Draw(self, dc, selected=False):
 
-        print "Drawing.. ", self.obj_type
+        #print "Drawing.. ", self.obj_type
         if self.obj_type == 'module':
             self.Draw_Module( dc, selected)
         elif self.obj_type == 'port':
             self.Draw_Port( dc )
         elif self.obj_type == 'conn':
-            print "Start", self.startpt, " End", self.endpt
+            #print "Start", self.startpt, " End", self.endpt
             self.Draw_FlightLine( dc )
         else:
             print "hmmmm...."
@@ -323,7 +323,7 @@ class Drawing_Object:
             end_point   = None
 
         if start_point and end_point:
-            print "Draw flightline between", start_point, end_point
+            #print "Draw flightline between", start_point, end_point
             dc.DrawLinePoint( start_point, end_point + wx.Point(1,1) )
 
     
