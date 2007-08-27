@@ -15,7 +15,8 @@ class Splitter_Window( wx.SplitterWindow ):
 
         self.driver_net_dict = {}
         self.connection_list = []
-        
+        self.module_drive_dict = {} # for column placement
+
         self.filename = None
         self.p1 = Hier_Ctrl( self )
         self.p2 = Schem_View( self )
@@ -42,22 +43,42 @@ class Splitter_Window( wx.SplitterWindow ):
         Add the instance modules and ports."""
 
 
-        # Get vv..Module object from dictionary
+        # Get vv.Module object from dictionary
         module = self.p1.module_dict[ self.p1.cur_module_ref ]
 
+        # Determine connectivity
+        self.build_connection_dicts( module )
+        self.connection_list = self.get_block_connections()
+
+        # Place the blocks in columns
+        inst_col_dict = {}
+        for inst in module.inst_dict.values():
+            inst_col_dict[ inst.name ] = 0
+        inst_col_dict['_oport'] = 0
+        inst_col_dict['_iport'] = 0
+        
+        print  self.driver_net_dict
+        inst_col_dict = self.columnize( self.module_drive_dict, '_iport', inst_col_dict )
+        print inst_col_dict
+
+        prev_y_pos = [0] * ( max( inst_col_dict.values() ) + 1 )
+
         self.p2.drawobj_list = []  # Initialise the list
-
-
 
         # Add module instanciations to the list
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         if module.inst_dict.values() :
             for iii,inst in enumerate(module.inst_dict.values()):
+
+                x_pos = 100 + ( 100 * inst_col_dict[inst.name] )
+                y_pos = prev_y_pos[ inst_col_dict[inst.name] ] + 10         
+
                 drawobj = Drawing_Object( name=inst.module_ref,
                                            parent=self.p2, #hmmm
                                            label=inst.name,
                                            obj_type='module',
-                                           position=wx.Point(200, iii*100 + 10))
+                                           position=wx.Point(x_pos, y_pos)
+                                        )
 
                 submod = self.p1.module_dict[ inst.module_ref ]
                 for port in submod.port_dict.values():
@@ -66,9 +87,14 @@ class Splitter_Window( wx.SplitterWindow ):
                     else:
                         drawobj.rhs_ports.append( port.GetLabelStr() )
 
+                drawobj._update_sizes()
+                
                 # Add to drawing object list
                 self.p2.drawobj_list.append( drawobj )
-                
+
+                # Next y_position
+                prev_y_pos[ inst_col_dict[inst.name] ] = y_pos + drawobj.getSize().y
+                print prev_y_pos
         else:
             # a wee fake thingy for modules with no sub modules
             drawobj = Drawing_Object( name='_Nothing',
@@ -83,29 +109,37 @@ class Splitter_Window( wx.SplitterWindow ):
         in_y, out_y = 10, 10
         if module.port_name_list:
             for port in module.port_dict.values():
+                
+                if port.direction == 'input':
+                    key = '_iport'
+                else:
+                    key = '_oport'
+
+                x_pos = 100 + ( 100 * inst_col_dict[key] )
+                y_pos = prev_y_pos[ inst_col_dict[key] ] + 10    
+     
+                print prev_y_pos
+
                 drawobj = Drawing_Object( name='port',
                                            parent=self.p2, #hmmm
                                            label=port.GetLabelStr(),
                                            obj_type='port' )
 
                 #print port.direction
-                if port.direction == 'input':
-                    drawobj.position = wx.Point( 100, 10 + in_y )
-                    in_y = in_y + 25
-                else:
-                    drawobj.position = wx.Point( 500, 10 + out_y )
-                    out_y = out_y + 25
+                drawobj.position = wx.Point( x_pos, y_pos )
+                if port.direction == 'output':
                     drawobj.mirror = True
+
+                drawobj._update_sizes()
 
                 self.p2.drawobj_list.append( drawobj )
 
+                # Next y_position
+                prev_y_pos[ inst_col_dict[key] ] = y_pos + drawobj.getSize().y
+                print prev_y_pos
         else:
             print "Woops, modules should have ports, " + \
                   module.name + " doesn't seem to have ones!"
-
-        # My checks
-        self.build_connection_dicts( module )
-        self.connection_list = self.get_block_connections()
 
         # Now generate the ratsnest connections.
         self.BuildRatsnest(module)
@@ -144,7 +178,7 @@ class Splitter_Window( wx.SplitterWindow ):
 
         self.driver_net_dict = {}
         self.net_sink_dict = {}
-       
+
         # Loop thru instanciations in this module
         for inst in module.inst_dict.values():
 
@@ -177,64 +211,92 @@ class Splitter_Window( wx.SplitterWindow ):
                     if net in self.driver_net_dict:
                         self.driver_net_dict[net].append(sink_name)
                     else:
-                        self.driver_net_dict[net] = [ sink_name]    
+                        self.driver_net_dict[net] = [sink_name]    
                  
 
     def get_block_connections( self ):
         """
         """
+ 
+        self.module_drive_dict = {} # for column placement
         block_to_block_connection_list = []
+
         for driver in self.driver_net_dict.keys():
 
+            inst_name = driver.split('.')[0]
 
             nets = self.driver_net_dict[ driver ]
             for net in nets:
+                inst_net = net.split('.')[0]
 
-                
+                if  net.startswith('_oport.'): # Add output port connections
+                    block_to_block_connection_list.append( driver + '=' + net )
+
+                    # This section builds the module-module driver list                           
+                    if inst_name in self.module_drive_dict:
+                        self.module_drive_dict[inst_name].append('_oport')
+                    else:
+                        self.module_drive_dict[inst_name] = ['_oport']                  
+
                 if driver.startswith('_iport.'): # Add input port connections 
                     block_to_block_connection_list.append( driver + '=' + net )
 
-                elif net.startswith('_oport.'): # Add output port connections
-                    block_to_block_connection_list.append( driver + '=' + net )
+                    # This section builds the module-module driver list                           
+                    if '_iport' in self.module_drive_dict:
+                        self.module_drive_dict['_iport'].append( inst_net )
+                    else:
+                        self.module_drive_dict['_iport'] = [ inst_net ]        
 
-                elif net in self.driver_net_dict:
+                if net in self.driver_net_dict:
                     sink_list = self.driver_net_dict[net]
 
                     for sink in sink_list:
+                        sink_inst_name = sink.split('.')[0]
                         block_to_block_connection_list.append( driver + '=' + sink )
 
-         
+                        # This section builds the module-module driver list                           
+                        if inst_name in self.module_drive_dict:
+                            self.module_drive_dict[inst_name].append( sink_inst_name)
+                        else:
+                            self.module_drive_dict[inst_name] = [ sink_inst_name ]        
+                
+        self.module_drive_dict['_oport'] = [ ] 
+
+        print "New Driver Dictionary"
+        print self.module_drive_dict
+        print r"////oOOo\\\\" * 10
+
         return block_to_block_connection_list   
             
 
-    def Columnize( self, inst, col_dict, load = []):
+    def columnize( self, driver_dict, inst, col_dict, load = []):
         """ Find the drivers of the current inst, and set their
         column numbers to one less than the current.
 
         Look out for loops by doing something magical..."""
 
-        col_num = col_dict[inst] - 1
-
-        #print "Inst", inst, "col", col_dict[inst]
+        col_num = col_dict[inst] + 1
         load.append(inst)
+        
 
         #  Go through the drivers of this sink and update their
         # column numbers if necessary
-        for ii,driver in enumerate(inst_driver_dict[inst]):
+        for driver in driver_dict[inst]:
 
             # Loop dectection...
             if driver in load :
                 print "Loop!!: ", driver, ":", load
                 continue
 
-            # Only update the column count if needed.  If the driver
-            # is already to the left of this inst, then leave its
+            # Only update the column count if needed.  If the load
+            # is already to the right of this inst, then leave its
             # col number alone.
-            if col_num < col_dict[driver]:
+            if col_num > col_dict[driver]:
                 col_dict[driver] = col_num
-                col_dict = Columnize( driver, col_dict, load )
+                col_dict = self.columnize( driver_dict, driver, col_dict, load )
 
         load.pop()
+     
         return col_dict
 
 
