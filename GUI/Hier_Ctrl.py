@@ -33,7 +33,10 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
         rtl_files = [
                      'tests/rtl/trivial/top.v',
                      'tests/rtl/trivial/a.v',
-                     'tests/rtl/trivial/b.v'
+                     'tests/rtl/trivial/b.v',
+                     'tests/rtl/trivial_clk_rstb/top_clk_rstb.v',
+                     'tests/rtl/trivial_clk_rstb/a_clk_rstb.v',
+                     'tests/rtl/trivial_clk_rstb/b_clk_rstb.v',
                      ]
 
         myparser = hdl_parser()
