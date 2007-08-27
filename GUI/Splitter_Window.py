@@ -23,6 +23,9 @@ class Splitter_Window( wx.SplitterWindow ):
 
         self.BuildDrawObjList()
         
+        self.driver_net_dict = {}
+        self.net_sink_dict = {}
+
 
     def onTreeSelChanged( self, event ):
 
@@ -104,12 +107,15 @@ class Splitter_Window( wx.SplitterWindow ):
         # Make a call to redraw the schematic
         self.p2.Refresh()
 
-
         # Check the 'FindDriver' Method
         output_ports = module.GetOutputPinNames()
         for port_name in output_ports:
             driver = self.FindDriver( module, port_name )
             print "***Port:", port_name, "; Driver:", driver
+
+        # My checks
+        self.build_connection_dicts( module )
+        self.get_block_connections()
 
     def BuildRatsnest( self, module ):
         """Build the list of connections.
@@ -208,9 +214,123 @@ class Splitter_Window( wx.SplitterWindow ):
             inst_module = self.p1.module_dict[ inst.module_ref ]
             for port in inst_module.port_dict.values():
                 if port.direction == 'input':
-                    input_port_list
+                    input_port_list.append
 
 
+    def build_connection_dicts(self, module ):
+        """ Create schematic view Connection lists
+        """
+
+        self.driver_net_dict = {}
+        self.net_sink_dict = {}
+       
+        # Loop thru instanciations in this module
+        for inst in module.inst_dict.values():
+
+            # Get the module definition of the instanciated module
+            inst_module = self.p1.module_dict[ inst.module_ref ]
+            
+            # Get the pin:net connections.    
+            for pin,net in inst.port_dict.iteritems():
+                conn_str = net + '=' + inst.name + '.' + pin
+                
+                print "Pin,Net:", pin, net
+
+                # is 'net' actually a schematic port? if so, rename it
+                if net in module.port_dict:
+
+                    if module.port_dict[net].direction == 'input':
+                        net = '_iport.' + net
+                    else:
+                        net = '_oport.' + net
+
+                # Add to driver_net_dict if inst.pin is an output...
+                if inst_module.GetPinDirection( pin ) == 'output':
+                    print "   Output Pin:", pin
+                    driver_name = '.'.join( [inst.name, pin] )
+                    if driver_name in self.driver_net_dict:
+                        self.driver_net_dict[driver_name].append(net)
+                    else:
+                        self.driver_net_dict[driver_name] = [ net ]
+
+                # ...else add to the net_sink_dict
+                else:
+                    print "   Input Pin:", pin
+                    sink_name = '.'.join( [inst.name, pin] )
+                    if net in self.driver_net_dict:
+                        self.driver_net_dict[net].append(sink_name)
+                    else:
+                        self.driver_net_dict[net] = [ sink_name]    
+                    
+        print "Drivers"
+        print self.driver_net_dict
+        print "Driver Keys"
+        print self.driver_net_dict.keys()
+
+
+    def get_block_connections( self ):
+        """
+        """
+        block_to_block_connection_list = []
+        for driver in self.driver_net_dict.keys():
+
+
+            nets = self.driver_net_dict[ driver ]
+            for net in nets:
+
+                
+                if driver.startswith('_iport.'): # Add input port connections 
+                    block_to_block_connection_list.append( driver + '=' + net )
+
+                elif net.startswith('_oport.'): # Add output port connections
+                    block_to_block_connection_list.append( driver + '=' + net )
+
+                elif net in self.driver_net_dict:
+                    sink_list = self.driver_net_dict[net]
+
+                    for sink in sink_list:
+                        block_to_block_connection_list.append( driver + '=' + sink )
+
+        #for net in self.net_sink_dict.keys():
+        #    sinks = self.net_sink_dict.keys()
+        #    for sink in sinks:
+        #        if sink.startswith('_'):
+        #            block_to_block_connection_list.append( net + '=' + sink )
+
+        print "Connection List"
+        print block_to_block_connection_list
+                
+            
+
+    def Columnize( self, inst, col_dict, load = []):
+        """ Find the drivers of the current inst, and set their
+        column numbers to one less than the current.
+
+        Look out for loops by doing something magical..."""
+
+        col_num = col_dict[inst] - 1
+
+        #print "Inst", inst, "col", col_dict[inst]
+        load.append(inst)
+
+        #  Go through the drivers of this sink and update their
+        # column numbers if necessary
+        for ii,driver in enumerate(inst_driver_dict[inst]):
+
+            # Loop dectection...
+            if driver in load :
+                print "Loop!!: ", driver, ":", load
+                continue
+
+            # Only update the column count if needed.  If the driver
+            # is already to the left of this inst, then leave its
+            # col number alone.
+            if col_num < col_dict[driver]:
+                col_dict[driver] = col_num
+                col_dict = Columnize( driver, col_dict, load )
+
+        load.pop()
+        return col_dict
 
 
     def FindDriver( self, module, pin_or_net, instanciation = '' ):
