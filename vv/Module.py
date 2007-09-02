@@ -50,6 +50,20 @@ class Module( Object ):
     
 
     def add_port( self, vv_port_object ):
+        """ Add a port to the module 
+
+        Adds the port name to the port name list, and adds the port object to the
+        port object dictionary.  Also determines if the type of signal on the port 
+        and tags it accordingly.
+        """
+        
+        # Determine signal type on port
+        if vv_port_object.name.startswith('clk') :
+            vv_port_object.sigtype = 'clock'
+        elif vv_port_object.name.startswith('rst') :
+            vv_port_object.sigtype = 'reset'
+        
+        # Add port
         self.port_name_list.append( vv_port_object.name )
         self.port_dict[ vv_port_object.name ] = vv_port_object  
 
