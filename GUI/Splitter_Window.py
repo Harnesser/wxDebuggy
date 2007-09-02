@@ -49,6 +49,7 @@ class Splitter_Window( wx.SplitterWindow ):
         # Determine connectivity
         self.build_connection_dicts( module )
         self.connection_list = self.get_block_connections()
+        self.write_graphviz( module )
 
         # Place the blocks in columns
         inst_col_dict = {}
@@ -57,9 +58,9 @@ class Splitter_Window( wx.SplitterWindow ):
         inst_col_dict['_oport'] = 0
         inst_col_dict['_iport'] = 0
         
-        print  self.driver_net_dict
+        print r"////oOOo\\\\" * 20
         inst_col_dict = self.columnize( self.module_drive_dict, '_iport', inst_col_dict )
-        print inst_col_dict
+
 
         prev_y_pos = [0] * ( max( inst_col_dict.values() ) + 1 )
 
@@ -95,7 +96,7 @@ class Splitter_Window( wx.SplitterWindow ):
 
                 # Next y_position
                 prev_y_pos[ inst_col_dict[inst.name] ] = y_pos + drawobj.getSize().y
-                print prev_y_pos
+                
         else:
             # a wee fake thingy for modules with no sub modules
             drawobj = Drawing_Object( name='_Nothing',
@@ -117,10 +118,7 @@ class Splitter_Window( wx.SplitterWindow ):
                     key = '_oport'
 
                 x_pos = 50 + ( 150 * inst_col_dict[key] )
-                y_pos = prev_y_pos[ inst_col_dict[key] ] + 10    
-     
-                print prev_y_pos
-
+                y_pos = prev_y_pos[ inst_col_dict[key] ] + 10   
                 drawobj = Drawing_Object( name='port',
                                            parent=self.p2, #hmmm
                                            label=port.GetLabelStr(),
@@ -137,7 +135,7 @@ class Splitter_Window( wx.SplitterWindow ):
 
                 # Next y_position
                 prev_y_pos[ inst_col_dict[key] ] = y_pos + drawobj.getSize().y
-                print prev_y_pos
+
         else:
             print "Woops, modules should have ports, " + \
                   module.name + " doesn't seem to have ones!"
@@ -263,12 +261,8 @@ class Splitter_Window( wx.SplitterWindow ):
                 
         self.module_drive_dict['_oport'] = [ ] 
 
-        print "New Driver Dictionary"
-        print self.module_drive_dict
-        print r"////oOOo\\\\" * 10
-
         return block_to_block_connection_list   
-            
+
 
     def columnize( self, driver_dict, inst, col_dict, load = []):
         """ Find the drivers of the current inst, and set their
@@ -297,9 +291,23 @@ class Splitter_Window( wx.SplitterWindow ):
                 col_dict = self.columnize( driver_dict, driver, col_dict, load )
 
         load.pop()
-     
+        
+        for key in col_dict.keys():
+            print ("        " * ( col_dict[key] )) + key.center(8) 
+        print col_dict
         return col_dict
 
+    def write_graphviz( self, module ):
+        """ Write out a graphviz file for the connection list """
+
+        hDOT = open(module.name + ".dot" , 'w' )
+        hDOT.write('digraph ' + module.name + ' {')
+        hDOT.write('  rankdir = LR;')
+        for connection in self.connection_list:
+            source,sink = connection.split('=')
+            write_str = '  %s -> %s;' % ( source, sink )  
+            hDOT.write(write_str.replace('.',':'))
+        hDOT.write('}')
 
     def FindDriver( self, module, pin_or_net, instanciation = '' ):
         """ Find the driver of the given net or instanciation port name.
