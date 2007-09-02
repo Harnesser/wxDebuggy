@@ -3,7 +3,7 @@
   <title>wxDebuggy RoadMap</title>
   <text xml:space="preserve"><note-content version="0.1"><link:internal>wxDebuggy</link:internal> RoadMap
 
-<size:large>Version 0.1</size:large> - The Basics
+<size:large><link:internal>Version 0.1</link:internal></size:large> - The Basics (25-AUG-07)
 <list><list-item dir="ltr"><highlight>Read in a fixed verilog file list</highlight>
 </list-item><list-item dir="ltr"><highlight>Build the <link:internal>Verilog Parser</link:internal></highlight><highlight>: starting with a basic subset of verilog language</highlight>
 </list-item><list-item dir="ltr"><highlight>Build <link:internal>Circuit Data Structure</link:internal></highlight>
@@ -11,10 +11,10 @@
 </list-item><list-item dir="ltr"><highlight>Draw ratsnest connections</highlight>
 </list-item><list-item dir="ltr"><highlight>Draw <link:broken>module</link:broken></highlight><highlight> ports</highlight>
 </list-item><list-item dir="ltr"><highlight>Allow traversal of hierarchy</highlight>
-</list-item><list-item dir="ltr">Build basic GUI 
+</list-item><list-item dir="ltr"><highlight>Build basic GUI</highlight>
 </list-item><list-item dir="ltr"><highlight>Unittest foundation</highlight></list-item></list>
 
-<size:large>Version 0.2</size:large> - Circuit Drawing Enhancements
+<size:large><link:internal>Version 0.2</link:internal></size:large> - Circuit Drawing Enhancements
 <list><list-item dir="ltr">Draw <link:broken>module</link:broken> instanciations placed in Left to Right order depending on signal flow
 </list-item><list-item dir="ltr">Draw routed nets which do not fly over instanciations</list-item></list>
 
@@ -27,7 +27,7 @@
 </list-item><list-item dir="ltr">Concatenation support
 </list-item><list-item dir="ltr">Ordered port connections</list-item></list>
 
-<size:large>Version 0.4</size:large> - GUI Enhancements
+<size:large><link:internal>Version 0.4</link:internal></size:large> - <link:broken>GUI Enhancements</link:broken>
 <list><list-item dir="ltr">Net highlighting
 </list-item><list-item dir="ltr">Bookmarking of views
 </list-item><list-item dir="ltr">Zooming and Panning around circuit: keyboard and mousewheel support
@@ -42,7 +42,7 @@
 <size:large>Version 0.6</size:large> - Verilog Arguments and Preprocessor
 <list><list-item dir="ltr">Parse Verilog Arguments
 </list-item><list-item dir="ltr">Verilog Preprocessor: macro substitution, <bold><monospace>`ifdefs</monospace></bold> etc</list-item></list>
-<size:large>
+-<size:large>
 Version 0.7</size:large> - Array Support
 <list><list-item dir="ltr">Array of Instances
 </list-item><list-item dir="ltr"><bold><monospace>generate</monospace></bold> blocks</list-item></list>
@@ -54,27 +54,35 @@ Version 0.7</size:large> - Array Support
 </list-item><list-item dir="ltr">'Alt-G' Mode - Grey out everything except highlighted nets</list-item></list>
 
 <size:large>Version 0.9</size:large> - Lower-level Circuit Drawing
-<list><list-item dir="ltr">Detect and draw simple logic gates
-</list-item><list-item dir="ltr">Draw instanciated logic primatives
+<list><list-item dir="ltr">Parse and ignore <bold><monospace>specparam</monospace></bold> sections
+</list-item><list-item dir="ltr">Detect and draw simple logic gates
+</list-item><list-item dir="ltr">Draw instanciated logic primatives/standard cells
 </list-item><list-item dir="ltr">Detect and draw muxes
 </list-item><list-item dir="ltr">Draw datapath blocks: adders, comparators etc</list-item></list>
 
 
 <size:huge>Version 1.0</size:huge> - Final Tidy-Up
-<list><list-item dir="ltr">Parse and ignore <bold><monospace>specparam</monospace></bold> sections
+<list><list-item dir="ltr">Test with real-life RTL: From OpenCores and from ADI
+</list-item><list-item dir="ltr">Test at work
+</list-item><list-item dir="ltr">Debian package
+</list-item><list-item dir="ltr">Windows Installer
+</list-item><list-item dir="ltr">Desktop integration
 </list-item><list-item dir="ltr">About
 </list-item><list-item dir="ltr">Help</list-item></list>
 
 
 <size:large>Future Enhancements</size:large>
 <list><list-item dir="ltr">VHDL Support
-</list-item><list-item dir="ltr">User </list-item></list>
+</list-item><list-item dir="ltr">Printing
+</list-item><list-item dir="ltr">Connection to SimVision etc
+</list-item><list-item dir="ltr">Option to not route Clock or Reset nets, but instead indicate that they are connected
+</list-item><list-item dir="ltr">HTML hitmap export option</list-item></list>
 </note-content></text>
-  <last-change-date>2007-08-25T03:57:10.6825780+01:00</last-change-date>
+  <last-change-date>2007-09-02T20:28:16.2894580+01:00</last-change-date>
   <create-date>2007-08-25T00:14:10.0083640+01:00</create-date>
-  <cursor-position>314</cursor-position>
-  <width>560</width>
-  <height>661</height>
-  <x>850</x>
-  <y>131</y>
+  <cursor-position>1893</cursor-position>
+  <width>300</width>
+  <height>868</height>
+  <x>1134</x>
+  <y>0</y>
 </note>

@@ -1,0 +1,2 @@
+cp -p ~/.tomboy/*.note .
+

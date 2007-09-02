@@ -17,14 +17,28 @@ Read in Verilog source files and display them as a circuit.  Allow nets to be hi
 <list><list-item dir="ltr">Determine hierarchy tree</list-item></list></list-item></list>
 	
 
+<size:large>File Structure</size:large>
+
+<monospace>wxVV/
+ + wxDebuggy.py  - the main script
+ + doc/ - documentation directory
+ + vv/
+   + Object.py
+   + Module.py
+   + Instance.py
+   + Net.py
+   + Port.py
+
+   	
+	</monospace>
 
 
 <link:internal>wxDebuggy RoadMap</link:internal>
 
 </note-content></text>
-  <last-change-date>2007-08-25T05:03:34.1592720+01:00</last-change-date>
+  <last-change-date>2007-08-25T05:11:54.1660000+01:00</last-change-date>
   <create-date>2007-08-10T04:32:32.8676540+01:00</create-date>
-  <cursor-position>408</cursor-position>
+  <cursor-position>424</cursor-position>
   <width>554</width>
   <height>491</height>
   <x>170</x>

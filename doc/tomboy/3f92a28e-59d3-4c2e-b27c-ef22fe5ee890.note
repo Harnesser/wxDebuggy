@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<note version="0.2" xmlns:link="http://beatniksoftware.com/tomboy/link" xmlns:size="http://beatniksoftware.com/tomboy/size" xmlns="http://beatniksoftware.com/tomboy">
+  <title>Version 0.1</title>
+  <text xml:space="preserve"><note-content version="0.1">Version 0.1
+
+Finished 25-AUG-07
+
+This is a basic version of the <link:internal>wxDebuggy</link:internal> tool which doesn't do a lot.  A few of the basic elements are in place, though.  There are still huge architectural problems with this release, namley that much of the PnR code is in the Splitter_Window class which is totally the wrong place for it.  It is here becase both the hierarchy tree view (Hier_Tree) and the actual schematic view (Schem_View) need access to the same info, and need to talk to each other.  I'm going to have to come up with a better program layout for this, but I think I can leave it alone for a while, until at least <link:internal>Version 0.4</link:internal> where I bash the GUI and general usability into place.
+
+</note-content></text>
+  <last-change-date>2007-08-27T00:29:37.5483250+01:00</last-change-date>
+  <create-date>2007-08-27T00:24:16.7767620+01:00</create-date>
+  <cursor-position>685</cursor-position>
+  <width>675</width>
+  <height>473</height>
+  <x>87</x>
+  <y>183</y>
+</note>

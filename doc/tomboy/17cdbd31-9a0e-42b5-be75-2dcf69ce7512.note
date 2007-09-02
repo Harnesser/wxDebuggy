@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<note version="0.2" xmlns:link="http://beatniksoftware.com/tomboy/link" xmlns:size="http://beatniksoftware.com/tomboy/size" xmlns="http://beatniksoftware.com/tomboy">
+  <title>Version 0.2</title>
+  <text xml:space="preserve"><note-content version="0.1">Version 0.2
+
+<size:large>Circuit Drawing Enhancements - Place and Route (PnR)</size:large>
+
+<size:large>Placement</size:large>
+
+The placement of a given instanciation/block on the schematic page depends on what other blocks it drives, and which blocks are driving it.
+
+The first algorithm that I came up for (notebook 20-NOV-06) uses a recursive algorithm to 'columnize' the blocks.  The input to this algorithm is a dictionary of drivers and sinks in the following form:
+
+<monospace>        inst_driver_dict = { 'A':['iPorts'],
+                             'B':['A'],
+                             'C':['iPorts'],
+                             'D':['C'],
+                             'E':['C'],
+                             'F':['B','D','E'],
+                             'G':['F','H'],
+                             'H':['G'],
+                             'I':['G','F'],
+                             'oPorts':['H','I'],
+                             'iPorts':[]} </monospace>
+
+
+This seems to work quite well in the test script <monospace>p_r_columns.py</monospace>, but to mesh it in with my program I need to generate this dictionary for the schematic to be displayed.
+
+To find out what is connected where, I build a drivers dictionary first. I go thru all the .pin(net) connections of each instance in the circuit to be drawn, and add them to the drivers dictionary depending on the direction of the pin.  The driving thing is the key, and the driven thing is appended to the list of things the driver drives.
+
+<size:large>02-SEP-07</size:large>: It looks like I have to treat clock and reset nets specially.  When they're included in the above columnizing algorithm, they tend to make a mess of the layout.  It's really the signal flow that I'm trying to graph in this app, so I'm going to remove any clock and reset (and enable?) lines from the connection list.  
+
+For now, I'm going to determine clock and reset nets by looking at their names.  But in the future, I'll determine them properly by inspecting the clocked always blocks.
+
+To vv.Net, I'll add a 'sigtype' variable and set this to 'clock' or 'reset' depending on the name.  Then, when building the connection list for a drawing, I'll look at this line and only include the conection if this variable has the 'normal' value.
+
+
+
+<size:large>Signal Routing</size:large></note-content></text>
+  <last-change-date>2007-09-02T20:19:25.5948000+01:00</last-change-date>
+  <create-date>2007-08-27T01:03:33.2981770+01:00</create-date>
+  <cursor-position>1085</cursor-position>
+  <width>671</width>
+  <height>577</height>
+  <x>437</x>
+  <y>106</y>
+</note>
