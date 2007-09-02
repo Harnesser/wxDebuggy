@@ -13,7 +13,7 @@ class Splitter_Window( wx.SplitterWindow ):
     def __init__(self, parent) :
         wx.SplitterWindow.__init__( self, parent )
 
-        self.driver_net_dict = {}
+        self.driver_dict = {}
         self.connection_list = []
         self.module_drive_dict = {} # for column placement
 
@@ -27,9 +27,6 @@ class Splitter_Window( wx.SplitterWindow ):
 
         self.BuildDrawObjList()
         
-
-
-
 
     def onTreeSelChanged( self, event ):
 
@@ -47,9 +44,9 @@ class Splitter_Window( wx.SplitterWindow ):
         module = self.p1.module_dict[ self.p1.cur_module_ref ]
 
         # Determine connectivity
-        self.build_connection_dicts( module )
+        self.driver_dict = self.build_driver_dict( module )
         self.connection_list = self.get_block_connections()
-        self.write_graphviz( module )
+        #self.write_graphviz( module )
 
         # Place the blocks in columns
         inst_col_dict = {}
@@ -171,12 +168,17 @@ class Splitter_Window( wx.SplitterWindow ):
             
 
 
-    def build_connection_dicts(self, module ):
-        """ Create schematic view Connection lists
+    def build_driver_dict(self, module ):
+        """ Build a dictionary of what each net and input port drives.
+
+        Loops thru the instanciations in the current module and adds each
+        bit of the .pin(net) list to the drivers dict depending on the 
+        direction of the pin.  For example, if pin is an output it drives
+        the net, and it's name is the key to the dict.  Otherwise the net 
+        drives the pin, so the net name is the key to the dict.        
         """
 
-        self.driver_net_dict = {}
-        self.net_sink_dict = {}
+        driver_dict = {}
 
         # Loop thru instanciations in this module
         for inst in module.inst_dict.values():
@@ -196,35 +198,43 @@ class Splitter_Window( wx.SplitterWindow ):
                     else:
                         net = '_oport.' + net
 
-                # Add to driver_net_dict if inst.pin is an output...
+                # Add to driver_dict if inst.pin is an output...
                 if inst_module.GetPinDirection( pin ) == 'output':
                     driver_name = '.'.join( [inst.name, pin] )
-                    if driver_name in self.driver_net_dict:
-                        self.driver_net_dict[driver_name].append(net)
+                    if driver_name in driver_dict:
+                        driver_dict[driver_name].append(net)
                     else:
-                        self.driver_net_dict[driver_name] = [ net ]
+                        driver_dict[driver_name] = [ net ]
 
-                # ...else add to the net_sink_dict
+                # ...
                 else:
                     sink_name = '.'.join( [inst.name, pin] )
-                    if net in self.driver_net_dict:
-                        self.driver_net_dict[net].append(sink_name)
+                    if net in driver_dict:
+                       driver_dict[net].append(sink_name)
                     else:
-                        self.driver_net_dict[net] = [sink_name]    
+                        driver_dict[net] = [sink_name]    
                  
+        return driver_dict
+
+
 
     def get_block_connections( self ):
-        """
+        """Determine the connections in the current module
+
+        This uses the driver_dict to build a connections list.  The driver_dict will
+        contain inst.pin:net or net:inst.pin, and this module builds a connection list in 
+        the form inst.pin:inst:pin (where inst can be input or output ports).
+
         """
  
         self.module_drive_dict = {} # for column placement
         block_to_block_connection_list = []
 
-        for driver in self.driver_net_dict.keys():
+        for driver in self.driver_dict.keys():
 
             inst_name = driver.split('.')[0]
 
-            nets = self.driver_net_dict[ driver ]
+            nets = self.driver_dict[ driver ]
             for net in nets:
                 inst_net = net.split('.')[0]
 
@@ -246,8 +256,8 @@ class Splitter_Window( wx.SplitterWindow ):
                     else:
                         self.module_drive_dict['_iport'] = [ inst_net ]        
 
-                if net in self.driver_net_dict:
-                    sink_list = self.driver_net_dict[net]
+                if net in self.driver_dict:
+                    sink_list = self.driver_dict[net]
 
                     for sink in sink_list:
                         sink_inst_name = sink.split('.')[0]
@@ -272,7 +282,6 @@ class Splitter_Window( wx.SplitterWindow ):
 
         col_num = col_dict[inst] + 1
         load.append(inst)
-        
 
         #  Go through the drivers of this sink and update their
         # column numbers if necessary
@@ -297,6 +306,8 @@ class Splitter_Window( wx.SplitterWindow ):
         print col_dict
         return col_dict
 
+
+
     def write_graphviz( self, module ):
         """ Write out a graphviz file for the connection list """
 
@@ -308,6 +319,8 @@ class Splitter_Window( wx.SplitterWindow ):
             write_str = '  %s -> %s;' % ( source, sink )  
             hDOT.write(write_str.replace('.',':'))
         hDOT.write('}')
+
+
 
     def FindDriver( self, module, pin_or_net, instanciation = '' ):
         """ Find the driver of the given net or instanciation port name.
