@@ -19,6 +19,7 @@ class Net( Object ):
         self.msb     = msb
         self.lsb     = lsb
         self.size    = 0
+        self.sigtype = 'normal' # or 'clock' or 'reset' - should be an enumneration
 
         self.Calc_Size()
 
