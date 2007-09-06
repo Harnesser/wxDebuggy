@@ -25,7 +25,7 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
 
         self.file_to_load   = None
         self.cur_hier_path  = ''
-        self.cur_module_ref = ''
+        self.cur_module_ref = None
         
         #
         # Read in a few verilog models that are hierarchical
@@ -87,16 +87,26 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
         module_ref_list = []
         for module in self.module_dict.values():
             for inst in module.inst_dict.values():
-                module_ref_list.append( inst.module_ref )
+                
+                # See if inst.module_ref_name string corresponds to an actual vv.Module
+                if inst.module_ref_name in self.module_dict:
+                    inst.module_ref = self.module_dict[inst.module_ref_name]
+                    # Build the module list ref
+                    module_ref_list.append( inst.module_ref )
+                else:
+                    print "Warning: Undefined Module: %s" % (inst.module_ref_name)
+
+
         
+
 
         # 
         for module in self.module_dict.values() :
-            if module.name in module_ref_list :
+            if module in module_ref_list :
                 #  A referenced (instanciated) module, which are not
                 # added to the root of the tree
                 continue
-
+            
             self.AddModule( self.root, module, module.name )
             
         
@@ -127,6 +137,9 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
         self.cur_hier_path  = self.MakeCurHierStr()
         self.cur_module_ref = module_name
 
+        if False:
+            print "Current Hierarchy Path:", self.cur_hier_path
+            print "Current Module Reference", self.cur_module_ref
 
         
     # Danger here! A recursive module!
@@ -155,9 +168,9 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
         # look up the name/module dictionary to get the vv.Module object
 
         for inst in module.inst_dict.values():
-            print self.module_dict.keys()
-            print inst.module_ref, inst.name
-            self.AddModule( child, self.module_dict[inst.module_ref], inst.name )
+            #print self.module_dict.keys()
+            #print inst.module_ref.name, inst.name
+            self.AddModule( child, inst.module_ref, inst.name )
            
 
     def SelectChildModule( self, inst_name ):

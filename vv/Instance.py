@@ -13,12 +13,13 @@ from Object import Object
 
 class Instance( Object ):
     
-    def __init__(self, name = '', module_ref = '' ):
+    def __init__(self, name = '', module_ref_name = '' ):
 
         Object.__init__( self, name ) 
 
         # Electrical Stuff
-        self.module_ref = module_ref
+        self.module_ref_name = module_ref_name # String
+        self.module_ref = None # vv.Module Instance
         self.port_dict  = {}
         self.param_dict = {}
 
@@ -28,7 +29,7 @@ class Instance( Object ):
 
 
     def Display( self ):
-        print '\nInstance "%s" of module "%s" ' % (self.name , self.module_ref)
+        print '\nInstance "%s" of module "%s" ' % (self.name , self.module_ref_name)
         for port, net in self.port_dict.iteritems():
             print "  ", port.ljust(20), " - ", net
     

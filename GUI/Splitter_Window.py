@@ -40,12 +40,18 @@ class Splitter_Window( wx.SplitterWindow ):
         Add the instance modules and ports."""
 
 
-        # Get vv.Module object from dictionary
+        # Get vv.Module object 
         module = self.p1.module_dict[ self.p1.cur_module_ref ]
-
+        
         # Determine connectivity
         self.driver_dict = self.build_driver_dict( module )
         self.connection_list = self.get_block_connections()
+
+        if False:
+            print "Stuff"
+            print self.driver_dict
+            print self.connection_list
+
         #self.write_graphviz( module )
 
         # Place the blocks in columns
@@ -71,14 +77,14 @@ class Splitter_Window( wx.SplitterWindow ):
                 x_pos = ( 150 * inst_col_dict[inst.name] )
                 y_pos = prev_y_pos[ inst_col_dict[inst.name] ] + 10         
 
-                drawobj = Drawing_Object( name=inst.module_ref,
+                drawobj = Drawing_Object( name=inst.module_ref.name,
                                            parent=self.p2, #hmmm
                                            label=inst.name,
                                            obj_type='module',
                                            position=wx.Point(x_pos, y_pos)
                                         )
 
-                submod = self.p1.module_dict[ inst.module_ref ]
+                submod = inst.module_ref
                 for port_name in submod.port_name_list:
                     port = submod.port_dict[ port_name ] # This preserves port ordering
                     if port.direction == 'input':
@@ -180,12 +186,18 @@ class Splitter_Window( wx.SplitterWindow ):
 
         driver_dict = {}
 
+        #print "Driver Dict..."
+        #module.Display()
+        #print module.inst_dict
+
         # Loop thru instanciations in this module
         for inst in module.inst_dict.values():
 
             # Get the module definition of the instanciated module
-            inst_module = self.p1.module_dict[ inst.module_ref ]
-            
+            inst_module = inst.module_ref
+            #print "Instanciated Module..."
+            #inst_module.Display()
+
             # Get the pin:net connections.    
             for pin,net in inst.port_dict.iteritems():
                 conn_str = net + '=' + inst.name + '.' + pin
@@ -213,7 +225,8 @@ class Splitter_Window( wx.SplitterWindow ):
                        driver_dict[net].append(sink_name)
                     else:
                         driver_dict[net] = [sink_name]    
-                 
+        
+        #print "driver_dict", driver_dict
         return driver_dict
 
 
@@ -283,6 +296,8 @@ class Splitter_Window( wx.SplitterWindow ):
         col_num = col_dict[inst] + 1
         load.append(inst)
 
+        #print "::", inst, driver_dict.keys()
+
         #  Go through the drivers of this sink and update their
         # column numbers if necessary
         for driver in driver_dict[inst]:
@@ -301,9 +316,9 @@ class Splitter_Window( wx.SplitterWindow ):
 
         load.pop()
         
-        for key in col_dict.keys():
-            print ("        " * ( col_dict[key] )) + key.center(8) 
-        print col_dict
+        #for key in col_dict.keys():
+        #    print ("        " * ( col_dict[key] )) + key.center(8) 
+        #print col_dict
         return col_dict
 
 
@@ -366,7 +381,7 @@ class Splitter_Window( wx.SplitterWindow ):
         for inst in module.inst_dict.values():
 
             # Find the output pins of the instance's reference module
-            module_ref = self.p1.module_dict[inst.module_ref]
+            module_ref = inst.module_ref
             output_port_names = module_ref.GetOutputPinNames()
 
             #  Now check the port/net name dictionary of the instn
