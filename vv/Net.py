@@ -20,6 +20,7 @@ class Net( Object ):
         self.lsb     = lsb
         self.size    = 0
         self.sigtype = 'normal' # or 'clock' or 'reset' - should be an enumneration
+        self.module  = None
 
         self.Calc_Size()
 
@@ -29,11 +30,12 @@ class Net( Object ):
         
     def Display(self):
         self.Calc_Size()
-        print "Port       : ", self.name
+        print "Net        : ", self.name
         print " MSB       : ", self.msb
         print " LSB       : ", self.lsb
         print " Type      : ", self.nettype
         print " (Size)    : ", self.size
+        print ""
 
     def GetLabelStr(self):
         """ Return the label for the net.  If its a bus,
