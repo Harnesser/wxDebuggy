@@ -65,7 +65,7 @@ class Module( Object ):
             vv_port_object.sigtype = 'reset'
         
         # Make link to this module
-        vv_port_object.module = self
+        vv_port_object.module_ref = self
 
         # Add port
         self.port_name_list.append( vv_port_object.name )
@@ -80,7 +80,7 @@ class Module( Object ):
         #
 
         # Make a link to this module
-        vv_net_object.module = self
+        vv_net_object.module_ref = self
     
         # Add Net
         self.net_dict[ vv_net_object.name ] = vv_net_object

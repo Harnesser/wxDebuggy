@@ -16,11 +16,11 @@ class Net( Object ):
         Object.__init__( self, name )
         
         self.nettype = nettype
-        self.msb     = msb
-        self.lsb     = lsb
-        self.size    = 0
+        self.msb = msb
+        self.lsb = lsb
+        self.size = 0
         self.sigtype = 'normal' # or 'clock' or 'reset' - should be an enumneration
-        self.module  = None
+        self.module_ref  = None
 
         self.Calc_Size()
 
