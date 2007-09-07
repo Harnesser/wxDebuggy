@@ -78,7 +78,8 @@ class hdl_parser( object ):
         for connection in toks['Named_Port_Connection']:
             port,net = connection
             inst.port_dict[port] = net          
-
+            self.current_module.add_implicit_net( net )
+            
         self.current_module.add_instanciation( inst )
 
 
