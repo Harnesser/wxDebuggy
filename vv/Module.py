@@ -1,5 +1,6 @@
 # $Id: Module.py,v 1.3 2007-08-25 03:09:03 marty Exp $
 from Object import Object
+from Net import Net
 
 class Module( Object ):
     """
@@ -63,11 +64,40 @@ class Module( Object ):
         elif vv_port_object.name.startswith('rst') :
             vv_port_object.sigtype = 'reset'
         
+        # Make link to this module
+        vv_port_object.module = self
+
         # Add port
         self.port_name_list.append( vv_port_object.name )
         self.port_dict[ vv_port_object.name ] = vv_port_object  
 
-     
+        
+    def add_net( self, vv_net_object ):
+        """ Add a net to the module
+
+        """
+
+        #
+
+        # Make a link to this module
+        vv_net_object.module = self
+    
+        # Add Net
+        self.net_dict[ vv_net_object.name ] = vv_net_object
+
+
+    def add_implicit_net( self, net_name_str ):
+        """ Add an implicit net
+
+        Usually from an instanciation, where the net in question has
+        not previously been declared. It will default to a 1-bit net
+        """
+
+        if net_name_str not in self.port_name_list:
+            net = Net( net_name_str )        
+            self.add_net( net )
+        
+
     def add_instanciation( self, vv_instance_object ):
         self.inst_dict[ vv_instance_object.name ] = vv_instance_object
 
@@ -105,6 +135,9 @@ class Module( Object ):
         for inst in self.inst_dict.values():
             inst.Display()
 
+        # Nets
+        for net in self.net_dict.values():
+            net.Display()
 
         return "Don't print me, just call me"
 
