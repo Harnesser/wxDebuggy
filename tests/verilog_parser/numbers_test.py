@@ -2,7 +2,14 @@
 """ Unittest for verilog numbers """
 
 import sys
-sys.path.append('../../Verilog2001/BNF')
+import os
+
+if os.path.exists('../../Verilog2001/BNF'): # run from this dir
+    sys.path.append('../../Verilog2001/BNF')
+elif os.path.exists('../Verilog2001/BNF'): # aggregate run from ../
+    sys.path.append('../Verilog2001/BNF')
+else:
+    print "Can't set the correct path"
 
 import pyparsing
 import numbers as mut
@@ -52,8 +59,10 @@ class ValidNumberStrings( unittest.TestCase ):
             #self.assertRaises( pyparsing.ParseException,
             #                   mut.number.parseString, verilog  )
         
-    def suite(self):
-        return unittest.makeSuite( ValidNumberStrings )
+def suite():
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(ValidNumberStrings))
+    return suite
         
 if __name__ == '__main__':
     unittest.main()
