@@ -17,8 +17,12 @@ class Port( Net ):
         self.direction = direction
        
     def __repr__(self):
-        return "Port '%s' (%s, %s, %d bits)" % \
-          ( self.name, self.direction, self.nettype, self.size )
+        module_ref_name = "_undefined_"
+        if self.module_ref: 
+            module_ref_name = module_ref.name
+
+        return "Port '%s' of module %s (%s, %s, %d bits)" % \
+          ( self.name,module_ref_name, self.direction, self.nettype, self.size )
 
     def Display(self):
         self.Calc_Size()
