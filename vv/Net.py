@@ -24,6 +24,14 @@ class Net( Object ):
 
         self.Calc_Size()
 
+    def __repr__(self):
+        module_ref_name = "_undefined_"
+        if self.module_ref: 
+            module_ref_name = module_ref.name
+    
+        return "Net '%s' of module %s (%s, %d bits)" % \
+          ( self.name, module_ref_name, self.nettype, self.size )
+
     def Calc_Size(self):
         self.size = self.msb - self.lsb + 1
       
