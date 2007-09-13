@@ -26,8 +26,8 @@ class Drawing_Object:
         self.rhs_ports = []
     
         # For nets
-        self.startpt = ''
-        self.endpt   = ''
+        self.startpt = None
+        self.endpt   = None
 
         # Virtual column number
         self.column_number = 0
@@ -223,7 +223,7 @@ class Drawing_Object:
             # Update the gluepoints dictionary - keep them
             # relatice to the position so we can move the thing around
             # easier
-            glue_point_key = self.label + '.' + port_name
+            glue_point_key = (self.label, port_name)
             self.glue_points[glue_point_key] = start_point # - self.position
 
         # Draw the output lines on the right-hand side of the module box
@@ -242,7 +242,7 @@ class Drawing_Object:
             # Update the gluepoints dictionary - keep them
             # relatice to the position so we can move the thing around
             # easier
-            glue_point_key = self.label + '.' + port_name
+            glue_point_key = (self.label, port_name)
             self.glue_points[glue_point_key] = start_point #- self.position
 
 
@@ -285,12 +285,13 @@ class Drawing_Object:
 
         # See if we need to RJ text, and fill the glue point dictionary
         label_position = self.position + wx.Point( 0, port_height/2)
-        glue_point_key = self.label
         if self.mirror: # output ports
             rj = False
+            glue_point_key = ('_oport', self.label)
             label_position = label_position + wx.Point( port_width, 0 )
             self.glue_points[glue_point_key] =  port_polygon_points[4] #- self.position
         else: # input ports
+            glue_point_key = ('_iport', self.label)
             rj = True
             self.glue_points[glue_point_key] =  port_polygon_points[2] #- self.position
 
