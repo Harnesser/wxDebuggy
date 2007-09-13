@@ -45,7 +45,7 @@ class Splitter_Window( wx.SplitterWindow ):
         
         # Determine connectivity
         self.driver_dict = self.build_driver_dict( module )
-        self.connection_list = self.get_block_connections()
+        self.connection_list, self.module_drive_dict = self.get_block_connections()
 
         if False:
             print "Stuff"
@@ -156,11 +156,11 @@ class Splitter_Window( wx.SplitterWindow ):
 
         for connection in self.connection_list:
 
-            conn1,conn2 = connection.split('=')
-            conn1 = conn1.replace('_iport.','')
-            conn1 = conn1.replace('_oport.','')                                             
-            conn2 = conn2.replace('_iport.','')
-            conn2 = conn2.replace('_oport.','')   
+            conn1,conn2 = connection
+            #conn1 = conn1.replace('_iport.','')
+            #conn1 = conn1.replace('_oport.','')                                             
+            #conn2 = conn2.replace('_iport.','')
+            #conn2 = conn2.replace('_oport.','')   
 
             # Create the flightline
             drawobj = Drawing_Object( name='conn',
@@ -186,33 +186,32 @@ class Splitter_Window( wx.SplitterWindow ):
 
         driver_dict = {}
 
-        #print "Driver Dict..."
-        #module.Display()
-        #print module.inst_dict
-
         # Loop thru instanciations in this module
         for inst in module.inst_dict.values():
 
             # Get the module definition of the instanciated module
             inst_module = inst.module_ref
-            #print "Instanciated Module..."
-            #inst_module.Display()
 
             # Get the pin:net connections.    
             for pin,net in inst.port_dict.iteritems():
-                conn_str = net + '=' + inst.name + '.' + pin
-
+            
                 # is 'net' actually a schematic port? if so, rename it
                 if net in module.port_dict:
 
                     if module.port_dict[net].direction == 'input':
-                        net = '_iport.' + net
+                        net = ('_iport', net)
                     else:
-                        net = '_oport.' + net
+                        net = ('_oport', net) 
+
+                # if it's a net, give it an instance name of '_net' so everything
+                # is a tuple now...
+                if type(net) is not tuple:
+                    net = ('_net', net)
+
 
                 # Add to driver_dict if inst.pin is an output...
                 if inst_module.GetPinDirection( pin ) == 'output':
-                    driver_name = '.'.join( [inst.name, pin] )
+                    driver_name = (inst.name, pin) #'.'.join( [inst.name, pin] )
                     if driver_name in driver_dict:
                         driver_dict[driver_name].append(net)
                     else:
@@ -220,13 +219,18 @@ class Splitter_Window( wx.SplitterWindow ):
 
                 # ...
                 else:
-                    sink_name = '.'.join( [inst.name, pin] )
+                    sink_name = (inst.name, pin) #'.'.join( [inst.name, pin] )
                     if net in driver_dict:
-                       driver_dict[net].append(sink_name)
+                        driver_dict[net].append(sink_name)
                     else:
                         driver_dict[net] = [sink_name]    
-        
-        #print "driver_dict", driver_dict
+
+
+        if False:
+            print "\nDriver Dictionary"
+            for key in driver_dict:
+                print "  ",key, "::::", driver_dict[key]
+
         return driver_dict
 
 
@@ -240,51 +244,60 @@ class Splitter_Window( wx.SplitterWindow ):
 
         """
  
-        self.module_drive_dict = {} # for column placement
-        block_to_block_connection_list = []
+        module_drive_dict = {} # for column placement
+        point_to_point_connection_list = []
 
         for driver in self.driver_dict.keys():
+            driver_inst, driver_name = driver # untuple
 
-            inst_name = driver.split('.')[0]
+            driven_things = self.driver_dict[ driver ]
+            for net in driven_things:
+                net_inst, net_name = net # untuple
 
-            nets = self.driver_dict[ driver ]
-            for net in nets:
-                inst_net = net.split('.')[0]
+                if  net_inst is '_oport': # Add output port connections
+                    point_to_point_connection_list.append( (driver,net) )
 
-                if  net.startswith('_oport.'): # Add output port connections
-                    block_to_block_connection_list.append( driver + '=' + net )
+                    # This section builds the module-module driver list    
+                    if driver_inst in module_drive_dict:
+                        module_drive_dict[driver_inst].append('_oport')
+                    else:
+                        module_drive_dict[driver_inst] = ['_oport']                  
+
+                if driver_inst is ('_iport'): # Add input port connections 
+                    point_to_point_connection_list.append( (driver, net) )
 
                     # This section builds the module-module driver list                           
-                    if inst_name in self.module_drive_dict:
-                        self.module_drive_dict[inst_name].append('_oport')
-                    else:
-                        self.module_drive_dict[inst_name] = ['_oport']                  
+                    if '_iport' in module_drive_dict:
+                        module_drive_dict['_iport'].append( net_inst )
 
-                if driver.startswith('_iport.'): # Add input port connections 
-                    block_to_block_connection_list.append( driver + '=' + net )
-
-                    # This section builds the module-module driver list                           
-                    if '_iport' in self.module_drive_dict:
-                        self.module_drive_dict['_iport'].append( inst_net )
                     else:
-                        self.module_drive_dict['_iport'] = [ inst_net ]        
+                        module_drive_dict['_iport'] = [ net_inst ]        
 
                 if net in self.driver_dict:
+
                     sink_list = self.driver_dict[net]
-
                     for sink in sink_list:
-                        sink_inst_name = sink.split('.')[0]
-                        block_to_block_connection_list.append( driver + '=' + sink )
+                        sink_inst, sink_name = sink # untuple
 
-                        # This section builds the module-module driver list                           
-                        if inst_name in self.module_drive_dict:
-                            self.module_drive_dict[inst_name].append( sink_inst_name)
+                        point_to_point_connection_list.append( (driver, sink) )
+
+                        # This section builds the module-module driver list 
+                        if driver_inst in module_drive_dict:
+                            module_drive_dict[driver_inst].append(sink_inst)
                         else:
-                            self.module_drive_dict[inst_name] = [ sink_inst_name ]        
+                            module_drive_dict[driver_inst] = [sink_inst]        
                 
-        self.module_drive_dict['_oport'] = [ ] 
+        module_drive_dict['_oport'] = [ ] 
 
-        return block_to_block_connection_list   
+        if True:
+            #print "\nPoint-to-Point"
+            #for connection in point_to_point_connection_list:
+            #    print "   ",connection 
+            print "\nModule Driver Dict"
+            for key in module_drive_dict:
+                print "   ", key, " drives: ", module_drive_dict[key]
+
+        return point_to_point_connection_list, module_drive_dict  
 
 
     def columnize( self, driver_dict, inst, col_dict, load = []):
@@ -296,7 +309,7 @@ class Splitter_Window( wx.SplitterWindow ):
         col_num = col_dict[inst] + 1
         load.append(inst)
 
-        #print "::", inst, driver_dict.keys()
+        print "::", inst, driver_dict.keys()
 
         #  Go through the drivers of this sink and update their
         # column numbers if necessary
@@ -316,9 +329,10 @@ class Splitter_Window( wx.SplitterWindow ):
 
         load.pop()
         
-        #for key in col_dict.keys():
-        #    print ("        " * ( col_dict[key] )) + key.center(8) 
-        #print col_dict
+        for key in col_dict.keys():
+            print ("        " * ( col_dict[key] )) + key.center(8) 
+        print "-" * 80
+        print col_dict
         return col_dict
 
 
