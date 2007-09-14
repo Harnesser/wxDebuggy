@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <note version="0.2" xmlns:link="http://beatniksoftware.com/tomboy/link" xmlns:size="http://beatniksoftware.com/tomboy/size" xmlns="http://beatniksoftware.com/tomboy">
   <title>wxDebuggy RoadMap</title>
-  <text xml:space="preserve"><note-content version="0.1"><link:internal>wxDebuggy</link:internal> RoadMap
+  <text xml:space="preserve"><note-content version="0.1">wxDebuggy RoadMap
 
 <size:large><link:internal>Version 0.1</link:internal></size:large> - The Basics (25-AUG-07)
 <list><list-item dir="ltr"><highlight>Read in a fixed verilog file list</highlight>
@@ -15,7 +15,7 @@
 </list-item><list-item dir="ltr"><highlight>Unittest foundation</highlight></list-item></list>
 
 <size:large><link:internal>Version 0.2</link:internal></size:large> - Circuit Drawing Enhancements
-<list><list-item dir="ltr">Draw <link:broken>module</link:broken> instanciations placed in Left to Right order depending on signal flow
+<list><list-item dir="ltr">Draw <link:broken>module</link:broken> instanciations placed in Left to Right order depending on signal flow 
 </list-item><list-item dir="ltr">Draw routed nets which do not fly over instanciations</list-item></list>
 
 <size:large>Version 0.3</size:large> - Verilog Language Support Enhancements
@@ -25,14 +25,16 @@
 </list-item><list-item dir="ltr">Parse <bold><monospace>always</monospace></bold> blocks
 </list-item><list-item dir="ltr">Draw <bold>a<monospace>lways</monospace></bold> blocks as blocks
 </list-item><list-item dir="ltr">Concatenation support
-</list-item><list-item dir="ltr">Ordered port connections</list-item></list>
+</list-item><list-item dir="ltr">Ordered port connections - Verilog 1995</list-item></list>
 
 <size:large><link:internal>Version 0.4</link:internal></size:large> - <link:broken>GUI Enhancements</link:broken>
 <list><list-item dir="ltr">Net highlighting
 </list-item><list-item dir="ltr">Bookmarking of views
 </list-item><list-item dir="ltr">Zooming and Panning around circuit: keyboard and mousewheel support
-</list-item><list-item dir="ltr">Cache previously viewed module?
-</list-item><list-item dir="ltr">Artwork: icon, splashscreen</list-item></list>
+</list-item><list-item dir="ltr">Cache previously viewed modules?
+</list-item><list-item dir="ltr">Artwork: icon, splashscreen
+</list-item><list-item dir="ltr">Search: Nets. instances
+</list-item><list-item dir="ltr">Zoom to selected</list-item></list>
 
 <size:large>Version 0.5 </size:large>- Parameter Support
 <list><list-item dir="ltr">Parse <link:broken>module</link:broken> parameters
@@ -45,7 +47,8 @@
 -<size:large>
 Version 0.7</size:large> - Array Support
 <list><list-item dir="ltr">Array of Instances
-</list-item><list-item dir="ltr"><bold><monospace>generate</monospace></bold> blocks</list-item></list>
+</list-item><list-item dir="ltr"><bold><monospace>generate</monospace></bold> blocks
+<list><list-item dir="ltr">Can start eating own dogfood?</list-item></list></list-item></list>
 
 <size:large>Version 0.8</size:large> - Debug Functionality
 <list><list-item dir="ltr">Net drivers tracing
@@ -61,14 +64,20 @@ Version 0.7</size:large> - Array Support
 </list-item><list-item dir="ltr">Draw datapath blocks: adders, comparators etc</list-item></list>
 
 
-<size:huge>Version 1.0</size:huge> - Final Tidy-Up
-<list><list-item dir="ltr">Test with real-life RTL: From OpenCores and from ADI
-</list-item><list-item dir="ltr">Test at work
+<size:huge><link:internal>Version 1.0</link:internal></size:huge> - Final Tidy-Up
+<list><list-item dir="ltr">Test with real-life RTL: From OpenCores and from ADI (if legal)
+</list-item><list-item dir="ltr">Test at work - eat own dogfood
 </list-item><list-item dir="ltr">Debian package
 </list-item><list-item dir="ltr">Windows Installer
 </list-item><list-item dir="ltr">Desktop integration
 </list-item><list-item dir="ltr">About
 </list-item><list-item dir="ltr">Help</list-item></list>
+
+
+<size:large>Release</size:large> 
+<list><list-item dir="ltr">Website
+</list-item><list-item dir="ltr">Show lads at work
+</list-item><list-item dir="ltr">Sourceforge?</list-item></list>
 
 
 <size:large>Future Enhancements</size:large>
@@ -78,11 +87,11 @@ Version 0.7</size:large> - Array Support
 </list-item><list-item dir="ltr">Option to not route Clock or Reset nets, but instead indicate that they are connected
 </list-item><list-item dir="ltr">HTML hitmap export option</list-item></list>
 </note-content></text>
-  <last-change-date>2007-09-02T20:28:16.2894580+01:00</last-change-date>
+  <last-change-date>2007-09-13T20:52:34.8893950+01:00</last-change-date>
   <create-date>2007-08-25T00:14:10.0083640+01:00</create-date>
-  <cursor-position>1893</cursor-position>
-  <width>300</width>
-  <height>868</height>
-  <x>1134</x>
-  <y>0</y>
+  <cursor-position>1394</cursor-position>
+  <width>315</width>
+  <height>867</height>
+  <x>1119</x>
+  <y>1</y>
 </note>
