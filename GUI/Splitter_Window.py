@@ -212,18 +212,12 @@ class Splitter_Window( wx.SplitterWindow ):
                 # Add to driver_dict if inst.pin is an output...
                 if inst_module.GetPinDirection( pin ) == 'output':
                     driver_name = (inst.name, pin) #'.'.join( [inst.name, pin] )
-                    if driver_name in driver_dict:
-                        driver_dict[driver_name].append(net)
-                    else:
-                        driver_dict[driver_name] = [ net ]
+                    driver_dict.setdefault(driver_name, []).append(net)
 
                 # ...
                 else:
                     sink_name = (inst.name, pin) #'.'.join( [inst.name, pin] )
-                    if net in driver_dict:
-                        driver_dict[net].append(sink_name)
-                    else:
-                        driver_dict[net] = [sink_name]    
+                    driver_dict.setdefault(net, []).append(sink_name)
 
 
         if False:
