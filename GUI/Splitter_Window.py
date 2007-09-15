@@ -258,21 +258,14 @@ class Splitter_Window( wx.SplitterWindow ):
                     point_to_point_connection_list.append( (driver,net) )
 
                     # This section builds the module-module driver list    
-                    if driver_inst in module_drive_dict:
-                        module_drive_dict[driver_inst].append('_oport')
-                    else:
-                        module_drive_dict[driver_inst] = ['_oport']                  
+                    module_drive_dict.setdefault(driver_inst, []).append('_oport')           
 
                 if driver_inst is ('_iport'): # Add input port connections 
                     point_to_point_connection_list.append( (driver, net) )
 
-                    # This section builds the module-module driver list                           
-                    if '_iport' in module_drive_dict:
-                        module_drive_dict['_iport'].append( net_inst )
-
-                    else:
-                        module_drive_dict['_iport'] = [ net_inst ]        
-
+                    # This section builds the module-module driver list        
+                    module_drive_dict.setdefault('_iport', []).append( net_inst )                   
+    
                 if net in self.driver_dict:
 
                     sink_list = self.driver_dict[net]
@@ -282,10 +275,7 @@ class Splitter_Window( wx.SplitterWindow ):
                         point_to_point_connection_list.append( (driver, sink) )
 
                         # This section builds the module-module driver list 
-                        if driver_inst in module_drive_dict:
-                            module_drive_dict[driver_inst].append(sink_inst)
-                        else:
-                            module_drive_dict[driver_inst] = [sink_inst]        
+                        module_drive_dict.setdefault(driver_inst,[]).append(sink_inst)      
                 
         module_drive_dict['_oport'] = [ ] 
 
@@ -329,10 +319,12 @@ class Splitter_Window( wx.SplitterWindow ):
 
         load.pop()
         
-        for key in col_dict.keys():
-            print ("        " * ( col_dict[key] )) + key.center(8) 
-        print "-" * 80
-        print col_dict
+        if True:
+            for key in col_dict.keys():
+                print ("        " * ( col_dict[key] )) + key.center(8) 
+            print "-" * 80
+            print col_dict
+
         return col_dict
 
 
