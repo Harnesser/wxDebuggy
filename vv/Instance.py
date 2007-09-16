@@ -27,6 +27,9 @@ class Instance( Object ):
         self.num_inputs  = 0
         self.num_outputs = 0
 
+    def __repr__(self):
+        return 'Instance %s of module %s' % ( self.name, self.module_ref_name )
+        
 
     def Display( self ):
         print '\nInstance "%s" of module "%s" ' % (self.name , self.module_ref_name)
