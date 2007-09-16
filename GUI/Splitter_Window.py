@@ -35,7 +35,7 @@ class Splitter_Window( wx.SplitterWindow ):
 
         
     def BuildDrawObjList( self ):
-        """ Biuld the list of objects to display on the screen.
+        """ Build the list of objects to display on the screen.
 
         Add the instance modules and ports."""
 
@@ -44,8 +44,8 @@ class Splitter_Window( wx.SplitterWindow ):
         module = self.p1.module_dict[ self.p1.cur_module_ref ]
         
         # Determine connectivity
-        self.driver_dict = self.build_driver_dict( module )
-        self.connection_list, self.module_drive_dict = self.get_block_connections()
+        self.driver_dict = self.build_driver_dict(module)
+        self.connection_list, self.module_drive_dict = self.get_block_connections(module)
 
         if False:
             print "Stuff"
@@ -205,9 +205,9 @@ class Splitter_Window( wx.SplitterWindow ):
 
                 # if it's a net, give it an instance name of '_net' so everything
                 # is a tuple now...
-                if type(net) is not tuple:
+                elif type(net) is not tuple:
                     net = ('_net', net)
-
+    
 
                 # Add to driver_dict if inst.pin is an output...
                 if inst_module.GetPinDirection( pin ) == 'output':
@@ -229,12 +229,13 @@ class Splitter_Window( wx.SplitterWindow ):
 
 
 
-    def get_block_connections( self ):
+    def get_block_connections( self, module):
         """Determine the connections in the current module
 
         This uses the driver_dict to build a connections list.  The driver_dict will
-        contain inst.pin:net or net:inst.pin, and this module builds a connection list in 
-        the form inst.pin:inst:pin (where inst can be input or output ports).
+        contain ((inst,pin),('_net',net)) or (('_net',net),(inst,pin)) and this module 
+        builds a connection list in the form ((inst,pin),(inst,pin))
+        (where inst can also be input or output ports ('_iport' or '_oport') ).
 
         """
  
@@ -258,7 +259,14 @@ class Splitter_Window( wx.SplitterWindow ):
                     point_to_point_connection_list.append( (driver, net) )
 
                     # This section builds the module-module driver list        
-                    module_drive_dict.setdefault('_iport', []).append( net_inst )                   
+                    instantiated_module = module.inst_dict[net_inst]
+                    sink_port = instantiated_module.module_ref.port_dict[net_name]
+                    print "()()() sink_port:", sink_port
+                    if sink_port.sigtype == 'normal':
+                        module_drive_dict.setdefault('_iport',[]).append(net_inst)      
+                    else:   
+                        print "%s looks like a reset/clock" % ( net_inst )
+
     
                 if net in self.driver_dict:
 
@@ -269,8 +277,15 @@ class Splitter_Window( wx.SplitterWindow ):
                         point_to_point_connection_list.append( (driver, sink) )
 
                         # This section builds the module-module driver list 
-                        module_drive_dict.setdefault(driver_inst,[]).append(sink_inst)      
-                
+                        instantiated_module = module.inst_dict[sink_inst]
+                        sink_port = instantiated_module.module_ref.port_dict[sink_name]
+                        print "()()() sink_port:", sink_port
+                        if sink_port.sigtype == 'normal':
+                            module_drive_dict.setdefault(driver_inst,[]).append(sink_inst)      
+                        else:   
+                            print "%s looks like a reset/clock" % ( sink_port )
+                     
+
         module_drive_dict['_oport'] = [ ] 
 
         if True:
@@ -306,7 +321,7 @@ class Splitter_Window( wx.SplitterWindow ):
 
             # Only update the column count if needed.  If the load
             # is already to the right of this inst, then leave its
-            # col number alone.
+            # col number alone. 
             if col_num > col_dict[driver]:
                 col_dict[driver] = col_num
                 col_dict = self.columnize( driver_dict, driver, col_dict, load )
