@@ -4,6 +4,10 @@
 # $Id: Port.py,v 1.1 2007-08-15 23:53:10 marty Exp $
 from Net import Net
 
+## We'll ride the spiral until the end ##
+## It may just go where no-one's been ##
+## Spiral Out! ##
+
 class Port( Net ):
 
     def __init__(self,
