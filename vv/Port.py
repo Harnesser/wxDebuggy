@@ -19,10 +19,10 @@ class Port( Net ):
     def __repr__(self):
         module_ref_name = "_undefined_"
         if self.module_ref: 
-            module_ref_name = module_ref.name
+            module_ref_name = self.module_ref.name
 
-        return "Port '%s' of module %s (%s, %s, %d bits)" % \
-          ( self.name,module_ref_name, self.direction, self.nettype, self.size )
+        return "Port '%s' (%s) of module %s (%s, %s, %d bits)" % \
+          ( self.name, self.sigtype, module_ref_name, self.direction, self.nettype, self.size )
 
     def Display(self):
         self.Calc_Size()
