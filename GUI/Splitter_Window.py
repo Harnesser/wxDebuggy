@@ -2,6 +2,7 @@ import wx
 from Hier_Ctrl import *
 from Schem_View import *
 from Drawing_Object import *
+import PnR.placement_mfl as placement
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Splitter_Window
@@ -62,7 +63,7 @@ class Splitter_Window( wx.SplitterWindow ):
         inst_col_dict['_iport'] = 0
         
         print r"////oOOo\\\\" * 20
-        inst_col_dict = self.columnize( self.module_drive_dict, '_iport', inst_col_dict )
+        inst_col_dict = placement.columnize( self.module_drive_dict, '_iport', inst_col_dict )
 
 
         prev_y_pos = [0] * ( max( inst_col_dict.values() ) + 1 )
@@ -297,45 +298,6 @@ class Splitter_Window( wx.SplitterWindow ):
                 print "   ", key, " drives: ", module_drive_dict[key]
 
         return point_to_point_connection_list, module_drive_dict  
-
-
-    def columnize( self, driver_dict, inst, col_dict, load = []):
-        """ Find the drivers of the current inst, and set their
-        column numbers to one less than the current.
-
-        Look out for loops by doing something magical..."""
-
-        col_num = col_dict[inst] + 1
-        load.append(inst)
-
-        print "::", inst, driver_dict.keys()
-
-        #  Go through the drivers of this sink and update their
-        # column numbers if necessary
-        for driver in driver_dict[inst]:
-
-            # Loop dectection...
-            if driver in load :
-                print "Loop!!: ", driver, ":", load
-                continue
-
-            # Only update the column count if needed.  If the load
-            # is already to the right of this inst, then leave its
-            # col number alone. 
-            if col_num > col_dict[driver]:
-                col_dict[driver] = col_num
-                col_dict = self.columnize( driver_dict, driver, col_dict, load )
-
-        load.pop()
-        
-        if True:
-            for key in col_dict.keys():
-                print ("        " * ( col_dict[key] )) + key.center(8) 
-            print "-" * 80
-            print col_dict
-
-        return col_dict
-
 
 
     def write_graphviz( self, module ):
