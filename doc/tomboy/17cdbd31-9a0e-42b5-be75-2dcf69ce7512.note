@@ -51,13 +51,27 @@ Then, I'm building the driver list in objectorientated land.  Next, I can easily
 <size:large>13-SEP-07</size:large>: This is not good enough.  vv.Ports and vv.Nets may now know which vv.Module they're in, but for connections I need a vv.Instance name too...
 
 
+<size:large>15-SEP-07</size:large>: I've regressed slightly.  No longer building the connection lists in OO land.  But the old way with strings was very ugly too.  So now I build them using tuples...  If I implement the ignorance of clk and reset connections when columnising,  I can mark off the 1st bullet point for version 0.2! Actually no I can't... I still have to place things in the Y-axis.  Bollix.
+
+I'm really not that much further on since I imported the version I'd developped on me laptop...
+
+I think I'm missing an instanciation -&gt; module dict too... ?
+
+<size:large>11-OCT-08</size:large>: (Nearly a month on?!?!?!)
+I've decided that the Y-placement of the instanciations in a given module are going to be determined by whatever combination gives the minimum 'sum of the net flight lengths'.  This may not be of any use if there is no minima.  First cut, I'm going to forget about the O(n)^2 or whatever of the algorithm - I'm just going combo to see if it works. Also, the columising algorithm that I've implemented is not going to waste - I just have to determine the (x,y) of each instanciation.
+
+
+
+
+
+
 
 <size:large>Signal Routing</size:large></note-content></text>
-  <last-change-date>2007-09-13T20:40:36.6587690+01:00</last-change-date>
+  <last-change-date>2007-10-11T22:12:13.9325170+01:00</last-change-date>
   <create-date>2007-08-27T01:03:33.2981770+01:00</create-date>
-  <cursor-position>3874</cursor-position>
-  <width>671</width>
-  <height>577</height>
-  <x>437</x>
-  <y>106</y>
+  <cursor-position>5211</cursor-position>
+  <width>962</width>
+  <height>767</height>
+  <x>123</x>
+  <y>45</y>
 </note>

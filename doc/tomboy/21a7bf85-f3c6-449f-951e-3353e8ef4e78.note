@@ -6,7 +6,7 @@
 <size:large><link:internal>Version 0.1</link:internal></size:large> - The Basics (25-AUG-07)
 <list><list-item dir="ltr"><highlight>Read in a fixed verilog file list</highlight>
 </list-item><list-item dir="ltr"><highlight>Build the <link:internal>Verilog Parser</link:internal></highlight><highlight>: starting with a basic subset of verilog language</highlight>
-</list-item><list-item dir="ltr"><highlight>Build <link:internal>Circuit Data Structure</link:internal></highlight>
+</list-item><list-item dir="ltr"><highlight>Build <link:internal>Circuit Data Structure</link:internal></highlight>`
 </list-item><list-item dir="ltr"><highlight>Draw <link:broken>module</link:broken></highlight><highlight> instanciations</highlight>
 </list-item><list-item dir="ltr"><highlight>Draw ratsnest connections</highlight>
 </list-item><list-item dir="ltr"><highlight>Draw <link:broken>module</link:broken></highlight><highlight> ports</highlight>
@@ -15,8 +15,10 @@
 </list-item><list-item dir="ltr"><highlight>Unittest foundation</highlight></list-item></list>
 
 <size:large><link:internal>Version 0.2</link:internal></size:large> - Circuit Drawing Enhancements
-<list><list-item dir="ltr">Draw <link:broken>module</link:broken> instanciations placed in Left to Right order depending on signal flow 
-</list-item><list-item dir="ltr">Draw routed nets which do not fly over instanciations</list-item></list>
+<list><list-item dir="ltr"><highlight>Draw <link:broken>module</link:broken></highlight><highlight> instanciations placed in Left to Right order depending on signal flow </highlight>
+</list-item><list-item dir="ltr">Sort the columns of modules in a way to minimise flightline length
+</list-item><list-item dir="ltr">Draw routed nets which do not fly over instanciations
+<list><list-item dir="ltr">A huge task which will need to be broken down</list-item></list></list-item></list>
 
 <size:large>Version 0.3</size:large> - Verilog Language Support Enhancements
 <list><list-item dir="ltr">Parse ranges
@@ -87,11 +89,11 @@ Version 0.7</size:large> - Array Support
 </list-item><list-item dir="ltr">Option to not route Clock or Reset nets, but instead indicate that they are connected
 </list-item><list-item dir="ltr">HTML hitmap export option</list-item></list>
 </note-content></text>
-  <last-change-date>2007-09-13T20:52:34.8893950+01:00</last-change-date>
+  <last-change-date>2007-09-16T02:43:48.4777320+01:00</last-change-date>
   <create-date>2007-08-25T00:14:10.0083640+01:00</create-date>
-  <cursor-position>1394</cursor-position>
-  <width>315</width>
-  <height>867</height>
-  <x>1119</x>
-  <y>1</y>
+  <cursor-position>770</cursor-position>
+  <width>299</width>
+  <height>859</height>
+  <x>1130</x>
+  <y>0</y>
 </note>
