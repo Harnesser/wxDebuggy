@@ -48,10 +48,9 @@ class Splitter_Window( wx.SplitterWindow ):
         self.driver_dict = self.build_driver_dict(module)
         self.connection_list, self.module_drive_dict = self.get_block_connections(module)
 
-        if False:
-            print "Stuff"
-            print self.driver_dict
-            print self.connection_list
+
+        if True:
+            self.show_connection_lists_and_dictionaries()
 
         #self.write_graphviz( module )
 
@@ -175,7 +174,7 @@ class Splitter_Window( wx.SplitterWindow ):
             
 
 
-    def build_driver_dict(self, module ):
+    def build_driver_dict(self, module, debug = False ):
         """ Build a dictionary of what each net and input port drives.
 
         Loops thru the instanciations in the current module and adds each
@@ -221,7 +220,7 @@ class Splitter_Window( wx.SplitterWindow ):
                     driver_dict.setdefault(net, []).append(sink_name)
 
 
-        if False:
+        if debug:
             print "\nDriver Dictionary"
             for key in driver_dict:
                 print "  ",key, "::::", driver_dict[key]
@@ -230,7 +229,7 @@ class Splitter_Window( wx.SplitterWindow ):
 
 
 
-    def get_block_connections( self, module):
+    def get_block_connections( self, module, debug=False):
         """Determine the connections in the current module
 
         This uses the driver_dict to build a connections list.  The driver_dict will
@@ -289,7 +288,7 @@ class Splitter_Window( wx.SplitterWindow ):
 
         module_drive_dict['_oport'] = [ ] 
 
-        if True:
+        if debug:
             #print "\nPoint-to-Point"
             #for connection in point_to_point_connection_list:
             #    print "   ",connection 
@@ -298,6 +297,23 @@ class Splitter_Window( wx.SplitterWindow ):
                 print "   ", key, " drives: ", module_drive_dict[key]
 
         return point_to_point_connection_list, module_drive_dict  
+
+
+    def show_connection_lists_and_dictionaries(self):
+        """ A debug thing """
+
+        print "\n\n### Driver Dictionary"
+        for key in self.driver_dict.keys():
+            print "  [%s]: %s" % ( key, self.driver_dict[key] )
+        
+        print "\n\n### Connection Tuple List"
+        for conn in self.connection_list:
+            print "  ", conn
+
+        print "\n\n### Module Drive Dictionary"
+        for key in self.module_drive_dict.keys():
+            print "  [%s]: %s" % ( key, self.module_drive_dict[key] )
+
 
 
     def write_graphviz( self, module ):
