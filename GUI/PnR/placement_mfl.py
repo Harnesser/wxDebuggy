@@ -4,7 +4,7 @@
 #
 
 
-def columnize( driver_dict, inst, col_dict, load = []):
+def columnize( driver_dict, inst, col_dict, load = [], debug = True ):
     """ Find the drivers of the current inst, and set their
     column numbers to one less than the current.
 
@@ -33,7 +33,7 @@ def columnize( driver_dict, inst, col_dict, load = []):
 
     load.pop()
     
-    if True:
+    if debug:
         for key in col_dict.keys():
             print ("        " * ( col_dict[key] )) + key.center(8) 
         print "-" * 80
@@ -43,5 +43,17 @@ def columnize( driver_dict, inst, col_dict, load = []):
 
 
 
+def place_instanciations( module, driver_dict, col_dict ):
+    """ Place the instanciations of the current module by minimizing the total length of 
+    all the connection flight lines.
+
+    At the minute, this is pure combinatorial.  Will take ages for big ccts. 
+    """
+
+    for col in col_dict.values():
+
+        for other_col in col_dict.values():
+            pass
 
 
+    
