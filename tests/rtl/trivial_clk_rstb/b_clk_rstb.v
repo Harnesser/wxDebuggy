@@ -5,7 +5,8 @@ module b_clk_rstb
    input clk,
    input rstb,
    output out1,
-   output out2 );
+   output out2,
+   output out3 );
    
 endmodule
    
