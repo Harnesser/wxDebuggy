@@ -37,6 +37,10 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
                      'tests/rtl/trivial_clk_rstb/top_clk_rstb.v',
                      'tests/rtl/trivial_clk_rstb/a_clk_rstb.v',
                      'tests/rtl/trivial_clk_rstb/b_clk_rstb.v',
+                     'tests/rtl/spider/four_in_four_out.v',
+                     'tests/rtl/spider/one_in_one_out.v',
+                     'tests/rtl/spider/spider.v',
+                     'tests/rtl/spider/two_in_two_out.v',  
                      ]
 
         myparser = hdl_parser()
