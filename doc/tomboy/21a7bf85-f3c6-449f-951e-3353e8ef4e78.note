@@ -89,9 +89,9 @@ Version 0.7</size:large> - Array Support
 </list-item><list-item dir="ltr">Option to not route Clock or Reset nets, but instead indicate that they are connected
 </list-item><list-item dir="ltr">HTML hitmap export option</list-item></list>
 </note-content></text>
-  <last-change-date>2007-09-16T02:43:48.4777320+01:00</last-change-date>
+  <last-change-date>2007-10-16T19:56:48.0658540+01:00</last-change-date>
   <create-date>2007-08-25T00:14:10.0083640+01:00</create-date>
-  <cursor-position>770</cursor-position>
+  <cursor-position>771</cursor-position>
   <width>299</width>
   <height>859</height>
   <x>1130</x>
