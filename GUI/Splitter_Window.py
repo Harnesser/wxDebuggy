@@ -323,8 +323,8 @@ class Splitter_Window( wx.SplitterWindow ):
         hDOT.write('digraph ' + module.name + ' {')
         hDOT.write('  rankdir = LR;')
         for connection in self.connection_list:
-            source,sink = connection.split('=')
-            write_str = '  %s -> %s;' % ( source, sink )  
+            source,sink = connection
+            write_str = '  %s -> %s;' % ( '.'.join(source), '.'.join(sink) )  
             hDOT.write(write_str.replace('.',':'))
         hDOT.write('}')
 
