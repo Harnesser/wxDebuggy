@@ -245,7 +245,8 @@ class Drawing_Object:
             glue_point_key = (self.label, port_name)
             self.glue_points[glue_point_key] = start_point #- self.position
 
-
+        # draw the instance name of the module
+        self.drawInstName( dc, self.label )
 
     def Draw_Port( self, dc, selected=False ):
         """ Draw a port symbol """
@@ -328,8 +329,30 @@ class Drawing_Object:
             dc.DrawLinePoint( start_point, end_point + wx.Point(1,1) )
 
     
-        
 
+    def drawInstName( self, dc, inst_name ):
+        """ Display the instance name """
+
+        font = wx.Font(self.pin_label_size,
+                       wx.DEFAULT,     #
+                       wx.NORMAL,      # Weight
+                       wx.NORMAL,      # Style
+                       False,          # Underlined?
+                       self.pin_label_font)
+
+        # Set the pin label font specs
+        dc.SetTextForeground(wx.BLACK)
+        dc.SetTextBackground(wx.WHITE)
+        dc.SetFont(font)
+
+        # text extent.
+        label_width, label_height = dc.GetTextExtent( inst_name )
+    
+        # Now centre the instance name within the module's outline block
+        xpos = self.position.x + self.bbox.width/2 - label_width/2
+        ypos = self.position.y + self.bbox.height/2 - label_height/2
+
+        dc.DrawTextPoint( inst_name, (xpos,ypos) )
 
 
 
