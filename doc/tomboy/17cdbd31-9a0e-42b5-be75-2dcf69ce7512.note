@@ -57,19 +57,19 @@ I'm really not that much further on since I imported the version I'd developped 
 
 I think I'm missing an instanciation -&gt; module dict too... ?
 
-<size:large>11-OCT-08</size:large>: (Nearly a month on?!?!?!)
+<size:large>11-OCT-07</size:large>: (Nearly a month on?!?!?!)
 I've decided that the Y-placement of the instanciations in a given module are going to be determined by whatever combination gives the minimum 'sum of the net flight lengths'.  This may not be of any use if there is no minima.  First cut, I'm going to forget about the O(n)^2 or whatever of the algorithm - I'm just going combo to see if it works. Also, the columising algorithm that I've implemented is not going to waste - I just have to determine the (x,y) of each instanciation.
 
 0.2 is a serious bitch and it's taking all of my self control not to go and do other stuff which is easier.  But at the end of the day, this app is pointless until I get a nice (or at least usable) place &amp; route thing going.
 
-
-
+<size:large>23-OCT-07</size:large>:  A change of tact?
+Right, the flightlength thing may not be a runner.  I haven't coded anything for it cos I think that there may be another way out by 'tetrising' the port -&gt; port connections.  I still can't explain this idea succinctly, much less code it.
 
 
 <size:large>Signal Routing</size:large></note-content></text>
-  <last-change-date>2007-10-11T22:59:51.3166980+01:00</last-change-date>
+  <last-change-date>2007-10-23T22:17:29.8830720+01:00</last-change-date>
   <create-date>2007-08-27T01:03:33.2981770+01:00</create-date>
-  <cursor-position>5574</cursor-position>
+  <cursor-position>5735</cursor-position>
   <width>962</width>
   <height>767</height>
   <x>123</x>

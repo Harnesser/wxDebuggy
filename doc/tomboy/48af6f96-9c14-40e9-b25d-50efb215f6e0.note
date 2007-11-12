@@ -36,9 +36,9 @@ Read in Verilog source files and display them as a circuit.  Allow nets to be hi
 <link:internal>wxDebuggy RoadMap</link:internal>
 
 </note-content></text>
-  <last-change-date>2007-08-25T05:11:54.1660000+01:00</last-change-date>
+  <last-change-date>2007-08-25T05:11:58.0000000+01:00</last-change-date>
   <create-date>2007-08-10T04:32:32.8676540+01:00</create-date>
-  <cursor-position>424</cursor-position>
+  <cursor-position>249</cursor-position>
   <width>554</width>
   <height>491</height>
   <x>170</x>

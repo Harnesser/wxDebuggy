@@ -15,10 +15,12 @@ The circuit data structure (CDS) is a dictionary of <bold><link:broken><monospac
 
 <size:large>The Module Object</size:large>
 This stores the info needed to draw each HDL module.  It contains 4 dictionaries which must be built by the parser, namely: a dict of ports, a dict of nets, a dict of instanciations and a dict of parameters
-</note-content></text>
-  <last-change-date>2007-09-08T01:25:12.0000000+01:00</last-change-date>
+
+<size:large>Memory Usage</size:large>
+Do I have to keep the entire design in memory after I parse it? Maybe I can parse it and then pickle a module:CDS data structure or something, and read each bit in as I need it...</note-content></text>
+  <last-change-date>2007-11-12T22:26:35.8813230+00:00</last-change-date>
   <create-date>2007-08-25T01:05:47.6006300+01:00</create-date>
-  <cursor-position>222</cursor-position>
+  <cursor-position>413</cursor-position>
   <width>800</width>
   <height>590</height>
   <x>27</x>

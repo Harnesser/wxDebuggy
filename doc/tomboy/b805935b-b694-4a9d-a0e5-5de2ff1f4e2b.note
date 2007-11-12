@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<note version="0.2" xmlns:link="http://beatniksoftware.com/tomboy/link" xmlns:size="http://beatniksoftware.com/tomboy/size" xmlns="http://beatniksoftware.com/tomboy">
+  <title>Version 0.6</title>
+  <text xml:space="preserve"><note-content version="0.1">Version 0.6
+
+<size:large>Verilog Configurations in Debussy</size:large>
+I noticed from working on the MCM, that Debussy is a bitch when it comes to handling verilog configs.  Docs say that it can handle them, but only if you use 2-step invocation.  This is balls- It can't even parse lib.map files properly.
+
+<size:large>Verilog Configurations in <link:internal>wxDebuggy</link:internal></size:large>
+I'll have it fixed for <link:internal>wxDebuggy</link:internal>.  I'll actually read the section on configurations in the LRM.
+
+</note-content></text>
+  <last-change-date>2007-11-12T22:20:32.8276280+00:00</last-change-date>
+  <create-date>2007-11-12T22:17:23.7942180+00:00</create-date>
+  <cursor-position>234</cursor-position>
+  <width>450</width>
+  <height>360</height>
+  <x>460</x>
+  <y>371</y>
+</note>
