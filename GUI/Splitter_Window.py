@@ -17,7 +17,6 @@ class Splitter_Window( wx.SplitterWindow ):
         self.driver_dict = {}
         self.connection_list = []
         self.module_drive_dict = {} # for column placement
-
         self.filename = None
         self.p1 = Hier_Ctrl( self )
         self.p2 = Schem_View( self )
@@ -55,6 +54,7 @@ class Splitter_Window( wx.SplitterWindow ):
         #self.write_graphviz( module )
 
         # Place the blocks in columns
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         inst_col_dict = {}
         for inst in module.inst_dict.values():
             inst_col_dict[ inst.name ] = 0
@@ -66,9 +66,9 @@ class Splitter_Window( wx.SplitterWindow ):
 
 
         prev_y_pos = [0] * ( max( inst_col_dict.values() ) + 1 )
-
-        self.p2.drawobj_list = []  # Initialise the list
-
+        
+        drawing_object_dict = {} 
+   
         # Add module instanciations to the list
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         if module.inst_dict.values() :
@@ -94,19 +94,30 @@ class Splitter_Window( wx.SplitterWindow ):
 
                 drawobj._update_sizes()
                 
-                # Add to drawing object list
-                self.p2.drawobj_list.append( drawobj )
+                # Add to drawing object dict
+                drawing_object_dict[inst.name] = drawobj
 
                 # Next y_position
                 prev_y_pos[ inst_col_dict[inst.name] ] = y_pos + drawobj.getSize().y
                 
         else:
             # a wee fake thingy for modules with no sub modules
-            drawobj = Drawing_Object( name='_Nothing',
+            drawobj = Drawing_Object( name='_Nothing_',
                                        parent=self.p2, #hmmm
                                        label='_here',
                                        obj_type='module')
-            self.p2.drawobj_list.append( drawobj )
+
+            drawing_object_dict['_Nothing'] = drawobj
+
+
+        # Sort out the y-positions of the modules in each column
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        #placement.yplacement( inst_col_dict, self.p2.drawobj_list, self.driver_dict )
+
+
+        # don't need a dictionary any more...
+        self.p2.drawobj_list = []  # Initialise the list
+        self.p2.drawobj_list = drawing_object_dict.values()
 
 
         # Add the port instances
@@ -143,8 +154,12 @@ class Splitter_Window( wx.SplitterWindow ):
             print "Woops, modules should have ports, " + \
                   module.name + " doesn't seem to have ones!"
 
-        # Now generate the ratsnest connections.
+
+
+        # Now generate an initial ratsnest of the connections
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         self.BuildRatsnest(module)
+
 
         # Make a call to redraw the schematic
         self.p2.Refresh()
