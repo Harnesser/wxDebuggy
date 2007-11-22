@@ -98,7 +98,8 @@ class Splitter_Window( wx.SplitterWindow ):
                 drawing_object_dict[inst.name] = drawobj
 
                 # Next y_position
-                prev_y_pos[ inst_col_dict[inst.name] ] = y_pos + drawobj.getSize().y
+                max_y_size = max( len(drawobj.lhs_ports), len(drawobj.rhs_ports) )
+                prev_y_pos[ inst_col_dict[inst.name] ] = y_pos + max_y_size
                 
         else:
             # a wee fake thingy for modules with no sub modules
@@ -112,7 +113,6 @@ class Splitter_Window( wx.SplitterWindow ):
 
         # Add the port instances
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        in_y, out_y = 10, 10
         if module.port_name_list:
             for port in module.port_dict.values():
                 
@@ -140,7 +140,7 @@ class Splitter_Window( wx.SplitterWindow ):
                 drawing_object_dict[port.GetLabelStr()] = drawobj
 
                 # Next y_position
-                prev_y_pos[ inst_col_dict[key] ] = y_pos + drawobj.getSize().y
+                prev_y_pos[ inst_col_dict[key] ] = y_pos + 1
 
         else:
             print "Woops, modules should have ports, " + \
@@ -149,7 +149,7 @@ class Splitter_Window( wx.SplitterWindow ):
 
         # Sort out the y-positions of the modules in each column
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        #placement.yplacement( inst_col_dict, drawing_object_dict, self.driver_dict )
+        placement.find_pin_coords( self.connection_list, drawing_object_dict, inst_col_dict, True )
 
         # Re-Scale the drawing positions of the objects to draw
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -157,10 +157,10 @@ class Splitter_Window( wx.SplitterWindow ):
 
             if draw_obj.obj_type is 'module':
                 x_pos = ( 150 * draw_obj.position.x )
-                y_pos = ( draw_obj.position.y )
+                y_pos = ( draw_obj.position.y ) * 50
             elif  draw_obj.obj_type is 'port':
                 x_pos = 50 + ( 150 * draw_obj.position.x )
-                y_pos = ( draw_obj.position.y )           
+                y_pos = ( draw_obj.position.y ) * 50       
 
             draw_obj.setPosition( wx.Point( x_pos, y_pos ) )
             draw_obj._update_sizes()

@@ -53,7 +53,7 @@ def columnize( driver_dict, inst, col_dict, load = [], debug = True ):
     return col_dict
 
 
-def find_pin_coords(connection_list, drawing_object_dict, inst_col_dict):
+def find_pin_coords(connection_list, drawing_object_dict, inst_col_dict, debug=False):
     """ Determine the coordinates of each of the connection points for each net.
     
     The co-ordinates of each net hang-point is, for the purpose of the layout GA,
@@ -71,29 +71,51 @@ def find_pin_coords(connection_list, drawing_object_dict, inst_col_dict):
         
     connection_point_coord_list = {} # conection_point_coord_list[('U3', 'in1')] = (3, 5)
 
-    for inst,port in connection_list:
+    for connections in connection_list:
 
-        # Get a handle on the drawing object
-        draw_ref = drawing_object_dict[inst]
-        if draw_ref is None:
-            print "Warning: Cannot find drawing object for inst \"%s\"" % ( inst )
+        for inst,port in connections:
 
-        # go thru the ports and place them.
-        if port in draw_ref.lhs_ports():
-            # X placement. 2*col for inputs, 2*col+1 for inouts and outputs
-            x = inst_col_dict[inst] * 2
-            y = draw_ref.position.y + draw_ref.lhs_ports.index(port)
-
-        elif port in draw_ref.rhs_ports():
-            # X placement. 2*col for inputs, 2*col+1 for inouts and outputs
-            x = inst_col_dict[inst] * 2
-            y = draw_ref.position.y + draw_ref.lhs_ports.index(port)
-
-        else:
-            print "Warning: cannot find %s in the port lists of %s" % ( port, inst )
-                 
-        connection_point_coord_list[(inst,port)] = (x,y)
+            # Get a handle on the drawing object
+            if inst is '_oport' or inst is '_iport' :
                 
+                # Port?
+                draw_ref = drawing_object_dict[port]
+                x = inst_col_dict[inst] * 2
+                y = draw_ref.position.y        
+                connection_point_coord_list[(inst,port)] = (x,y)
+
+            else:
+
+                # Module?
+                draw_ref = drawing_object_dict[inst]
+                if draw_ref is None:
+                    print "Warning: Cannot find drawing object for inst \"%s\"" % ( inst )
+
+                # go thru the ports and place them.
+                if port in draw_ref.lhs_ports:
+                    print inst,port,"LHS:", draw_ref.position
+                    # X placement. 2*col for inputs, 2*col+1 for inouts and outputs
+                    x = inst_col_dict[inst] * 2
+                    y = draw_ref.position.y + draw_ref.lhs_ports.index(port)
+
+
+                elif port in draw_ref.rhs_ports:
+                    print inst,port,"RHS:", draw_ref.position
+                    # X placement. 2*col for inputs, 2*col+1 for inouts and outputs
+                    x = inst_col_dict[inst] * 2 + 1
+                    y = draw_ref.position.y + draw_ref.rhs_ports.index(port)
+
+                else:
+                    print "Warning: cannot find %s in the port lists of %s" % ( port, inst )
+                     
+                print ":", x,y
+            connection_point_coord_list[(inst,port)] = (x,y)
+                
+    if debug:
+        print "Connection Dictionary"
+        for a in connection_point_coord_list.keys():
+            print "%s ::: %s" % ( a, connection_point_coord_list[a] )
+        print "--------------------------------------------"
 
     return connection_point_coord_list
 
