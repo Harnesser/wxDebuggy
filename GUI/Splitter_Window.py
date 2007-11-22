@@ -2,7 +2,7 @@ import wx
 from Hier_Ctrl import *
 from Schem_View import *
 from Drawing_Object import *
-import PnR.placement_mfl as placement
+import PnR.placement_ga as placement
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Splitter_Window
@@ -25,16 +25,16 @@ class Splitter_Window( wx.SplitterWindow ):
 
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onTreeSelChanged )
 
-        self.BuildDrawObjList()
+        self.BuildDrawObjDict()
         
 
     def onTreeSelChanged( self, event ):
 
-        self.BuildDrawObjList( )
+        self.BuildDrawObjDict()
         event.Skip()
 
         
-    def BuildDrawObjList( self ):
+    def BuildDrawObjDict( self ):
         """ Build the list of objects to display on the screen.
 
         Add the instance modules and ports."""
@@ -74,8 +74,9 @@ class Splitter_Window( wx.SplitterWindow ):
         if module.inst_dict.values() :
             for iii,inst in enumerate(module.inst_dict.values()):
 
-                x_pos = ( 150 * inst_col_dict[inst.name] )
-                y_pos = prev_y_pos[ inst_col_dict[inst.name] ] + 10         
+                # Unitless positions for the meantime
+                x_pos = inst_col_dict[inst.name]
+                y_pos = prev_y_pos[ inst_col_dict[inst.name] ] + 1         
 
                 drawobj = Drawing_Object( name=inst.module_ref.name,
                                            parent=self.p2, #hmmm
@@ -92,7 +93,6 @@ class Splitter_Window( wx.SplitterWindow ):
                     else:
                         drawobj.rhs_ports.append( port.GetLabelStr() )
 
-                drawobj._update_sizes()
                 
                 # Add to drawing object dict
                 drawing_object_dict[inst.name] = drawobj
@@ -110,16 +110,6 @@ class Splitter_Window( wx.SplitterWindow ):
             drawing_object_dict['_Nothing'] = drawobj
 
 
-        # Sort out the y-positions of the modules in each column
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        #placement.yplacement( inst_col_dict, self.p2.drawobj_list, self.driver_dict )
-
-
-        # don't need a dictionary any more...
-        self.p2.drawobj_list = []  # Initialise the list
-        self.p2.drawobj_list = drawing_object_dict.values()
-
-
         # Add the port instances
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         in_y, out_y = 10, 10
@@ -131,8 +121,9 @@ class Splitter_Window( wx.SplitterWindow ):
                 else:
                     key = '_oport'
 
-                x_pos = 50 + ( 150 * inst_col_dict[key] )
-                y_pos = prev_y_pos[ inst_col_dict[key] ] + 10   
+                # Unitless positions for the meantime
+                x_pos = inst_col_dict[key]
+                y_pos = prev_y_pos[ inst_col_dict[key] ] + 1  
                 drawobj = Drawing_Object( name='port',
                                            parent=self.p2, #hmmm
                                            label=port.GetLabelStr(),
@@ -145,7 +136,8 @@ class Splitter_Window( wx.SplitterWindow ):
 
                 drawobj._update_sizes()
 
-                self.p2.drawobj_list.append( drawobj )
+                # Add to drawing object dict
+                drawing_object_dict[port.GetLabelStr()] = drawobj
 
                 # Next y_position
                 prev_y_pos[ inst_col_dict[key] ] = y_pos + drawobj.getSize().y
@@ -154,6 +146,27 @@ class Splitter_Window( wx.SplitterWindow ):
             print "Woops, modules should have ports, " + \
                   module.name + " doesn't seem to have ones!"
 
+
+        # Sort out the y-positions of the modules in each column
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        #placement.yplacement( inst_col_dict, drawing_object_dict, self.driver_dict )
+
+        # Re-Scale the drawing positions of the objects to draw
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        for draw_obj in drawing_object_dict.values():
+
+            if draw_obj.obj_type is 'module':
+                x_pos = ( 150 * draw_obj.position.x )
+                y_pos = ( draw_obj.position.y )
+            elif  draw_obj.obj_type is 'port':
+                x_pos = 50 + ( 150 * draw_obj.position.x )
+                y_pos = ( draw_obj.position.y )           
+
+            draw_obj.setPosition( wx.Point( x_pos, y_pos ) )
+            draw_obj._update_sizes()
+
+        # don't need a dictionary any more...
+        self.p2.drawobj_list = drawing_object_dict.values()
 
 
         # Now generate an initial ratsnest of the connections

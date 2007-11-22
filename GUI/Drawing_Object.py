@@ -94,6 +94,7 @@ class Drawing_Object:
     def getSize(self):
         """ Return this vv.DrawingObject's bounding box size.
         """
+        self._update_sizes()
         return self.bbox
 
 
