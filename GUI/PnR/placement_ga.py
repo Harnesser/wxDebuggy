@@ -53,6 +53,7 @@ def columnize( driver_dict, inst, col_dict, load = [], debug = True ):
     return col_dict
 
 
+
 def find_pin_coords(connection_list, drawing_object_dict, inst_col_dict, debug=False):
     """ Determine the coordinates of each of the connection points for each net.
     
@@ -117,8 +118,75 @@ def find_pin_coords(connection_list, drawing_object_dict, inst_col_dict, debug=F
             print "%s ::: %s" % ( a, connection_point_coord_list[a] )
         print "--------------------------------------------"
 
+
+    find_crossovers( connection_list, connection_point_coord_list )
+
     return connection_point_coord_list
 
+
+
+def find_crossovers( connection_list, connection_point_coord_list ):
+    """ Find the number of flightline crossovers
+    
+    Given the current y placements of the instantiations in the module to display,
+    calculate how many flightline crossovers there are.
+    """
+
+    num_crossovers = 0
+
+    num_connections = len(connection_list)
+    for i in range( num_connections ):
+        for j in range( i+1, num_connections ): 
+
+            conn1,conn2 = connection_list[i]
+            conn3,conn4 = connection_list[j]
+
+            flightline1 = ( connection_point_coord_list[conn1],
+                            connection_point_coord_list[conn2] )
+
+            flightline2 = ( connection_point_coord_list[conn3],
+                            connection_point_coord_list[conn4] )
+            
+            if is_crossover( flightline1, flightline2, True ):
+                num_crossovers += 1
+
+    return num_crossovers
+
+
+
+def is_crossover( flightline1, flightline2, debug=False ):
+    """ Determine if flightlines cross over eachother
+    """
+    
+    crosses = False
+
+
+    # First
+
+
+
+
+    if debug:
+        print flightline1, gradient(flightline1)
+        print flightline2, gradient(flightline2)
+
+
+    
+    return crosses
+
+
+def gradient( flightline ):
+    """ Find gradient of flightline """
+
+    (a,b),(c,d)  = flightline
+
+    if a < c:
+        gradient = 1.0 * (b-d) / (c-a)
+    else:
+        gradient = 1.0 * (d-b) / (a-c)
+
+    return gradient
+    
 
 def yplacement( inst_col_dict, drawing_object_dict, driver_dict ):
     """ Place the instanciations of the current module in the y-axis.
