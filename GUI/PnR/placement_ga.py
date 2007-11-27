@@ -125,7 +125,7 @@ def find_pin_coords(connection_list, drawing_object_dict, inst_col_dict, debug=F
 
 
 
-def find_crossovers( connection_list, connection_point_coord_list ):
+def find_crossovers( connection_list, connection_point_coord_list, debug=True ):
     """ Find the number of flightline crossovers
     
     Given the current y placements of the instantiations in the module to display,
@@ -150,25 +150,59 @@ def find_crossovers( connection_list, connection_point_coord_list ):
             if is_crossover( flightline1, flightline2, True ):
                 num_crossovers += 1
 
+    if debug:
+        print "Crossovers:", num_crossovers
+
     return num_crossovers
 
 
 
 def is_crossover( flightline1, flightline2, debug=False ):
     """ Determine if flightlines cross over eachother
+
+    Construct the line eqn for each segment and then find the crossing
+    point if one exists.  Then check that this crossing point is on both 
+    line segments.
+
+    flightline1 & flightline2 are tuples eg: ( (x1,y1),(x2,y2) )
+    I've littered the place with 1.0 to invoke decimal maths
+    Line Eqn: y = mx + c
     """
-    
+    xc,yc = (None,None)
     crosses = False
 
+    (x1,y1),(x2,y2) = flightline1
+    (u1,v1),(u2,v2) = flightline2
 
-    # First
+    # Gradients of lines
+    m1 = gradient(flightline1)
+    m2 = gradient(flightline2)
 
+    # Line offsets: c = y - mx
+    c1 = y1 - ( m1 * x1 )
+    c2 = v1 - ( m2 * u1 )
 
+    if m1 == m2: # lines are parallel, therefore don't cross
+        crosses = False
+    else:
+        # Calc crossover point
+        xc = 1.0 * ( c2 - c1 ) / ( m1 - m2 )
+        yc = 1.0 * ( c1 * m2 - c2 * m1 ) / ( m2 -m1 )
+
+        # Is it in range?
+        if ( xc >= min(x1,x2) and xc <= max(x1,x2) and
+             xc >= min(u1,u2) and xc <= max(u1,u2) and
+             yc >= min(y1,y2) and yc <= max(y1,y2) and
+             yc >= min(v1,v2) and yc <= max(v1,v2)
+            ):
+            crosses = True
 
 
     if debug:
-        print flightline1, gradient(flightline1)
-        print flightline2, gradient(flightline2)
+        print "-----------------------------------------------"
+        print "Line1", flightline1, " gradient:", m1, " offset:", c1
+        print "Line2", flightline2, " gradient:", m2, " offset:", c2
+        print "Crossing point", (xc,yc)," - crosses?",crosses
 
 
     
@@ -178,12 +212,12 @@ def is_crossover( flightline1, flightline2, debug=False ):
 def gradient( flightline ):
     """ Find gradient of flightline """
 
-    (a,b),(c,d)  = flightline
+    (x1,y1),(x2,y2)  = flightline
 
-    if a < c:
-        gradient = 1.0 * (b-d) / (c-a)
+    if x1 < x2:
+        gradient = 1.0 * (y2-y1) / (x2-x1)
     else:
-        gradient = 1.0 * (d-b) / (a-c)
+        gradient = 1.0 * (y1-y2) / (x1-x2)
 
     return gradient
     
