@@ -9,16 +9,16 @@ The package <bold><monospace>vv</monospace></bold> contains objects for each of 
 <list><list-item dir="ltr"><bold><monospace>Net</monospace></bold>
 </list-item><list-item dir="ltr"><bold><monospace>Port</monospace></bold>
 </list-item><list-item dir="ltr"><bold><monospace>Instance</monospace></bold>
-</list-item><list-item dir="ltr"><bold><link:broken><monospace>Module</monospace></link:broken></bold></list-item></list>
+</list-item><list-item dir="ltr"><link:broken>module</link:broken></list-item></list>
 
-The circuit data structure (CDS) is a dictionary of <bold><link:broken><monospace>Module</monospace></link:broken></bold> objects, referenced by <link:broken>module</link:broken> names.  The CDS is built by assigning parse actions to selec
+The circuit data structure (CDS) is a dictionary of <link:broken>module</link:broken> objects, referenced by <link:broken>module</link:broken> names.  The CDS is built by assigning parse actions to selec
 
-<size:large>The Module Object</size:large>
-This stores the info needed to draw each HDL module.  It contains 4 dictionaries which must be built by the parser, namely: a dict of ports, a dict of nets, a dict of instanciations and a dict of parameters
+<size:large>The <link:broken>module</link:broken></size:large><size:large> Object</size:large>
+This stores the info needed to draw each HDL <link:broken>module</link:broken>.  It contains 4 dictionaries which must be built by the parser, namely: a dict of ports, a dict of nets, a dict of instanciations and a dict of parameters
 
 <size:large>Memory Usage</size:large>
-Do I have to keep the entire design in memory after I parse it? Maybe I can parse it and then pickle a module:CDS data structure or something, and read each bit in as I need it...</note-content></text>
-  <last-change-date>2007-11-12T22:26:35.8813230+00:00</last-change-date>
+Do I have to keep the entire design in memory after I parse it? Maybe I can parse it and then pickle a <link:broken>module</link:broken>:CDS data structure or something, and read each bit in as I need it...</note-content></text>
+  <last-change-date>2007-11-21T17:49:01.1958560+00:00</last-change-date>
   <create-date>2007-08-25T01:05:47.6006300+01:00</create-date>
   <cursor-position>413</cursor-position>
   <width>800</width>

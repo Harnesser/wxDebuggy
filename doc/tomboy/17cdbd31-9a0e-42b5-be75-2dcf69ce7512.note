@@ -34,31 +34,31 @@ For now, I'm going to determine clock and reset nets by looking at their names. 
 
 To vv.Net, I'll add a 'sigtype' variable and set this to 'clock' or 'reset' depending on the name.  Then, when building the connection list for a drawing, I'll look at this line and only include the conection if this variable has the 'normal' value.
 
-Things are complicated even more by the fact that I don't preserve the objects when I'm building driver and point-to-point dicts/list.  At the minute, these are text based, so it's not easy to access the '<monospace>sigtype</monospace>' for ports and nets.  And even at that, I actually don't build a <monospace>vv.Net</monospace> list for each module yet...
+Things are complicated even more by the fact that I don't preserve the objects when I'm building driver and point-to-point dicts/list.  At the minute, these are text based, so it's not easy to access the '<monospace>sigtype</monospace>' for ports and nets.  And even at that, I actually don't build a <monospace>vv.Net</monospace> list for each <link:broken>module</link:broken> yet...
  
-<size:large>04-SEP-07</size:large>: Owing to the fact that I currently keep my connection lists as strings, I'm going to have to go fully OO to get access to the 'sigtype' field.  To this end, I'm going to have to make each vv.Instance reference a vv.Module: ie: <monospace>self.module_ref = &lt;vv.Module&gt;</monospace>, not <monospace>self.module_ref = "module_name"</monospace> 
+<size:large>04-SEP-07</size:large>: Owing to the fact that I currently keep my connection lists as strings, I'm going to have to go fully OO to get access to the 'sigtype' field.  To this end, I'm going to have to make each vv.Instance reference a vv.<link:broken>module</link:broken>: ie: <monospace>self.<link:broken>module</link:broken></monospace><monospace>_ref = &lt;vv.<link:broken>module</link:broken></monospace><monospace>&gt;</monospace>, not <monospace>self.<link:broken>module</link:broken></monospace><monospace>_ref = "<link:broken>module</link:broken></monospace><monospace>_name"</monospace> 
 
-<size:large>06-SEP-07</size:large>: But I really hate the idea of self.module_ref changing from a string at the parser to a vv.Module at the drawing code - it's confusing.  So to that end, the parser will fill the new vv.Instance.module_ref_name as a string, and then when I'm building the hierarchy tree, vv.Instance.module_ref will point to the appropriate vv.Module object (if it exists).  So this is changes as of Rev 20.
+<size:large>06-SEP-07</size:large>: But I really hate the idea of self.<link:broken>module</link:broken>_ref changing from a string at the parser to a vv.<link:broken>module</link:broken> at the drawing code - it's confusing.  So to that end, the parser will fill the new vv.Instance.<link:broken>module</link:broken>_ref_name as a string, and then when I'm building the hierarchy tree, vv.Instance.<link:broken>module</link:broken>_ref will point to the appropriate vv.<link:broken>module</link:broken> object (if it exists).  So this is changes as of Rev 20.
 
-Now, the whole point of this was to be able to get at the vv.Port information when building the connection list.  So the next thing I have to do is to store the connection info in some kind of OO format rather than a string format.  So, whats that going to be? A (vv.Port,vv.Port) tuple?  If that's the case, then each vv.Port is going to need a reference to its vv.Module...  
+Now, the whole point of this was to be able to get at the vv.Port information when building the connection list.  So the next thing I have to do is to store the connection info in some kind of OO format rather than a string format.  So, whats that going to be? A (vv.Port,vv.Port) tuple?  If that's the case, then each vv.Port is going to need a reference to its vv.<link:broken>module</link:broken>...  
 
-<size:large>07-SEP-07</size:large>: This also means that nets must know which module they're in too – and at the minute, I don't bother filling the vv.Net list in each vv.Module.  This has to change.  vv.Port will inherit from vv.Net... Maybe I should put it in vv.Object altogether?  But a vv.Module won't have the reference...
+<size:large>07-SEP-07</size:large>: This also means that nets must know which <link:broken>module</link:broken> they're in too – and at the minute, I don't bother filling the vv.Net list in each vv.<link:broken>module</link:broken>.  This has to change.  vv.Port will inherit from vv.Net... Maybe I should put it in vv.Object altogether?  But a vv.<link:broken>module</link:broken> won't have the reference...
 
-Right. Each vv.Net (and hence vv.Port) now has a vv.Module reference.  
+Right. Each vv.Net (and hence vv.Port) now has a vv.<link:broken>module</link:broken> reference.  
 
 Then, I'm building the driver list in objectorientated land.  Next, I can easily build point-to-point connections in OO land too. But my 'columnize' algorithm needs block-to-block.
 
-<size:large>13-SEP-07</size:large>: This is not good enough.  vv.Ports and vv.Nets may now know which vv.Module they're in, but for connections I need a vv.Instance name too...
+<size:large>13-SEP-07</size:large>: This is not good enough.  vv.Ports and vv.Nets may now know which vv.<link:broken>module</link:broken> they're in, but for connections I need a vv.Instance name too...
 
 
 <size:large>15-SEP-07</size:large>: I've regressed slightly.  No longer building the connection lists in OO land.  But the old way with strings was very ugly too.  So now I build them using tuples...  If I implement the ignorance of clk and reset connections when columnising,  I can mark off the 1st bullet point for version 0.2! Actually no I can't... I still have to place things in the Y-axis.  Bollix.
 
 I'm really not that much further on since I imported the version I'd developped on me laptop...
 
-I think I'm missing an instanciation -&gt; module dict too... ?
+I think I'm missing an instanciation -&gt; <link:broken>module</link:broken> dict too... ?
 
 <size:large>11-OCT-07</size:large>: (Nearly a month on?!?!?!)
-I've decided that the Y-placement of the instanciations in a given module are going to be determined by whatever combination gives the minimum 'sum of the net flight lengths'.  This may not be of any use if there is no minima.  First cut, I'm going to forget about the O(n)^2 or whatever of the algorithm - I'm just going combo to see if it works. Also, the columising algorithm that I've implemented is not going to waste - I just have to determine the (x,y) of each instanciation.
+I've decided that the Y-placement of the instanciations in a given <link:broken>module</link:broken> are going to be determined by whatever combination gives the minimum 'sum of the net flight lengths'.  This may not be of any use if there is no minima.  First cut, I'm going to forget about the O(n)^2 or whatever of the algorithm - I'm just going combo to see if it works. Also, the columising algorithm that I've implemented is not going to waste - I just have to determine the (x,y) of each instanciation.
 
 0.2 is a serious bitch and it's taking all of my self control not to go and do other stuff which is easier.  But at the end of the day, this app is pointless until I get a nice (or at least usable) place &amp; route thing going.
 
@@ -67,7 +67,7 @@ Right, the flightlength thing may not be a runner.  I haven't coded anything for
 
 
 <size:large>Signal Routing</size:large></note-content></text>
-  <last-change-date>2007-10-23T22:17:29.8830720+01:00</last-change-date>
+  <last-change-date>2007-11-21T17:49:01.2282940+00:00</last-change-date>
   <create-date>2007-08-27T01:03:33.2981770+01:00</create-date>
   <cursor-position>5735</cursor-position>
   <width>962</width>

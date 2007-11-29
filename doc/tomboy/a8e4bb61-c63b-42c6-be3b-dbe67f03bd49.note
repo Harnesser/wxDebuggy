@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<note version="0.2" xmlns:link="http://beatniksoftware.com/tomboy/link" xmlns:size="http://beatniksoftware.com/tomboy/size" xmlns="http://beatniksoftware.com/tomboy">
+  <title>SQLite backend</title>
+  <text xml:space="preserve"><note-content version="0.1">SQLite backend
+
+What about, instead of storing cct info in a data structure, store it all in a set of SQLite tables instead?
+
+Pros:
+<list><list-item dir="ltr">Makes searching easier?
+</list-item><list-item dir="ltr">Not reinventing data structures and no messing with classes</list-item></list>
+
+Cons:
+<list><list-item dir="ltr">Another dependancy
+</list-item><list-item dir="ltr">Have to learn SQL queries</list-item></list>
+
+I'd have to decide before implementing the items in 'Carlsberg'.  Back porting after the project gets past this stage may be messy.</note-content></text>
+  <last-change-date>2007-11-29T21:39:48.1535820+00:00</last-change-date>
+  <create-date>2007-11-21T18:01:14.2817930+00:00</create-date>
+  <cursor-position>157</cursor-position>
+  <width>450</width>
+  <height>360</height>
+  <x>156</x>
+  <y>285</y>
+</note>

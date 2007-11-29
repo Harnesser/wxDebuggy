@@ -24,7 +24,7 @@ Read in Verilog source files and display them as a circuit.  Allow nets to be hi
  + doc/ - documentation directory
  + vv/
    + Object.py
-   + Module.py
+   + <link:broken>module</link:broken></monospace><monospace>.py
    + Instance.py
    + Net.py
    + Port.py
@@ -36,7 +36,7 @@ Read in Verilog source files and display them as a circuit.  Allow nets to be hi
 <link:internal>wxDebuggy RoadMap</link:internal>
 
 </note-content></text>
-  <last-change-date>2007-08-25T05:11:58.0000000+01:00</last-change-date>
+  <last-change-date>2007-11-21T17:49:01.1971250+00:00</last-change-date>
   <create-date>2007-08-10T04:32:32.8676540+01:00</create-date>
   <cursor-position>249</cursor-position>
   <width>554</width>
