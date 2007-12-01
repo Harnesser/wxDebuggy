@@ -1,13 +1,34 @@
 #! /usr/bin/env python
-"""Genetic Algorithm stuff for instantiation y-placement.
+""" Generic Genetic Algorithm Class"""
 
-"""
 import random
 import types
 
 class ga:
-    """ Genetic Algorithm Class 
+    """A Generic Genetic Algorithm Class
 
+    A generic GA class which implements breeding through crossovers and 
+    random mutations.  
+    
+    Usage
+    --------------------------------------------------------------------
+      Initialise an instance of this class with the desired population 
+    size, etc and a fitness function.  Then call the 'evolve' method to
+    run the GA, which will return the fittest chromosome on completion
+    of the algorithm.
+    
+      Passing 'gen_file=True' as an argument to the 'evolve' method will
+    enable the creation of a stats file for the GA run.  This may be 
+    useful for fine-tuning the GA configuration to solve the problem at
+    hand.
+
+    A Note on the Fitness Function:
+    --------------------------------------------------------------------
+      As every application will have its own measure of fitness, the
+    fitness function cannot be generalised. Therefore to use this class,
+    a fitness function specific to the task at hand must be written and
+    passed to this class on instantiation.  An Assertion will check that
+    a valid function is supplied.
     """
 
     def __init__(self,
@@ -49,8 +70,9 @@ class ga:
 
         self.population = self._initial_population()
 
+
     def evolve(self,debug=False, gen_file=False):
-        """Run evolution"""
+        """Run Evolution"""
 
         if gen_file:
             hGA = open("fitnesses.csv","w")
@@ -67,50 +89,49 @@ class ga:
         for gen in range(self.num_generations):
             #print "Generation:", gen
 
-            generation_x = []
-
-            ##
             ## Calculate fitness of each member of the population
-            ##
             self._sort_population(gen_file)
 
-            ##
-            ## Eugenics...
-            ##
+            ## Eugenics...     
+            #  Now that the population is sorted in order of fitness, we'll replace
+            # most of the non-breeding (unfit) souls with a offspring of the top ones.
+            # Potential parents are taken from the top 'self.num_parents' of the 
+            # population.  The bottom 'self.num_random_souls' of the population will
+            # be replaced with random population members.  All other souls will be
+            # replaced with the offspring of parents.
             
-            # Now that the population is sorted in order of fitness, we'll replace
-            # the non-breeding (unfit) souls with a offspring of the top ones. This 
-            # is not working out, it's stripping the randomness from the population.
-            #
-            #  So, what I really want to happen here, is to breed, but have a few 
-            # new random souls each generation.
             random_souls_start_index = self.population_size - self.num_random_souls
             for j in range( self.num_parents, random_souls_start_index ):
-                # breed one offspring from two parents. we'll use the 'select randomly
-                # from a selection' function to select the parents.  the 2nd parent can't
-                # be the same as the first, so we'll remove parent 1 from the list when
-                # selecting parent 2.
+
+                # Breed one offspring from two parents.
+                #  We'll use the 'select randomly from a selection' function to 
+                # select the parents.  The 2nd parent should not be the same as 
+                # the first, so we'll remove parent 1 from the list when selecting
+                # parent 2.
+                
+                # Calculate parent indexes
                 parent_list = range( self.num_parents )
                 parent1_index = random.choice( parent_list )
                 del(parent_list[parent1_index])
                 parent2_index = random.choice( parent_list )
 
+                # Get breeding parents from population, lay them down by the fire...
                 parent1 = self.population[parent1_index][1]
                 parent2 = self.population[parent2_index][1]
 
+                # ... and put the products of their loving back into the population
                 offspring1,offspring2 = self._breed(parent1, parent2)
                 self.population[j] = [ 0, offspring1 ]
  
  
-            #  Keep randomness in population by creating a few random souls each
-            # generation
+            ##  Keep randomness in population by creating a few random souls each
+            # generation. I'm not sure how effective of necessary this is.
             for j in range( random_souls_start_index, self.population_size ):
                 self.population[j][1] = self._random_chromosome()
                 
 
-            ##
-            ## Introduce some mutations
-            ##
+
+            ## Introduce some mutations (and hope we don't get zombies...)
             self._mutation()
 
 
@@ -156,7 +177,11 @@ class ga:
         
 
     def _calc_fitnesses(self):
-        """Calculate the fitness level of each member of the population"""
+        """Calculate the fitness level of each member of the population
+        
+         This uses the fitness function supplied to the class instance to 
+        get a number for the fitness of each soul in the population.
+        """
 
         for j in range( len(self.population) ):
             fitness = self.fitness_function( self.population[j][1] ) # pick the chromo part
@@ -166,7 +191,10 @@ class ga:
    
 
     def _sort_population(self, gen_file=False, debug=False):
-        """Sort the population based on fitness """
+        """Sort the population based on fitness.
+        
+        This assumes that the bigger the fitness number, the fitter the soul.
+        """
 
         # First, calc the fitness of each soul in the population
         self._calc_fitnesses()
@@ -252,22 +280,29 @@ class ga:
 
 
     def _mutation(self,debug=False):
-        """Mutation """
+        """Mutation
+        
+         Each bit on each gene of each member of the population has
+        'self.mutation_rate' chance of being flipped.
+        """
         
         bits_per_chromosome = self.num_genes * self.bits_per_gene      
 
         for i in range( len(self.population) ):
+        
+            #  Build a vector to flip bits in the chromosome. A 'True' in this 
+            # vector will flip the corresponding bit in the current chromosome.
             flip_if_one = [0] *  bits_per_chromosome
             flip_if_one = [ self._flag_mutation(i) for i in flip_if_one ] # list comprehension
 
-            # now write the (mutated?) soul back into the population
+            # Now write the (possibly mutated) soul back into the population
             self.population[i][1] = map( self._mutate, self.population[i][1], flip_if_one )
  
         return
 
     
     def _mutate(self, soul, flip_if_one):
-        """Use maps to flip bits in the cromosome"""
+        """Used in map operation to flip bits in the chromosome"""
         
         if flip_if_one:
             return soul
