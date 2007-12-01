@@ -14,8 +14,8 @@ class ga:
                  num_generations=10, population_size=10, 
                  num_genes=2, bits_per_gene=10, 
                  mutation_rate=0.01, num_crossovers=2,
-                 fitness_function=None,
-                 debug=True):
+                 fitness_function=None, num_parents=6,
+                 debug=False):
         """  """
 
         self.num_generations = num_generations
@@ -25,12 +25,22 @@ class ga:
         self.mutation_rate = mutation_rate
         self.num_crossovers = num_crossovers
         self.debug = debug
-        self.num_parents = 4
-
+        self.num_parents = num_parents
+        self.num_random_souls = 2
+        
+        # A few derived sizes
+        self.bits_per_chromosome = self.num_genes * self.bits_per_gene
+        
         # Check that we've a fitness function defined.
-        if type(fitness_function) == types.FunctionType:
-            self.fitness_function = fitness_function
+        assert type(fitness_function) == types.FunctionType
+        self.fitness_function = fitness_function
 
+        # A few sanity checks before we proceed
+        assert self.population_size >= self.num_parents
+        assert self.mutation_rate >= 0.0 and self.mutation_rate <= 1.0
+        assert self.bits_per_gene >= 1
+        assert ( self.num_crossovers >= 1 and 
+                 self.num_crossovers <= self.bits_per_chromosome ) 
 
         # Population List
         # This is a list of lists: [ <fitness>, [<chromosome_list>] ]
@@ -39,40 +49,43 @@ class ga:
 
         self.population = self._initial_population()
 
-    def evolve(self,debug=True):
+    def evolve(self,debug=False, gen_file=False):
         """Run evolution"""
 
+        if gen_file:
+            hGA = open("fitnesses.csv","w")
+            hGA.write("Generation, Min Fitness, Max Fitness, Average Fitness\n")
+            
         if debug:
             x = 20
             print "+" + (" -" * x ) + " +"
             print "|" + "Y-Placement GA".center(x*2+1) + "|"
             print "+" + (" -" * x ) + " +"
         
-        for i in range(self.num_generations):
-            print "Generation:", i
+
+        # Play $diety, run evolution...
+        for gen in range(self.num_generations):
+            #print "Generation:", gen
 
             generation_x = []
 
             ##
             ## Calculate fitness of each member of the population
             ##
-            self._calc_fitnesses()
+            self._sort_population(gen_file)
 
             ##
-            ## Sort population
+            ## Eugenics...
             ##
-            self.population.sort()
-            self.population.reverse()            
-
-            if debug:
-                self._print_population()
-
-            ##
-            ## Selective breeding...
-            ##
+            
             # Now that the population is sorted in order of fitness, we'll replace
-            # the non-breeding (unfit) souls with a offspring of the top ones
-            for j in range( self.num_parents, self.population_size ):
+            # the non-breeding (unfit) souls with a offspring of the top ones. This 
+            # is not working out, it's stripping the randomness from the population.
+            #
+            #  So, what I really want to happen here, is to breed, but have a few 
+            # new random souls each generation.
+            random_souls_start_index = self.population_size - self.num_random_souls
+            for j in range( self.num_parents, random_souls_start_index ):
                 # breed one offspring from two parents. we'll use the 'select randomly
                 # from a selection' function to select the parents.  the 2nd parent can't
                 # be the same as the first, so we'll remove parent 1 from the list when
@@ -88,7 +101,12 @@ class ga:
                 offspring1,offspring2 = self._breed(parent1, parent2)
                 self.population[j] = [ 0, offspring1 ]
  
-
+ 
+            #  Keep randomness in population by creating a few random souls each
+            # generation
+            for j in range( random_souls_start_index, self.population_size ):
+                self.population[j][1] = self._random_chromosome()
+                
 
             ##
             ## Introduce some mutations
@@ -96,11 +114,16 @@ class ga:
             self._mutation()
 
 
+        # Now choose the fittest as our result...
+        self._sort_population(gen_file)
+        
+        return self.population[0][1]     
+        
 
-    #######################################################################################
-    ####  'Private' methods
-    #######################################################################################
-    def _initial_population(self, debug=True):
+#######################################################################################
+####  'Private' methods
+#######################################################################################
+    def _initial_population(self, debug=False):
         """Create an initial random population"""
 
         # Set up the array to hold the genome of the population
@@ -141,6 +164,28 @@ class ga:
 
         return
    
+
+    def _sort_population(self, gen_file=False, debug=False):
+        """Sort the population based on fitness """
+
+        # First, calc the fitness of each soul in the population
+        self._calc_fitnesses()
+        
+        #  Write results to file? Useful for debug or determining GA config for
+        # specific problems
+        if gen_file:
+            min_fitness, max_fitness, avg_fitness = self._get_stats()
+            hGA.write("%d,%d,%d,%f\n" % (gen, min_fitness, max_fitness, avg_fitness ) )
+            
+        # Sort population
+        self.population.sort()
+        self.population.reverse()            
+
+        if debug:
+            self._print_population()
+        
+        return
+
 
     def _breed(self, parent1, parent2, debug=False ):
         """Breed two parents"""
@@ -206,7 +251,7 @@ class ga:
         return babie1, babie2
 
 
-    def _mutation(self,debug=True):
+    def _mutation(self,debug=False):
         """Mutation """
         
         bits_per_chromosome = self.num_genes * self.bits_per_gene      
@@ -237,6 +282,22 @@ class ga:
     def _flag_mutation(self,dummy):
         return random.random() <= self.mutation_rate
 
+
+    def _get_stats(self):
+        """Collect some stats for the current population"""
+        
+        fitnesses = []
+        for fitness,soul in self.population:
+            fitnesses.append(fitness)
+            
+        assert len(fitnesses) == self.population_size
+        
+        max_fitness = max(fitnesses)
+        min_fitness = min(fitnesses)
+        avg_fitness = sum(fitnesses,0.0) / len( fitnesses )
+        
+        return min_fitness,max_fitness,avg_fitness
+
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 ### 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -256,8 +317,10 @@ if __name__ == '__main__':
 
     
     myGA = ga(fitness_function=fitness_function, 
-              num_generations=20,
+              num_generations=10,
+              population_size=50,
+              num_parents=10,
               mutation_rate=0.1)
-    myGA.evolve()
+    print myGA.evolve()
 
     
