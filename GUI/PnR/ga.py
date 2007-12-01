@@ -70,13 +70,16 @@ class ga:
 
         self.population = self._initial_population()
 
-
+        
+        self.hGA = None  # GA info file handle
+        self.gen = 0     # generation counter
+        
     def evolve(self,debug=False, gen_file=False):
         """Run Evolution"""
 
         if gen_file:
-            hGA = open("fitnesses.csv","w")
-            hGA.write("Generation, Min Fitness, Max Fitness, Average Fitness\n")
+            self.hGA = open("fitnesses.csv","w")
+            self.hGA.write("Generation, Min Fitness, Max Fitness, Average Fitness\n")
             
         if debug:
             x = 20
@@ -86,8 +89,7 @@ class ga:
         
 
         # Play $diety, run evolution...
-        for gen in range(self.num_generations):
-            #print "Generation:", gen
+        for self.gen in range(self.num_generations):
 
             ## Calculate fitness of each member of the population
             self._sort_population(gen_file)
@@ -203,8 +205,9 @@ class ga:
         # specific problems
         if gen_file:
             min_fitness, max_fitness, avg_fitness = self._get_stats()
-            hGA.write("%d,%d,%d,%f\n" % (gen, min_fitness, max_fitness, avg_fitness ) )
-            
+            self.hGA.write("%d,%d,%d,%f\n" % (self.gen, min_fitness, max_fitness, avg_fitness ) )
+            print "Generation %d, max=%d, avg=%f" % ( self.gen, max_fitness, avg_fitness ) 
+                
         # Sort population
         self.population.sort()
         self.population.reverse()            
@@ -297,7 +300,7 @@ class ga:
 
             # Now write the (possibly mutated) soul back into the population
             self.population[i][1] = map( self._mutate, self.population[i][1], flip_if_one )
- 
+            
         return
 
     
@@ -305,12 +308,12 @@ class ga:
         """Used in map operation to flip bits in the chromosome"""
         
         if flip_if_one:
-            return soul
-        else:
             if soul:
                 return 0
             else:
                 return 1
+        else:
+            return soul
 
 
 
@@ -352,10 +355,12 @@ if __name__ == '__main__':
 
     
     myGA = ga(fitness_function=fitness_function, 
-              num_generations=10,
-              population_size=50,
-              num_parents=10,
+              bits_per_gene=8,  # 8-bits of y-axis...
+              num_genes=50,     # 50 instantiations...
+              num_generations=100,
+              population_size=1000,
+              num_parents=500,
               mutation_rate=0.1)
-    print myGA.evolve()
+              
+    print myGA.evolve(gen_file=True)
 
-    
