@@ -47,7 +47,7 @@ class ga:
         self.num_crossovers = num_crossovers
         self.debug = debug
         self.num_parents = num_parents
-        self.num_random_souls = 2
+        self.num_random_souls = 0
         
         # A few derived sizes
         self.bits_per_chromosome = self.num_genes * self.bits_per_gene
@@ -103,8 +103,8 @@ class ga:
             # replaced with the offspring of parents.
             
             random_souls_start_index = self.population_size - self.num_random_souls
-            for j in range( self.num_parents, random_souls_start_index ):
-
+            for j in range( self.num_parents, random_souls_start_index, 2 ):
+                
                 # Breed one offspring from two parents.
                 #  We'll use the 'select randomly from a selection' function to 
                 # select the parents.  The 2nd parent should not be the same as 
@@ -115,7 +115,7 @@ class ga:
                 parent_list = range( self.num_parents )
                 parent1_index = random.choice( parent_list )
                 del(parent_list[parent1_index])
-                parent2_index = random.choice( parent_list )
+                parent2_index = random.randrange( self.population_size) # any
 
                 # Get breeding parents from population, lay them down by the fire...
                 parent1 = self.population[parent1_index][1]
@@ -124,6 +124,8 @@ class ga:
                 # ... and put the products of their loving back into the population
                 offspring1,offspring2 = self._breed(parent1, parent2)
                 self.population[j] = [ 0, offspring1 ]
+                if len(self.population) != j+1:
+                    self.population[j+1] = [0, offspring2 ]
  
  
             ##  Keep randomness in population by creating a few random souls each
@@ -299,7 +301,11 @@ class ga:
             flip_if_one = [ self._flag_mutation(i) for i in flip_if_one ] # list comprehension
 
             # Now write the (possibly mutated) soul back into the population
-            self.population[i][1] = map( self._mutate, self.population[i][1], flip_if_one )
+            a = map( self._mutate, self.population[i][1], flip_if_one )
+            if debug:
+                print "Before:", self.population[i][1]
+                print "After :", a
+            self.population[i][1] = a
             
         return
 
@@ -358,9 +364,10 @@ if __name__ == '__main__':
               bits_per_gene=8,  # 8-bits of y-axis...
               num_genes=50,     # 50 instantiations...
               num_generations=100,
-              population_size=1000,
-              num_parents=500,
-              mutation_rate=0.1)
+              population_size=100,
+              num_crossovers=4,
+              num_parents=40,
+              mutation_rate=0.01)
               
     print myGA.evolve(gen_file=True)
 
