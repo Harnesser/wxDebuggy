@@ -88,12 +88,20 @@ class ga:
             print "+" + (" -" * x ) + " +"
         
 
+
         # Play $diety, run evolution...
         for self.gen in range(self.num_generations):
 
             ## Calculate fitness of each member of the population
-            self._sort_population(gen_file)
-
+            self._sort_population(gen_file)    
+        
+            ## Copy the parents over 
+            # Take the top <self.num_parents> of fitness-sorted population
+            parents = self.population[:self.num_parents] # slicing causes a copy...
+            assert len(parents) == self.num_parents
+            
+            print [ parent[0] for parent in parents ]
+                
             ## Eugenics...     
             #  Now that the population is sorted in order of fitness, we'll replace
             # most of the non-breeding (unfit) souls with a offspring of the top ones.
@@ -103,23 +111,17 @@ class ga:
             # replaced with the offspring of parents.
             
             random_souls_start_index = self.population_size - self.num_random_souls
-            for j in range( self.num_parents, random_souls_start_index, 2 ):
+            
+            for j in range(0, random_souls_start_index, 2):
                 
-                # Breed one offspring from two parents.
-                #  We'll use the 'select randomly from a selection' function to 
-                # select the parents.  The 2nd parent should not be the same as 
-                # the first, so we'll remove parent 1 from the list when selecting
-                # parent 2.
-                
+                ## Breed two offspring from two parents.
                 # Calculate parent indexes
-                parent_list = range( self.num_parents )
-                parent1_index = random.choice( parent_list )
-                del(parent_list[parent1_index])
-                parent2_index = random.randrange( self.population_size) # any
+                parent1_index = random.randrange( self.num_parents )
+                parent1 = parents[parent1_index][1]
+                
+                parent2_index = random.randrange( self.num_parents )
+                parent2 = parents[parent2_index][1]
 
-                # Get breeding parents from population, lay them down by the fire...
-                parent1 = self.population[parent1_index][1]
-                parent2 = self.population[parent2_index][1]
 
                 # ... and put the products of their loving back into the population
                 offspring1,offspring2 = self._breed(parent1, parent2)
@@ -359,15 +361,44 @@ if __name__ == '__main__':
 
         return fitness
 
+
+    def hanning_distance( soul, debug=True ):
+        """ Fitness is the distance away from the string
+        
+        Don't tell me Unicode is going to bollox this up... """
+  
+        match_this = 'This is a string of length 50 characters. Honestly'
+        soul_str   = ''.join( [str(bit) for bit in soul ] )
     
-    myGA = ga(fitness_function=fitness_function, 
+        print "soul_str", soul_str
+        
+        string = ""
+        fitness = 0
+        
+        for i in range( len(match_this ) ):
+            i1,i2 = i*8+8, i*8
+            #print "i1,i2", i1,i2
+
+            ga_ord = int( soul_str[i2:i1], 2)
+            #print ':: "%s"' % ( soul_str[i2:i1] ), ga_ord, chr(ga_ord)
+            
+            string += chr(ga_ord) 
+            
+            fitness += abs( ga_ord - ord(match_this[i]) )
+            
+        print string, fitness
+               
+        return (50*256)-fitness
+    
+    
+    myGA = ga(fitness_function=hanning_distance, 
               bits_per_gene=8,  # 8-bits of y-axis...
               num_genes=50,     # 50 instantiations...
               num_generations=100,
-              population_size=100,
-              num_crossovers=4,
-              num_parents=40,
-              mutation_rate=0.01)
+              population_size=500,
+              num_crossovers=1,
+              num_parents=250,
+              mutation_rate=0.00)
               
     print myGA.evolve(gen_file=True)
 
