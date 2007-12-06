@@ -140,7 +140,11 @@ class ga:
             ## Introduce some mutations (and hope we don't get zombies...)
             self._mutation()
 
+            # Print the fittest...
+            self.fitness_function( self.population[0][1], display=True )
 
+        # ---------------------------------------------------- End of generations loop
+        
         # Now choose the fittest as our result...
         self._sort_population(gen_file)
         
@@ -362,43 +366,62 @@ if __name__ == '__main__':
         return fitness
 
 
-    def hanning_distance( soul, debug=True ):
+    def hanning_distance( soul, debug=False, display=False):
         """ Fitness is the distance away from the string
         
         Don't tell me Unicode is going to bollox this up... """
   
         match_this = 'This is a string of length 50 characters. Honestly'
         soul_str   = ''.join( [str(bit) for bit in soul ] )
-    
-        print "soul_str", soul_str
         
         string = ""
+        distance = 0
         fitness = 0
         
         for i in range( len(match_this ) ):
-            i1,i2 = i*8+8, i*8
+            i1,i2 = (i*7)+7, i*7
             #print "i1,i2", i1,i2
 
             ga_ord = int( soul_str[i2:i1], 2)
-            #print ':: "%s"' % ( soul_str[i2:i1] ), ga_ord, chr(ga_ord)
+            if ga_ord >= 32:
+                string += chr(ga_ord)             
+            else:
+                string += '.'
+                
+            distance += abs( ga_ord - ord(match_this[i]) )
+
             
-            string += chr(ga_ord) 
+            if debug:
+                print ':: "%s"' % ( soul_str[i2:i1] ), ga_ord, chr(ga_ord)
+                print "   Match '%s' (%d) with '%s' (%d): Distance: %d" % (
+                     match_this[i], ord(match_this[i]),
+                     chr(ga_ord), ga_ord , 
+                     abs( ga_ord - ord(match_this[i]) )
+                     ) 
+        
+
+                    
+            if match_this[i] == chr(ga_ord):
+                fitness += 1
+                
             
-            fitness += abs( ga_ord - ord(match_this[i]) )
-            
-        print string, fitness
-               
-        return (50*256)-fitness
+        if display:
+            print string, distance
+            myGA.hGA.write(":'%s'\n" % ( string ) )   
+                       
+        # fitness = (50*128)-distance
+        assert fitness >= 0
+        return fitness
     
     
     myGA = ga(fitness_function=hanning_distance, 
-              bits_per_gene=8,  # 8-bits of y-axis...
+              bits_per_gene=7,  # 8-bits of y-axis...
               num_genes=50,     # 50 instantiations...
               num_generations=100,
-              population_size=500,
+              population_size=1000,
               num_crossovers=1,
-              num_parents=250,
-              mutation_rate=0.00)
+              num_parents=500,
+              mutation_rate=0.01)
               
     print myGA.evolve(gen_file=True)
 
