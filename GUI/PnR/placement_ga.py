@@ -9,8 +9,18 @@ think of a way of doing it otherwise...
 
 """
 
+import ga
 
-def columnize( driver_dict, inst, col_dict, load = [], debug = True ):
+drawing_object_dict_ref = None
+connection_list_ref = None
+inst_col_dict_ref = None
+
+drawing_object_name_list = []
+
+# GA parameters
+BITS_PER_GENE = 4
+    
+def columnize( driver_dict, inst, col_dict, load = [], debug = False ):
     """ Find the drivers of the current inst, and set their
     column numbers to one less than the current.
 
@@ -94,14 +104,14 @@ def find_pin_coords(connection_list, drawing_object_dict, inst_col_dict, debug=F
 
                 # go thru the ports and place them.
                 if port in draw_ref.lhs_ports:
-                    print inst,port,"LHS:", draw_ref.position
+                    #print inst,port,"LHS:", draw_ref.position
                     # X placement. 2*col for inputs, 2*col+1 for inouts and outputs
                     x = inst_col_dict[inst] * 2
                     y = draw_ref.position.y + draw_ref.lhs_ports.index(port)
 
 
                 elif port in draw_ref.rhs_ports:
-                    print inst,port,"RHS:", draw_ref.position
+                    #print inst,port,"RHS:", draw_ref.position
                     # X placement. 2*col for inputs, 2*col+1 for inouts and outputs
                     x = inst_col_dict[inst] * 2 + 1
                     y = draw_ref.position.y + draw_ref.rhs_ports.index(port)
@@ -109,7 +119,7 @@ def find_pin_coords(connection_list, drawing_object_dict, inst_col_dict, debug=F
                 else:
                     print "Warning: cannot find %s in the port lists of %s" % ( port, inst )
                      
-                print ":", x,y
+                #print ":", x,y
             connection_point_coord_list[(inst,port)] = (x,y)
                 
     if debug:
@@ -125,35 +135,45 @@ def find_pin_coords(connection_list, drawing_object_dict, inst_col_dict, debug=F
 
 
 
-def find_crossovers( connection_list, connection_point_coord_list, debug=True ):
+def find_crossovers( connection_list, connection_point_coord_list, debug=False ):
     """ Find the number of flightline crossovers
     
     Given the current y placements of the instantiations in the module to display,
     calculate how many flightline crossovers there are.
     """
 
+    sum_of_gradients = 0
+    
     num_crossovers = 0
 
     num_connections = len(connection_list)
     for i in range( num_connections ):
+        conn1,conn2 = connection_list[i]
+        
+        flightline1 = ( connection_point_coord_list[conn1],
+                        connection_point_coord_list[conn2] )
+
+        sum_of_gradients += abs( gradient( flightline1 ) )
+
+        
         for j in range( i+1, num_connections ): 
-
-            conn1,conn2 = connection_list[i]
             conn3,conn4 = connection_list[j]
-
-            flightline1 = ( connection_point_coord_list[conn1],
-                            connection_point_coord_list[conn2] )
 
             flightline2 = ( connection_point_coord_list[conn3],
                             connection_point_coord_list[conn4] )
             
-            if is_crossover( flightline1, flightline2, True ):
+            if is_crossover( flightline1, flightline2, debug=False ):
                 num_crossovers += 1
 
     if debug:
         print "Crossovers:", num_crossovers
 
-    return num_crossovers
+    # normalise the sum of gradients for the fitness function
+    p = 3000
+    sum_of_gradients = ( 1.0 * (p - sum_of_gradients ) ) / p
+    assert sum_of_gradients >= 0
+    
+    return num_crossovers, sum_of_gradients
 
 
 
@@ -221,12 +241,123 @@ def gradient( flightline ):
 
     return gradient
     
+    
 
-def yplacement( inst_col_dict, drawing_object_dict, driver_dict ):
+#drawing_object_dict_ref = None
+#drawing_object_name_list = None
+
+def layout_fitness_function( soul , display=False):
+    """Determine the fitness of the genotype for positioning blocks.
+    
+    Fitness:
+    * Least crossovers
+    * No bounding box incursions
+    
+    """
+    CRUNCH_WEIGHTING = 0.0   # how crunched up to 0 on the y-axis?
+    XOVER_WEIGHTING = 1.0    # crossover weighting
+    GRAD_WEIGHTING  = 2.0
+    
+    #  Fuck. How do I access the drawing object dictionary from in here?
+    # Ugly global variable for this module, that's how.  So check that
+    # it has been set
+    assert drawing_object_dict_ref is not None
+    
+    # Set the y-placement of each block, using genes on the genome.
+    y_values = set_y_placement( soul )
+    
+    # Calculate the fitness of the layout, and hence the genome.
+    connection_point_coord_list = find_pin_coords(connection_list_ref,
+                                                  drawing_object_dict_ref,
+                                                  inst_col_dict_ref)
+    num_crossovers, sum_of_gradients = find_crossovers( connection_list_ref,
+                                                        connection_point_coord_list)
+
+    crossover_fitness = (300.0-num_crossovers)/300
+    
+    y_pos_fitness = ( 128 - ( 1.0 * sum(y_values)/len(y_values) ) ) / 128
+   
+    fitness = ( ( y_pos_fitness * CRUNCH_WEIGHTING )  + 
+                ( crossover_fitness * XOVER_WEIGHTING ) +
+                ( sum_of_gradients * GRAD_WEIGHTING ) 
+              )
+              
+    return fitness
+     
+    
+def set_y_placement( soul, debug=False ):
+    """ """
+    y_values = []
+    
+    # Split the genome up into bytes, and 
+    index = 0
+    if debug:
+        print "Genome:"
+        print "".join( [ str(a) for a in soul ] )
+        
+    assert drawing_object_name_list
+    for drawing_object_name in drawing_object_name_list:
+        
+        bits = soul[ index*BITS_PER_GENE : index*BITS_PER_GENE+BITS_PER_GENE ]
+        number = int( "".join( [ str(a) for a in bits ] ), 2)
+        
+        if debug:
+            print drawing_object_name
+            print "bits", bits
+            print "number", number
+        
+        #print drawing_object_dict_ref[drawing_object_name].position.y
+        drawing_object_dict_ref[drawing_object_name].position.y = number
+        #print ";;", drawing_object_dict_ref[drawing_object_name].position.y
+        index += 1
+        y_values.append(number)
+        
+    return y_values
+    
+def yplacement( drawing_object_dict, connection_list, inst_col_dict ):
     """ Place the instanciations of the current module in the y-axis.
 
     At the minute, this is pure combinatorial.  Will take ages for big ccts. 
     """
+    global drawing_object_dict_ref
+    global inst_col_dict_ref
+    global connection_list_ref
+    global drawing_object_name_list
+    
+    # Determine the number of objects to place so that we can set up the GA
+    num_drawing_objects = len( drawing_object_dict )
+    
+    # Set up references to the drawing object dictionary
+    drawing_object_dict_ref = drawing_object_dict 
+    inst_col_dict_ref = inst_col_dict
+    connection_list_ref = connection_list
+    
+    # A sorted list of block names is needed so that we can assign genes
+    # by position to y-axis settings of the blocks.
+    drawing_object_name_list = drawing_object_dict.keys()
+    drawing_object_name_list.sort()
+
+    # Configure the Genetic Algorithm    
+    placement_ga = ga.ga(
+        fitness_function = layout_fitness_function, 
+        bits_per_gene = BITS_PER_GENE,  # num of bit for y-axis
+        num_genes = num_drawing_objects,
+        num_generations = 25,
+        population_size = 200,
+        num_crossovers = 1,
+        num_parents = 120,
+        mutation_rate = 0.19
+        )
+        
+    #  Run the GA, then choose the fittest member of the DGA population as
+    # the final layout values
+    best_layout = placement_ga.evolve()
+    
+    # 
+    
+    
+    return
+
 
    
     
