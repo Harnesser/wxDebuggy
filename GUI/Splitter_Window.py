@@ -149,7 +149,12 @@ class Splitter_Window( wx.SplitterWindow ):
 
         # Sort out the y-positions of the modules in each column
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        placement.find_pin_coords( self.connection_list, drawing_object_dict, inst_col_dict, True )
+        #placement.find_pin_coords( self.connection_list, drawing_object_dict, inst_col_dict, True )
+        placement.yplacement(
+            drawing_object_dict,
+            self.connection_list,
+            inst_col_dict
+            )
 
         # Re-Scale the drawing positions of the objects to draw
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
