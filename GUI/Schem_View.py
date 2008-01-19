@@ -71,8 +71,7 @@ class Schem_View( wx.ScrolledWindow ):
         # First, get the device context of the window
         dc = wx.PaintDC(self)
         self.PrepareDC(dc)
-        dc.SetUserScale(self.scaling, self.scaling)
-
+        self._set_scale(dc)
 
         # Draw Stuff
         dc.BeginDrawing()
@@ -89,6 +88,45 @@ class Schem_View( wx.ScrolledWindow ):
         dc.EndDrawing()
 
 
+    def _set_scale(self, dc):
+        """ Determine what scaling factor of the schematic.
+        
+        Make sure that the whole schematic fits in the client area.
+        """
+        
+        # First, find the size of the client area
+        x_dc, y_dc = dc.GetSize()
+        
+        # Next, find the extent of the schematic. Go through the
+        # list of drawing objects to see what the maximum x and y
+        # values are.
+        x_min, x_max = 0, 0
+        y_min, y_max = 0, 0
+        
+        for part in self.drawobj_list:
+            x1,x2,y1,y2 = part.getBounds()
+            
+            if x1 < x_min:
+                x_min = x1
+            elif x2 > x_max:
+                x_max = x2
+                
+            if y1 < y_min:
+                y_min = y1
+            elif y2 > y_max:
+                y_max = y2
+        
+        # Determine and set the scaling factor.
+        self.scaling = min( (1.0 * y_dc ) / y_max,
+                            (1.0 * x_dc ) / x_max )
+                            
+        #  Keep the schematic x:y scaling ratio constant so we don't get
+        # stretched schematics
+        dc.SetUserScale(self.scaling, self.scaling)
+        
+        return
+        
+          
 
     def _getEventCoordinates(self, event):
         """ Return the coordinates associated with the given mouse event.
