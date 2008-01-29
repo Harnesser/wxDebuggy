@@ -95,12 +95,15 @@ class ga:
             ## Calculate fitness of each member of the population
             self._sort_population(gen_file)    
         
+            # Print the fittest...
+            self.fitness_function( self.population[0][1], display=True )
+            
             ## Copy the parents over 
             # Take the top <self.num_parents> of fitness-sorted population
             parents = self.population[:self.num_parents] # slicing causes a copy...
             assert len(parents) == self.num_parents
             
-            print [ parent[0] for parent in parents ]
+            #print [ parent[0] for parent in parents ]
                 
             ## Eugenics...     
             #  Now that the population is sorted in order of fitness, we'll replace
@@ -140,9 +143,8 @@ class ga:
             ## Introduce some mutations (and hope we don't get zombies...)
             self._mutation()
 
-            # Print the fittest...
-            self.fitness_function( self.population[0][1], display=True )
 
+            
         # ---------------------------------------------------- End of generations loop
         
         # Now choose the fittest as our result...
@@ -161,8 +163,10 @@ class ga:
         chromosome_size = self.num_genes * self.bits_per_gene
         population = [0] * self.population_size
         for i in range( self.population_size ):
-            population[i] = [ 0, self._random_chromosome() ]
-
+            new_chromosome = self._random_chromosome()
+            new_fitness    = self._calc_fitness( new_chromosome )
+            population[i] = [ new_fitness, new_chromosome ]
+            
         if debug:
             for soul in population:
                 print soul
@@ -184,6 +188,13 @@ class ga:
             chromosome.append( random.randrange(0,2) )
 
         return chromosome
+        
+        
+    def _calc_fitness(self, soul):
+        """Calculate the fitness of a given member ot the population"""
+        
+        fitness = self.fitness_function( soul )
+        return fitness  
         
 
     def _calc_fitnesses(self):
@@ -309,8 +320,14 @@ class ga:
             # Now write the (possibly mutated) soul back into the population
             a = map( self._mutate, self.population[i][1], flip_if_one )
             if debug:
-                print "Before:", self.population[i][1]
-                print "After :", a
+                mutation_count = 0
+                for x in flip_if_one:
+                    if x:
+                        mutation_count += 1
+                print "Mutations:", mutation_count
+                #print flip_if_one
+                #print "Before :", self.population[i][1]
+                #print "After  :", a
             self.population[i][1] = a
             
         return
@@ -353,6 +370,7 @@ class ga:
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 if __name__ == '__main__':
 
+
     def fitness_function( soul, debug=False):
         
         fitness = 0
@@ -378,11 +396,15 @@ if __name__ == '__main__':
         distance = 0
         fitness = 0
         
+        if debug:
+            print soul_str
+        
         for i in range( len(match_this ) ):
             i1,i2 = (i*7)+7, i*7
             #print "i1,i2", i1,i2
 
             ga_ord = int( soul_str[i2:i1], 2)
+
             if ga_ord >= 32:
                 string += chr(ga_ord)             
             else:
@@ -390,15 +412,16 @@ if __name__ == '__main__':
                 
             distance += abs( ga_ord - ord(match_this[i]) )
 
-            
+            # it seems that if you try to display chr(14), the terminal
+            # screws up...
             if debug:
-                print ':: "%s"' % ( soul_str[i2:i1] ), ga_ord, chr(ga_ord)
+                print '   "%s"' % ( soul_str[i2:i1] ), ga_ord, string[-1]
                 print "   Match '%s' (%d) with '%s' (%d): Distance: %d" % (
                      match_this[i], ord(match_this[i]),
-                     chr(ga_ord), ga_ord , 
+                     string[-1], ga_ord , 
                      abs( ga_ord - ord(match_this[i]) )
                      ) 
-        
+                print "  ", string
 
                     
             if match_this[i] == chr(ga_ord):
@@ -407,7 +430,7 @@ if __name__ == '__main__':
             
         if display:
             print string, distance
-            myGA.hGA.write(":'%s'\n" % ( string ) )   
+            #myGA.hGA.write(":'%s'\n" % ( string ) )   
                        
         # fitness = (50*128)-distance
         assert fitness >= 0
@@ -421,7 +444,7 @@ if __name__ == '__main__':
               population_size=1000,
               num_crossovers=1,
               num_parents=500,
-              mutation_rate=0.01)
+              mutation_rate=0.0001)
               
     print myGA.evolve(gen_file=True)
 
