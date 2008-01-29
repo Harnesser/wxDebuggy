@@ -141,7 +141,7 @@ class ga:
 
 
             ## Introduce some mutations (and hope we don't get zombies...)
-            self._mutation()
+            self._quicker_mutation()
 
 
             
@@ -301,6 +301,33 @@ class ga:
         return babie1, babie2
 
 
+    def _quicker_mutation(self,debug=False):
+        """Mutation.
+        
+        Instead of generating a random number for each bit in each member of the
+        population, generate 2. The first determines if we mutate or not and is
+        checked against the desired mutation rate. The second determines the locus
+        that we mutate.
+        
+        This means that only one locus in a given soul can mutate during each generation
+        """
+        
+        bits_per_chromosome = self.num_genes * self.bits_per_gene      
+        
+        for i in range( len(self.population) ):
+        
+            if random.random() <= self.mutation_rate:   
+                     
+                locus = random.randrange(bits_per_chromosome)
+                soul = self.population[i][1] # pointer/reference?  
+                
+                if debug: print soul                     
+                soul[locus] = soul[locus] ^ 1                 
+                if debug: print soul, locus
+                    
+        return
+        
+        
     def _mutation(self,debug=False):
         """Mutation
         
@@ -444,7 +471,7 @@ if __name__ == '__main__':
               population_size=1000,
               num_crossovers=1,
               num_parents=500,
-              mutation_rate=0.0001)
+              mutation_rate=0.01)
               
     print myGA.evolve(gen_file=True)
 
