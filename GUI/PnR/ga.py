@@ -429,7 +429,7 @@ if __name__ == '__main__':
                 
             
         if display:
-            print string, distance
+            print string, fitness
             #myGA.hGA.write(":'%s'\n" % ( string ) )   
                        
         # fitness = (50*128)-distance
