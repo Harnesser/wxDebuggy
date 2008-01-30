@@ -122,7 +122,32 @@ class ga:
         
         return self.population[0][1]     
         
-
+        
+    def show_summary(self):
+        """Print out a summary of the GA settings and results"""
+        
+        lhs_gap = 25
+        
+        print "-"*80
+        print "GA Summary"
+        print "-"*80
+        print "  Generations".ljust(lhs_gap) ,": ", self.num_generations      
+        print "  Population size".ljust(lhs_gap) ,": ", self.population_size
+        print "  Number of genes".ljust(lhs_gap) ,": ", self.num_genes
+        print "  Bits per gene".ljust(lhs_gap) ,": ", self.bits_per_gene
+        print "  Crossovers".ljust(lhs_gap) ,": ", self.num_crossovers
+        print "  Parents".ljust(lhs_gap) ,": ", self.num_parents
+        print "  Elite".ljust(lhs_gap) ,": ", self.num_elite
+        print "  Mutation Rate".ljust(lhs_gap) ,": ", self.mutation_rate, "%"
+        print "   "
+        min_fitness,max_fitness,avg_fitness = self._get_stats()
+        print "  Maximum Fitness".ljust(lhs_gap) ,": ",max_fitness
+        print "  Average Fitness".ljust(lhs_gap) ,": ",avg_fitness
+        print "-"*80
+               
+        return
+        
+        
 #######################################################################################
 ####  'Private' methods
 #######################################################################################
@@ -410,6 +435,8 @@ class ga:
         
         return min_fitness,max_fitness,avg_fitness
 
+
+        
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 ### 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -489,9 +516,10 @@ if __name__ == '__main__':
               num_generations=100,
               population_size=1000,
               num_crossovers=1,
-              num_parents=100,
+              num_parents=500,
               num_elite=10,
-              mutation_rate=0.05)
+              mutation_rate=0.1)
               
     print myGA.evolve(gen_file=True)
-
+    myGA.show_summary()
+    
