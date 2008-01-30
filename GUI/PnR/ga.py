@@ -35,7 +35,8 @@ class ga:
                  num_generations=10, population_size=10, 
                  num_genes=2, bits_per_gene=10, 
                  mutation_rate=0.01, num_crossovers=2,
-                 fitness_function=None, num_parents=6,
+                 fitness_function=None, num_parents=6, 
+                 num_elite=2,
                  debug=False):
         """  """
 
@@ -47,6 +48,7 @@ class ga:
         self.num_crossovers = num_crossovers
         self.debug = debug
         self.num_parents = num_parents
+        self.num_elite = num_elite
         self.num_random_souls = 0
         
         # A few derived sizes
@@ -58,6 +60,7 @@ class ga:
 
         # A few sanity checks before we proceed
         assert self.population_size >= self.num_parents
+        assert self.population_size >= self.num_elite
         assert self.mutation_rate >= 0.0 and self.mutation_rate <= 1.0
         assert self.bits_per_gene >= 1
         assert ( self.num_crossovers >= 1 and 
@@ -246,8 +249,8 @@ class ga:
         
         
         # Now update the population with the new generation
-        num_offspring = self.population_size - self.num_parents
-        self.population[self.num_parents:] = self.offspring[:num_offspring]
+        num_offspring = self.population_size - self.num_elite
+        self.population[self.num_elite:] = self.offspring[:num_offspring]
 
         return
     
@@ -487,7 +490,8 @@ if __name__ == '__main__':
               population_size=1000,
               num_crossovers=1,
               num_parents=100,
-              mutation_rate=0.01)
+              num_elite=10,
+              mutation_rate=0.05)
               
     print myGA.evolve(gen_file=True)
 
