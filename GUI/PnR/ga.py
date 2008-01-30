@@ -237,7 +237,7 @@ class ga:
             parent1_index = random.randrange( self.num_parents )
             parent1 = self.population[parent1_index][1]
             
-            parent2_index = random.randrange( self.population_size )
+            parent2_index = random.randrange( self.num_parents )
             parent2 = self.population[parent2_index][1]
 
 
