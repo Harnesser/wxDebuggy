@@ -69,10 +69,11 @@ class ga:
         self.population = []
 
         self.population = self._initial_population()
-
+        self.offspring  = list(self.population)
         
         self.hGA = None  # GA info file handle
         self.gen = 0     # generation counter
+        
         
     def evolve(self,debug=False, gen_file=False):
         """Run Evolution"""
@@ -88,7 +89,6 @@ class ga:
             print "+" + (" -" * x ) + " +"
         
 
-
         # Play $diety, run evolution...
         for self.gen in range(self.num_generations):
 
@@ -97,49 +97,16 @@ class ga:
         
             # Print the fittest...
             self.fitness_function( self.population[0][1], display=True )
-            
-            ## Copy the parents over 
-            # Take the top <self.num_parents> of fitness-sorted population
-            parents = self.population[:self.num_parents] # slicing causes a copy...
-            assert len(parents) == self.num_parents
-            
-            #print [ parent[0] for parent in parents ]
-                
-            ## Eugenics...     
-            #  Now that the population is sorted in order of fitness, we'll replace
-            # most of the non-breeding (unfit) souls with a offspring of the top ones.
-            # Potential parents are taken from the top 'self.num_parents' of the 
-            # population.  The bottom 'self.num_random_souls' of the population will
-            # be replaced with random population members.  All other souls will be
-            # replaced with the offspring of parents.
-            
-            random_souls_start_index = self.population_size - self.num_random_souls
-            
-            for j in range(0, random_souls_start_index, 2):
-                
-                ## Breed two offspring from two parents.
-                # Calculate parent indexes
-                parent1_index = random.randrange( self.num_parents )
-                parent1 = parents[parent1_index][1]
-                
-                parent2_index = random.randrange( self.num_parents )
-                parent2 = parents[parent2_index][1]
-
-
-                # ... and put the products of their loving back into the population
-                offspring1,offspring2 = self._breed(parent1, parent2)
-                self.population[j] = [ 0, offspring1 ]
-                if len(self.population) != j+1:
-                    self.population[j+1] = [0, offspring2 ]
- 
- 
+                      
+            # Breeding
+            self._new_generation()
+              
             ##  Keep randomness in population by creating a few random souls each
             # generation. I'm not sure how effective of necessary this is.
+            random_souls_start_index = self.population_size - self.num_random_souls
             for j in range( random_souls_start_index, self.population_size ):
                 self.population[j][1] = self._random_chromosome()
                 
-
-
             ## Introduce some mutations (and hope we don't get zombies...)
             self._quicker_mutation()
 
@@ -175,11 +142,19 @@ class ga:
         
 
     def _print_population(self):
-        """Print out the population"""
+        """Print out the population, each on a newline"""
+        print "Population"
         for soul in self.population:
             print soul
         
-
+        
+    def _print_offspring(self):
+        """Print out the offspring, each on a newline"""
+        print "Offspring"
+        for soul in self.offspring:
+            print soul
+       
+            
     def _random_chromosome(self):
         """Return a random chromosome """
         
@@ -189,7 +164,7 @@ class ga:
 
         return chromosome
         
-        
+             
     def _calc_fitness(self, soul):
         """Calculate the fitness of a given member ot the population"""
         
@@ -236,6 +211,46 @@ class ga:
         
         return
 
+
+    def _new_generation(self):
+        """Breed a new generation of souls
+        
+          Now that the population is sorted in order of fitness, we'll replace
+        most of the non-breeding (unfit) souls with a offspring of the top ones.
+        One of the potential parents is taken from the top 'self.num_parents' of
+        the population.  The other parent is taken from anywhere in the population.
+        
+          The bottom 'self.num_random_souls' of the population will be replaced with 
+        random population members.  All other souls will be replaced with the 
+        offspring of parents.            
+        """
+            
+        random_souls_start_index = self.population_size - self.num_random_souls
+        
+        for j in range(0, random_souls_start_index, 2):
+            
+            ## Breed two offspring from two parents.
+            # Calculate parent indexes
+            parent1_index = random.randrange( self.num_parents )
+            parent1 = self.population[parent1_index][1]
+            
+            parent2_index = random.randrange( self.population_size )
+            parent2 = self.population[parent2_index][1]
+
+
+            # ... and store the products of their loving...
+            offspring1,offspring2 = self._breed(parent1, parent2)
+            self.offspring[j] = [ 0, offspring1 ]
+            if len(self.population) != j+1:
+                self.offspring[j+1] = [ 0, offspring2 ]            
+        
+        
+        # Now update the population with the new generation
+        num_offspring = self.population_size - self.num_parents
+        self.population[self.num_parents:] = self.offspring[:num_offspring]
+
+        return
+    
 
     def _breed(self, parent1, parent2, debug=False ):
         """Breed two parents"""
@@ -417,6 +432,7 @@ if __name__ == '__main__':
         Don't tell me Unicode is going to bollox this up... """
   
         match_this = 'This is a string of length 50 characters. Honestly'
+        #match_this = 'Th'
         soul_str   = ''.join( [str(bit) for bit in soul ] )
         
         string = ""
@@ -470,7 +486,7 @@ if __name__ == '__main__':
               num_generations=100,
               population_size=1000,
               num_crossovers=1,
-              num_parents=500,
+              num_parents=100,
               mutation_rate=0.01)
               
     print myGA.evolve(gen_file=True)
