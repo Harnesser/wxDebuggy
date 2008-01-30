@@ -318,37 +318,31 @@ class ga:
 
         return babie1, babie2
 
-        
+
     def _quicker_mutation(self,debug=False):
         """Mutation.
         
         Instead of generating a random number for each bit in each member of the
-        population, generate only a few. 
+        population, generate 2. The first determines if we mutate or not and is
+        checked against the desired mutation rate. The second determines the locus
+        that we mutate.
         
-        First, using the size of the chromosome and the mutation rate, determine
-        the max number of bits that's likely to mutate.  Then, use this number as
-        the upper limit when randomly generating a number of bits to mutate.  
-        Then for each bit were mutating, generate a random locus.     
-        
-        Shit. This doesn't work if the max_num_bits turns out to be less than 1.  
+        This means that only one locus in a given soul can mutate during each generation
         """
         
         bits_per_chromosome = self.num_genes * self.bits_per_gene      
-        max_bits_to_mutate = bits_per_chromosome * self.mutation_rate
-        print "B2M", max_bits_to_mutate, bits_per_chromosome
-        bits_to_mutate = random.randrange( int(max_bits_to_mutate) )
-        print "B2M", bits_to_mutate
         
-        for i in range( bits_to_mutate ):
-                            
-            locus = random.randrange(bits_per_chromosome)
-            soul = self.population[i][1] # pointer/reference?  
-            
-            if debug: print soul                     
-            soul[locus] = soul[locus] ^ 1                 
-            if debug: print soul, locus
-                        
+        for i in range( len(self.population) ):
         
+            if random.random() <= self.mutation_rate:   
+                     
+                locus = random.randrange(bits_per_chromosome)
+                soul = self.population[i][1] # pointer/reference?  
+                
+                if debug: print soul                     
+                soul[locus] = soul[locus] ^ 1                 
+                if debug: print soul, locus
+                    
         return
         
         
@@ -497,7 +491,7 @@ if __name__ == '__main__':
               num_crossovers=1,
               num_parents=100,
               num_elite=10,
-              mutation_rate=0.001)
+              mutation_rate=0.05)
               
     print myGA.evolve(gen_file=True)
 
