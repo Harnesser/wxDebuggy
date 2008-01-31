@@ -246,7 +246,7 @@ def gradient( flightline ):
 #drawing_object_dict_ref = None
 #drawing_object_name_list = None
 
-def layout_fitness_function( soul , display=False):
+def layout_fitness_function( soul , display=False, max_fitness=None):
     """Determine the fitness of the genotype for positioning blocks.
     
     Fitness:
@@ -343,10 +343,11 @@ def yplacement( drawing_object_dict, connection_list, inst_col_dict ):
         bits_per_gene = BITS_PER_GENE,  # num of bit for y-axis
         num_genes = num_drawing_objects,
         num_generations = 25,
-        population_size = 200,
+        population_size = 400,
         num_crossovers = 1,
-        num_parents = 120,
-        mutation_rate = 0.19
+        num_elite = 20,
+        num_parents = 54,
+        mutation_rate = 0.01
         )
         
     #  Run the GA, then choose the fittest member of the DGA population as
