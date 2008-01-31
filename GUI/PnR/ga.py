@@ -53,6 +53,8 @@ class ga:
         
         # A few derived sizes
         self.bits_per_chromosome = self.num_genes * self.bits_per_gene
+        max_distance = 2 ** self.bits_per_gene
+        self.max_fitness = self.num_genes * max_distance
         
         # Check that we've a fitness function defined.
         assert type(fitness_function) == types.FunctionType
@@ -98,8 +100,19 @@ class ga:
             ## Calculate fitness of each member of the population
             self._sort_population(gen_file)    
         
+            #  Write results to file? Useful for debug or determining GA config for
+            # specific problems
+            if gen_file:
+                min_fitness, max_fitness, avg_fitness = self._get_stats()
+                self.hGA.write("%d,%d,%d,%f\n" % (
+                    self.gen, min_fitness, max_fitness, avg_fitness ) )
+                print "Generation %d, max=%d, avg=%f" % (
+                    self.gen, max_fitness, avg_fitness )      
+                
             # Print the fittest...
-            self.fitness_function( self.population[0][1], display=True )
+            self.fitness_function( self.population[0][1],
+                                   max_fitness=self.max_fitness,
+                                   display=True )
                       
             # Breeding
             self._new_generation()
@@ -116,7 +129,12 @@ class ga:
 
             
         # ---------------------------------------------------- End of generations loop
-        
+ 
+        # Print the fittest...
+        self.fitness_function( self.population[0][1],
+                               display=True,
+                               max_fitness=self.max_fitness )    
+           
         # Now choose the fittest as our result...
         self._sort_population(gen_file)
         
@@ -196,7 +214,7 @@ class ga:
     def _calc_fitness(self, soul):
         """Calculate the fitness of a given member ot the population"""
         
-        fitness = self.fitness_function( soul )
+        fitness = self.fitness_function( soul, max_fitness=self.max_fitness )
         return fitness  
         
 
@@ -208,7 +226,9 @@ class ga:
         """
 
         for j in range( len(self.population) ):
-            fitness = self.fitness_function( self.population[j][1] ) # pick the chromo part
+            fitness = self.fitness_function( self.population[j][1], # pick the chromo part
+                                             max_fitness=self.max_fitness ) 
+                                             
             self.population[j][0] = fitness # we'll sort by this index
 
         return
@@ -222,14 +242,7 @@ class ga:
 
         # First, calc the fitness of each soul in the population
         self._calc_fitnesses()
-        
-        #  Write results to file? Useful for debug or determining GA config for
-        # specific problems
-        if gen_file:
-            min_fitness, max_fitness, avg_fitness = self._get_stats()
-            self.hGA.write("%d,%d,%d,%f\n" % (self.gen, min_fitness, max_fitness, avg_fitness ) )
-            print "Generation %d, max=%d, avg=%f" % ( self.gen, max_fitness, avg_fitness ) 
-                
+                        
         # Sort population
         self.population.sort()
         self.population.reverse()            
@@ -240,7 +253,7 @@ class ga:
         return
 
 
-    def _new_generation(self):
+    def _new_generation(self, debug=False):
         """Breed a new generation of souls
         
           Now that the population is sorted in order of fitness, we'll replace
@@ -254,32 +267,66 @@ class ga:
         """
             
         random_souls_start_index = self.population_size - self.num_random_souls
-        
+
+        total_fitness = 0
+        for i in range(self.population_size):
+            total_fitness += self.population[i][0]
+            
         for j in range(0, random_souls_start_index, 2):
             
-            ## Breed two offspring from two parents.
-            # Calculate parent indexes
-            parent1_index = random.randrange( self.num_parents )
-            parent1 = self.population[parent1_index][1]
-            
-            parent2_index = random.randrange( self.num_parents )
-            parent2 = self.population[parent2_index][1]
+            ## Select two parents...
+            parent1 = self._select_parent(self.num_parents)
+            parent2 = self._select_parent(self.num_parents)
 
-
-            # ... and store the products of their loving...
+            # ... and store the products of their loving
             offspring1,offspring2 = self._breed(parent1, parent2)
             self.offspring[j] = [ 0, offspring1 ]
-            if len(self.population) != j+1:
+            if self.population_size != j+1:
                 self.offspring[j+1] = [ 0, offspring2 ]            
         
         
         # Now update the population with the new generation
-        num_offspring = self.population_size - self.num_elite
+        if debug:
+            print "-"*60
+            self._print_population()
+            self._print_offspring()
+            
+        num_offspring = self.population_size - self.num_elite   
         self.population[self.num_elite:] = self.offspring[:num_offspring]
-
+        
+        if debug:  
+            self._print_population()
+        
         return
     
+    
+    def _select_parent(self, upper_limit=10 ):
+        """Choose parent using rank"""
+        
+        parent_index = random.randrange( upper_limit )
+        parent = self.population[parent_index][1]
+        return parent
 
+
+    
+    def _select_parent_fitness_proportional(self, total_fitness ):
+        """Choose parent using fitness proporitional selection.
+        
+        See Coley, page 24
+        """
+        
+        if total_fitness == 0:
+            total_fitness = 1
+        
+        target = random.randrange( total_fitness )
+        running_total = 0
+        for i in range( 0, self.population_size ):
+            running_total += self.population[i][0]
+            if running_total >= target:
+                return self.population[i][1]
+        
+        
+        
     def _breed(self, parent1, parent2, debug=False ):
         """Breed two parents"""
 
@@ -357,7 +404,7 @@ class ga:
         
         bits_per_chromosome = self.num_genes * self.bits_per_gene      
         
-        for i in range( len(self.population) ):
+        for i in range( self.population_size ):
         
             if random.random() <= self.mutation_rate:   
                      
@@ -443,7 +490,7 @@ class ga:
 if __name__ == '__main__':
 
 
-    def fitness_function( soul, debug=False):
+    def fitness_function( soul, debug=False, display=False):
         
         fitness = 0
         for i in soul:
@@ -456,13 +503,12 @@ if __name__ == '__main__':
         return fitness
 
 
-    def hanning_distance( soul, debug=False, display=False):
+    def ascii_distance( soul, max_fitness=0, debug=False, display=False ):
         """ Fitness is the distance away from the string
-        
-        Don't tell me Unicode is going to bollox this up... """
+
+        """
   
         match_this = 'This is a string of length 50 characters. Honestly'
-        #match_this = 'Th'
         soul_str   = ''.join( [str(bit) for bit in soul ] )
         
         string = ""
@@ -472,6 +518,13 @@ if __name__ == '__main__':
         if debug:
             print soul_str
         
+        def grey_decode( grey_code_str ):
+            """ 
+            """         
+            
+            return 
+            
+            
         for i in range( len(match_this ) ):
             i1,i2 = (i*7)+7, i*7
             #print "i1,i2", i1,i2
@@ -499,27 +552,31 @@ if __name__ == '__main__':
                     
             if match_this[i] == chr(ga_ord):
                 fitness += 1
-                
-            
+               
+                       
+
+        # Calculate fitness - higher is better
+        fitness = max_fitness - distance
+           
         if display:
             print string, fitness
             #myGA.hGA.write(":'%s'\n" % ( string ) )   
-                       
-        # fitness = (50*128)-distance
+            
         assert fitness >= 0
         return fitness
     
     
-    myGA = ga(fitness_function=hanning_distance, 
-              bits_per_gene=7,  # 8-bits of y-axis...
-              num_genes=50,     # 50 instantiations...
+    myGA = ga(fitness_function=ascii_distance, 
+              bits_per_gene=7, 
+              num_genes=50,
               num_generations=100,
               population_size=1000,
               num_crossovers=1,
-              num_parents=500,
-              num_elite=10,
-              mutation_rate=0.1)
-              
+              num_parents=550,
+              num_elite=100,
+              mutation_rate=0.01)
+   
+
     print myGA.evolve(gen_file=True)
     myGA.show_summary()
     
