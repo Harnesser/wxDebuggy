@@ -256,7 +256,7 @@ def layout_fitness_function( soul , display=False, max_fitness=None):
     """
     CRUNCH_WEIGHTING = 0.0   # how crunched up to 0 on the y-axis?
     XOVER_WEIGHTING = 1.0    # crossover weighting
-    GRAD_WEIGHTING  = 2.0
+    GRAD_WEIGHTING  = 0.0
     
     #  Fuck. How do I access the drawing object dictionary from in here?
     # Ugly global variable for this module, that's how.  So check that
@@ -273,9 +273,9 @@ def layout_fitness_function( soul , display=False, max_fitness=None):
     num_crossovers, sum_of_gradients = find_crossovers( connection_list_ref,
                                                         connection_point_coord_list)
 
-    crossover_fitness = (300.0-num_crossovers)/300
+    crossover_fitness = (300.0-num_crossovers)/300.0
     
-    y_pos_fitness = ( 128 - ( 1.0 * sum(y_values)/len(y_values) ) ) / 128
+    y_pos_fitness = ( 128.0 - ( 1.0 * sum(y_values)/len(y_values) ) ) / 128.0
    
     fitness = ( ( y_pos_fitness * CRUNCH_WEIGHTING )  + 
                 ( crossover_fitness * XOVER_WEIGHTING ) +
@@ -305,18 +305,15 @@ def set_y_placement( soul, debug=False ):
     index = 0
     if debug:
         print "Genome:"
-        print "".join( [ str(a) for a in soul ] )
+        print soul
         
     assert drawing_object_name_list
     for drawing_object_name in drawing_object_name_list:
         
-        bits = soul[ index*BITS_PER_GENE : index*BITS_PER_GENE+BITS_PER_GENE ]
-        #number = int( "".join( [ str(a) for a in bits ] ), 2)
-        number = gray_decode( "".join( [ str(a) for a in bits ] ) )
+        number = soul[index]
         
         if debug:
             print drawing_object_name
-            print "bits", bits
             print "number", number
         
         #print drawing_object_dict_ref[drawing_object_name].position.y
@@ -353,14 +350,15 @@ def yplacement( drawing_object_dict, connection_list, inst_col_dict ):
     # Configure the Genetic Algorithm    
     placement_ga = ga.ga(
         fitness_function = layout_fitness_function, 
-        bits_per_gene = BITS_PER_GENE,  # num of bit for y-axis
         num_genes = num_drawing_objects,
-        num_generations = 25,
+        num_generations = 50,
         population_size = 100,
         num_crossovers = 1,
         num_elite = 20,
         num_parents = 28,
-        mutation_rate = 0.01
+        mutation_rate = 0.01,
+        max_range = 16,
+        mutation_max_deviation = 2
         )
         
     #  Run the GA, then choose the fittest member of the DGA population as
