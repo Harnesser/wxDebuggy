@@ -284,6 +284,18 @@ def layout_fitness_function( soul , display=False, max_fitness=None):
               
     return fitness
      
+def gray_decode( gray_code_str ):
+    """ 
+    """         
+    bin_str = gray_code_str[0]
+    for i in range(1,len(gray_code_str)):
+        if bin_str[i-1] == gray_code_str[i]:
+            bin_str += '0'  
+        else:    
+            bin_str += '1'
+            
+    return int( bin_str, 2 )
+            
     
 def set_y_placement( soul, debug=False ):
     """ """
@@ -299,7 +311,8 @@ def set_y_placement( soul, debug=False ):
     for drawing_object_name in drawing_object_name_list:
         
         bits = soul[ index*BITS_PER_GENE : index*BITS_PER_GENE+BITS_PER_GENE ]
-        number = int( "".join( [ str(a) for a in bits ] ), 2)
+        #number = int( "".join( [ str(a) for a in bits ] ), 2)
+        number = gray_decode( "".join( [ str(a) for a in bits ] ) )
         
         if debug:
             print drawing_object_name
@@ -343,10 +356,10 @@ def yplacement( drawing_object_dict, connection_list, inst_col_dict ):
         bits_per_gene = BITS_PER_GENE,  # num of bit for y-axis
         num_genes = num_drawing_objects,
         num_generations = 25,
-        population_size = 400,
+        population_size = 100,
         num_crossovers = 1,
         num_elite = 20,
-        num_parents = 54,
+        num_parents = 28,
         mutation_rate = 0.01
         )
         
