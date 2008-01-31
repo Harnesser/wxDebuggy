@@ -5,10 +5,10 @@ import random
 import types
 
 class ga:
-    """A Generic Genetic Algorithm Class
+    """A Generic Genetic Algorithm Class.
 
     A generic GA class which implements breeding through crossovers and 
-    random mutations.  
+    random mutations.  Uses integers, not binary strings.
     
     Usage
     --------------------------------------------------------------------
@@ -33,27 +33,29 @@ class ga:
 
     def __init__(self,
                  num_generations=10, population_size=10, 
-                 num_genes=2, bits_per_gene=10, 
+                 num_genes=2,
                  mutation_rate=0.01, num_crossovers=2,
-                 fitness_function=None, num_parents=6, 
+                 fitness_function=None, num_parents=6,
                  num_elite=2,
+                 max_range=127,
+                 mutation_max_deviation = 5,
                  debug=False):
         """  """
 
         self.num_generations = num_generations
         self.population_size = population_size
         self.num_genes = num_genes
-        self.bits_per_gene = bits_per_gene
         self.mutation_rate = mutation_rate
         self.num_crossovers = num_crossovers
         self.debug = debug
         self.num_parents = num_parents
         self.num_elite = num_elite
         self.num_random_souls = 0
+        self.max_range = max_range
+        self.mutation_max_deviation = mutation_max_deviation
         
         # A few derived sizes
-        self.bits_per_chromosome = self.num_genes * self.bits_per_gene
-        max_distance = 2 ** self.bits_per_gene
+        max_distance = self.max_range
         self.max_fitness = self.num_genes * max_distance
         
         # Check that we've a fitness function defined.
@@ -64,24 +66,21 @@ class ga:
         assert self.population_size >= self.num_parents
         assert self.population_size >= self.num_elite
         assert self.mutation_rate >= 0.0 and self.mutation_rate <= 1.0
-        assert self.bits_per_gene >= 1
+        assert self.max_range >= 25
         assert ( self.num_crossovers >= 1 and 
-                 self.num_crossovers <= self.bits_per_chromosome ) 
+                 self.num_crossovers <= self.num_genes) 
 
         # Population List
         # This is a list of lists: [ <fitness>, [<chromosome_list>] ]
         # we can sort this by fitness easy...
         self.population = []
-
-        self.population = self._initial_population()
-        self.offspring  = list(self.population)
         
         self.hGA = None  # GA info file handle
         self.gen = 0     # generation counter
         
         
     def evolve(self,debug=False, gen_file=False):
-        """Run Evolution"""
+        """Run Evolution."""
 
         if gen_file:
             self.hGA = open("fitnesses.csv","w")
@@ -93,7 +92,10 @@ class ga:
             print "|" + "Y-Placement GA".center(x*2+1) + "|"
             print "+" + (" -" * x ) + " +"
         
-
+        # Initial Population
+        self.population = self._initial_population()
+        self.offspring  = list(self.population)  # holding pen for offspring
+        
         # Play $diety, run evolution...
         for self.gen in range(self.num_generations):
 
@@ -124,7 +126,7 @@ class ga:
                 self.population[j][1] = self._random_chromosome()
                 
             ## Introduce some mutations (and hope we don't get zombies...)
-            self._quicker_mutation()
+            self._mutation()
 
 
             
@@ -142,7 +144,7 @@ class ga:
         
         
     def show_summary(self):
-        """Print out a summary of the GA settings and results"""
+        """Print out a summary of the GA settings and results."""
         
         lhs_gap = 25
         
@@ -152,7 +154,6 @@ class ga:
         print "  Generations".ljust(lhs_gap) ,": ", self.num_generations      
         print "  Population size".ljust(lhs_gap) ,": ", self.population_size
         print "  Number of genes".ljust(lhs_gap) ,": ", self.num_genes
-        print "  Bits per gene".ljust(lhs_gap) ,": ", self.bits_per_gene
         print "  Crossovers".ljust(lhs_gap) ,": ", self.num_crossovers
         print "  Parents".ljust(lhs_gap) ,": ", self.num_parents
         print "  Elite".ljust(lhs_gap) ,": ", self.num_elite
@@ -173,70 +174,42 @@ class ga:
 #######################################################################################
 ####  'Private' methods
 #######################################################################################
+
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+###  Population Initialisation
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
     def _initial_population(self, debug=False):
-        """Create an initial random population"""
+        """Create an initial random population."""
 
         # Set up the array to hold the genome of the population
-        chromosome_size = self.num_genes * self.bits_per_gene
+        chromosome_size = self.num_genes
         population = [0] * self.population_size
         for i in range( self.population_size ):
-            new_chromosome = self._random_chromosome()
-            new_fitness    = self._calc_fitness( new_chromosome )
-            population[i] = [ new_fitness, new_chromosome ]
+            new_chromosome = self._random_chromosome( self.max_range )
+            population[i] = [ 0, new_chromosome ]           
             
         if debug:
             for soul in population:
                 print soul
          
         return population
-        
-
-    def _print_population(self):
-        """Print out the population, each on a newline"""
-        print "Population"
-        for soul in self.population:
-            print soul
-        
-        
-    def _print_offspring(self):
-        """Print out the offspring, each on a newline"""
-        print "Offspring"
-        for soul in self.offspring:
-            print soul
-       
+               
             
-    def _random_chromosome(self):
-        """Return a random chromosome """
+    def _random_chromosome(self, max_range):
+        """Return a random chromosome."""
         
         chromosome = []
-        for i in range( self.num_genes * self.bits_per_gene ):
-            chromosome.append( random.randrange(0,2) )
+        for i in range( self.num_genes ):
+            chromosome.append( random.randrange(0, max_range) )
 
         return chromosome
         
-             
-    def _calc_fitness(self, soul):
-        """Calculate the fitness of a given member ot the population"""
-        
-        fitness = self.fitness_function( soul, max_fitness=self.max_fitness )
-        return fitness  
-        
 
-    def _calc_fitnesses(self):
-        """Calculate the fitness level of each member of the population
-        
-         This uses the fitness function supplied to the class instance to 
-        get a number for the fitness of each soul in the population.
-        """
-
-        for j in range( len(self.population) ):
-            fitness = self.fitness_function( self.population[j][1], # pick the chromo part
-                                             max_fitness=self.max_fitness ) 
-                                             
-            self.population[j][0] = fitness # we'll sort by this index
-
-        return
-   
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+###  Population Ranking
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     def _sort_population(self, gen_file=False, debug=False):
         """Sort the population based on fitness.
@@ -255,10 +228,30 @@ class ga:
             self._print_population()
         
         return
+        
 
+    def _calc_fitnesses(self):
+        """Calculate the fitness level of each member of the population.
+        
+         This uses the fitness function supplied to the class instance to 
+        get a number for the fitness of each soul in the population.
+        """
+
+        for j in range( len(self.population) ):
+            fitness = self.fitness_function( self.population[j][1], # pick the chromo part
+                                             max_fitness=self.max_fitness ) 
+                                             
+            self.population[j][0] = fitness # we'll sort by this index
+
+        return
+   
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+###  Breeding
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     def _new_generation(self, debug=False):
-        """Breed a new generation of souls
+        """Breed a new generation of souls.
         
           Now that the population is sorted in order of fitness, we'll replace
         most of the non-breeding (unfit) souls with a offspring of the top ones.
@@ -305,7 +298,7 @@ class ga:
     
     
     def _select_parent(self, upper_limit=10 ):
-        """Choose parent using rank"""
+        """Choose parent using rank."""
         
         parent_index = random.randrange( upper_limit )
         parent = self.population[parent_index][1]
@@ -332,9 +325,7 @@ class ga:
         
         
     def _breed(self, parent1, parent2, debug=False ):
-        """Breed two parents"""
-
-        bits_per_chromosome = self.num_genes * self.bits_per_gene 
+        """Breed two parents."""
 
         # Calculate crossover points. 
         #   I have to make sure their in assending order, eg: [2, 23 ] is good 
@@ -344,7 +335,7 @@ class ga:
         crossover_indexes = []
         prev_crossover = 0 # lower limit for crossover range
         for i in range( self.num_crossovers ):
-            xindex = random.randrange(prev_crossover, bits_per_chromosome) 
+            xindex = random.randrange(prev_crossover, self.num_genes) 
             crossover_indexes.append( xindex )
             prev_crossover = xindex
 
@@ -389,87 +380,85 @@ class ga:
             print "Babie1: ", babie1
             print "Babie2: ", babie2
        
-        assert len(babie1) == bits_per_chromosome
-        assert len(babie2) == bits_per_chromosome
+        assert len(babie1) == self.num_genes
+        assert len(babie2) == self.num_genes
 
         return babie1, babie2
 
 
-    def _quicker_mutation(self,debug=False):
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+###  Mutation
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    def _mutation(self, debug=False):
         """Mutation.
         
-        Instead of generating a random number for each bit in each member of the
-        population, generate 2. The first determines if we mutate or not and is
-        checked against the desired mutation rate. The second determines the locus
-        that we mutate.
-        
-        This means that only one locus in a given soul can mutate during each generation
+         Each gene of each member of the population has 'self.mutation_rate'
+        chance of being mutated.
         """
-        
-        bits_per_chromosome = self.num_genes * self.bits_per_gene      
-        
-        for i in range( self.population_size ):
-        
-            if random.random() <= self.mutation_rate:   
-                     
-                locus = random.randrange(bits_per_chromosome)
-                soul = self.population[i][1] # pointer/reference?  
-                
-                if debug: print soul                     
-                soul[locus] = soul[locus] ^ 1                 
-                if debug: print soul, locus
-                    
-        return
-        
-        
-    def _mutation(self,debug=False):
-        """Mutation
-        
-         Each bit on each gene of each member of the population has
-        'self.mutation_rate' chance of being flipped.
-        """
-        
-        bits_per_chromosome = self.num_genes * self.bits_per_gene      
-
+           
         for i in range( len(self.population) ):
         
-            #  Build a vector to flip bits in the chromosome. A 'True' in this 
-            # vector will flip the corresponding bit in the current chromosome.
-            flip_if_one = [0] *  bits_per_chromosome
-            flip_if_one = [ self._flag_mutation(i) for i in flip_if_one ] # list comprehension
+            #  Build a vector to mutate bits in the chromosome. A 'True' in this 
+            # vector will mutate the corresponding gene in the current chromosome.
+            mutate_if_one = [0] *  self.num_genes
+            mutate_if_one = [ self._flag_mutation(i) for i in mutate_if_one ]
 
             # Now write the (possibly mutated) soul back into the population
-            a = map( self._mutate, self.population[i][1], flip_if_one )
+            a = map( self._mutate, self.population[i][1], mutate_if_one )
+            
             if debug:
                 mutation_count = 0
-                for x in flip_if_one:
+                for x in mutate_if_one:
                     if x:
                         mutation_count += 1
                 print "Mutations:", mutation_count
-                #print flip_if_one
-                #print "Before :", self.population[i][1]
-                #print "After  :", a
+
             self.population[i][1] = a
             
         return
-
-    
-    def _mutate(self, soul, flip_if_one):
-        """Used in map operation to flip bits in the chromosome"""
         
-        if flip_if_one:
-            if soul:
-                return 0
-            else:
-                return 1
-        else:
-            return soul
-
-
-
-    def _flag_mutation(self,dummy):
+        
+    def _flag_mutation(self, dummy):
+        """ Return a random True or False based on the mutation rate."""
         return random.random() <= self.mutation_rate
+        
+    
+    def _mutate(self, soul, mutate_if_one, debug=False):
+        """Used in map operation to mutate bits in the chromosome.
+        
+          Mutation, in the case of integers, is defined here as adding
+        or subtracting a random number in the range self.mutation_max_deviation
+        
+        """
+        
+        if mutate_if_one:
+        
+            if debug: print soul, 
+                
+            mutation_amount = ( random.randrange( self.mutation_max_deviation * 2 ) -
+                                self.mutation_max_deviation )
+           
+            if debug: print mutation_amount,
+            
+            soul += mutation_amount
+            # bounds checking    
+            if soul > self.max_range:
+                soul = self.max_range
+            elif soul < 0:
+                soul = 0            
 
+            if debug: print soul
+            
+        return soul
+
+
+
+
+
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+###  Reporting 
+### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     def _get_stats(self):
         """Collect some stats for the current population"""
@@ -487,8 +476,25 @@ class ga:
         return min_fitness,max_fitness,avg_fitness
 
 
+    def _print_population(self):
+        """Print out the population, each on a newline"""
+        print "Population"
+        for soul in self.population:
+            print soul
+        
+        
+    def _print_offspring(self):
+        """Print out the offspring, each on a newline"""
+        print "Offspring"
+        for soul in self.offspring:
+            print soul
+        
+        
+        
         
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+### 
+###   M A I N  
 ### 
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 if __name__ == '__main__':
@@ -508,39 +514,19 @@ if __name__ == '__main__':
 
 
     def ascii_distance( soul, max_fitness=0, debug=False, display=False ):
-        """ Fitness is the distance away from the string
+        """ Fitness is the distance away from the string.
 
         """
   
         match_this = 'This is a string of length 50 characters. Honestly'
-        soul_str   = ''.join( [str(bit) for bit in soul ] )
         
         string = ""
         distance = 0
         fitness = 0
-        
-        if debug:
-            print soul_str
-        
-        def gray_decode( gray_code_str ):
-            """ 
-            """         
-            bin_str = gray_code_str[0]
-            for i in range(1,len(gray_code_str)):
-                if bin_str[i-1] == gray_code_str[i]:
-                    bin_str += '0'  
-                else:    
-                    bin_str += '1'
-                    
-            return int( bin_str, 2 )
-            
             
         for i in range( len(match_this ) ):
-            i1,i2 = (i*7)+7, i*7
-            #print "i1,i2", i1,i2
 
-            #ga_ord = int( soul_str[i2:i1], 2)
-            ga_ord = gray_decode( soul_str[i2:i1] )
+            ga_ord = soul[i]
             
             if ga_ord >= 32:
                 string += chr(ga_ord)             
@@ -552,7 +538,7 @@ if __name__ == '__main__':
             # it seems that if you try to display chr(14), the terminal
             # screws up...
             if debug:
-                print '   "%s"' % ( soul_str[i2:i1] ), ga_ord, string[-1]
+                print '   "%d"' % ( soul[i] ), ga_ord, string[-1]
                 print "   Match '%s' (%d) with '%s' (%d): Distance: %d" % (
                      match_this[i], ord(match_this[i]),
                      string[-1], ga_ord , 
@@ -565,7 +551,7 @@ if __name__ == '__main__':
                 fitness += 1
                
                        
-        if False:           
+        if True:           
             # Calculate fitness - higher is better
             fitness = max_fitness - distance
            
@@ -578,14 +564,14 @@ if __name__ == '__main__':
     
     
     myGA = ga(fitness_function=ascii_distance, 
-              bits_per_gene=7, 
               num_genes=50,
               num_generations=100,
               population_size=1000,
               num_crossovers=1,
-              num_parents=100,
-              num_elite=100,
-              mutation_rate=0.1)
+              num_parents=750,
+              num_elite=10,
+              mutation_rate=0.1,
+              mutation_max_deviation=20)
    
 
     print myGA.evolve(gen_file=True)
