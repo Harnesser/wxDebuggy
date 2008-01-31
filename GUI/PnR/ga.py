@@ -159,7 +159,11 @@ class ga:
         print "  Mutation Rate".ljust(lhs_gap) ,": ", self.mutation_rate, "%"
         print "   "
         min_fitness,max_fitness,avg_fitness = self._get_stats()
-        print "  Maximum Fitness".ljust(lhs_gap) ,": ",max_fitness
+        if self.max_fitness:
+            print "  Maximum Fitness".ljust(lhs_gap) ,": ",max_fitness, \
+                " ( of ", self.max_fitness, ")"
+        else:
+            print "  Maximum Fitness".ljust(lhs_gap) ,": ",max_fitness
         print "  Average Fitness".ljust(lhs_gap) ,": ",avg_fitness
         print "-"*80
                
@@ -518,19 +522,26 @@ if __name__ == '__main__':
         if debug:
             print soul_str
         
-        def grey_decode( grey_code_str ):
+        def gray_decode( gray_code_str ):
             """ 
             """         
-            
-            return 
+            bin_str = gray_code_str[0]
+            for i in range(1,len(gray_code_str)):
+                if bin_str[i-1] == gray_code_str[i]:
+                    bin_str += '0'  
+                else:    
+                    bin_str += '1'
+                    
+            return int( bin_str, 2 )
             
             
         for i in range( len(match_this ) ):
             i1,i2 = (i*7)+7, i*7
             #print "i1,i2", i1,i2
 
-            ga_ord = int( soul_str[i2:i1], 2)
-
+            #ga_ord = int( soul_str[i2:i1], 2)
+            ga_ord = gray_decode( soul_str[i2:i1] )
+            
             if ga_ord >= 32:
                 string += chr(ga_ord)             
             else:
@@ -554,9 +565,9 @@ if __name__ == '__main__':
                 fitness += 1
                
                        
-
-        # Calculate fitness - higher is better
-        fitness = max_fitness - distance
+        if False:           
+            # Calculate fitness - higher is better
+            fitness = max_fitness - distance
            
         if display:
             print string, fitness
@@ -572,9 +583,9 @@ if __name__ == '__main__':
               num_generations=100,
               population_size=1000,
               num_crossovers=1,
-              num_parents=550,
+              num_parents=100,
               num_elite=100,
-              mutation_rate=0.01)
+              mutation_rate=0.1)
    
 
     print myGA.evolve(gen_file=True)
