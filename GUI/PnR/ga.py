@@ -66,7 +66,8 @@ class ga:
         assert self.population_size >= self.num_parents
         assert self.population_size >= self.num_elite
         assert self.mutation_rate >= 0.0 and self.mutation_rate <= 1.0
-        assert self.max_range >= 25
+        assert self.max_range > 0
+        assert self.mutation_max_deviation < self.max_range
         assert ( self.num_crossovers >= 1 and 
                  self.num_crossovers <= self.num_genes) 
 
