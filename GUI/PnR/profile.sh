@@ -1,8 +1,12 @@
 #!/usr/bin/env sh
 
+module='ga'
+
 mkdir logs
-logfile_name=`date +"%F___%X.log"`
-python -m cProfile -s 'time' ./ga.py | tee  ./logs/${logfile_name}
+svn_rev=`svn info ./${module}.py | grep Revision | cut -d" " -f2`
+
+logfile_name="${module}:`date +"%F___%X\"`___Rev${svn_rev}.log"
+python -m cProfile -s 'time' ./${module}.py | tee  ./logs/${logfile_name}
 
 exit
 
