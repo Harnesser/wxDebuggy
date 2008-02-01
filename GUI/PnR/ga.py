@@ -221,14 +221,34 @@ class ga:
         # First, calc the fitness of each soul in the population
         self._calc_fitnesses()
                         
-        # Sort population
-        self.population.sort()
+
+        self.population[:] = self._sort_by_fitness(self.population)
         self.population.reverse()            
 
         if debug:
             self._print_population()
         
         return
+        
+        
+    def _sort_by_fitness(self, population):
+        """Sort the population by fitness only.
+        
+        The list I'm sorting is in the form:
+           [  [ <fitness> [ g1,g2,..,gn]], [<fitness> [ g1,g2,..,gn]], ... ]
+        
+        If I just use the .sort() method on this, it will order the genes
+        lexicographly if fitnesses are the same.  I want to avoid this incase
+        its biasing the rank selection. So I use the Decorate-Sort-Unsort
+        algorithm.
+        
+        See Python Cookbook,  Section 5.3 (page199)
+        """
+        
+        # Sort population - DSU
+        intermed = [ [ x[0], i, x[1] ]  for i,x in enumerate(population) ] 
+        intermed.sort()
+        return [ [ x[0],x[2] ] for x in intermed ]
         
 
     def _calc_fitnesses(self):
