@@ -391,7 +391,42 @@ class ga:
 ###  Mutation
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    def _mutation(self, debug=False):
+    def _mutation(self,debug=True):
+        """Mutation.
+        
+        Instead of generating a random number for each bit in each member of the
+        population, generate only a few. 
+        
+        First, using the size of the chromosome and the mutation rate, determine
+        the max number of bits that's likely to mutate.  Then, use this number as
+        the upper limit when randomly generating a number of bits to mutate.  
+        Then for each bit were mutating, generate a random locus.     
+        
+        Shit. This doesn't work if the max_num_bits turns out to be less than 1.  
+        """
+        
+        max_genes_to_mutate = self.num_genes * self.mutation_rate
+        if debug: print "B2M", max_genes_to_mutate, self.num_genes
+        
+        genes_to_mutate = int(max_genes_to_mutate)
+        if random.random() <= max_genes_to_mutate - genes_to_mutate:
+            genes_to_mutate += 1
+            
+        if debug: print "B2M", genes_to_mutate
+        
+        for i in range( genes_to_mutate ):
+                            
+            locus = random.randrange(self.num_genes)
+            soul = self.population[i][1] # pointer/reference?  
+            if debug: print soul                     
+            soul[locus] = self._mutate( soul[locus], True )
+            if debug: print soul, locus
+                        
+        
+        return
+
+
+    def _brute_force_mutation(self, debug=False):
         """Mutation.
         
          Each gene of each member of the population has 'self.mutation_rate'
@@ -574,7 +609,7 @@ if __name__ == '__main__':
               num_crossovers=1,
               num_parents=750,
               num_elite=10,
-              mutation_rate=0.1,
+              mutation_rate=0.001,
               mutation_max_deviation=20)
    
 
