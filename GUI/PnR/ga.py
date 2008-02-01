@@ -564,6 +564,9 @@ if __name__ == '__main__':
         return fitness
     
     
+    import cProfile
+    #import pstats
+    
     myGA = ga(fitness_function=ascii_distance, 
               num_genes=50,
               num_generations=100,
@@ -575,6 +578,24 @@ if __name__ == '__main__':
               mutation_max_deviation=20)
    
 
-    print myGA.evolve(gen_file=True)
+    if False:
+        import cProfile
+        import pstats
+
+        cProfile.run( 'myGA.evolve(gen_file=True)', 'ga.prof' )             
+        p = pstats.Stats('ga.prof')
+        
+        p.strip_dirs().sort_stats(-1).print_stats()
+        p.sort_stats('cumulative').print_stats(10)
+        
+        p.sort_stats('time', 'cum').print_stats(.5, 'init')
+        
+        p.sort_stats('time').print_stats()
+    else:    
+        myGA.evolve(gen_file=True)
+        
+   
     myGA.show_summary()
+    
+
     
