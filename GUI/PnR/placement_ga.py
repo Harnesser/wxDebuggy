@@ -129,21 +129,81 @@ def find_pin_coords(connection_list, drawing_object_dict, inst_col_dict, debug=F
         print "--------------------------------------------"
 
 
-    find_crossovers( connection_list, connection_point_coord_list )
-
     return connection_point_coord_list
 
 
 
+def find_possible_crossovers( connection_list, connection_point_coord_list, debug=False):
+    """Find a dictionary of connections which could possibly cross over.
+    
+    Connections which don't share columns can never cross, so there's no point in 
+    checking this all the time.
+    """
+    
+    possible_crossovers_dict = {}
+    
+    num_connections = len(connection_list)
+    for i in range( num_connections ):
+        conn1,conn2 = connection_list[i]
+       
+        x1,y1 = connection_point_coord_list[conn1]
+        x2,y2 = connection_point_coord_list[conn2]
+       
+        
+        for j in range( i+1, num_connections ): 
+            conn3,conn4 = connection_list[j]
+
+            x3,y3 = connection_point_coord_list[conn3]
+            x4,y4 = connection_point_coord_list[conn4]
+    
+            min_x = min(x3,x4)
+            max_x = max(x3,x4)
+            
+            # Can these paths cross? If they bump columns, then yes
+            if ( ( x1 >= min_x and x1 <= max_x )
+                   or
+                 ( x2 >= min_x and x2 <= max_x )
+               ):
+               possible_crossovers_dict.setdefault( ( conn1,conn2), [] ).append( (conn3,conn4) )
+    
+    
+    if debug:
+
+        print "[][][] Possible crossover dict"
+        x = 0
+        for i in range( num_connections ):
+            x += i
+        
+        y = 0
+        for i in possible_crossovers_dict.keys():
+            for j in possible_crossovers_dict[i]:
+                print i, j
+                y += 1
+
+        print "Connection list length = ", num_connections
+        print "  would mean %d comparasons" % (x )
+        print "  this is reduced to ", y
+        
+        
+    
+    return possible_crossovers_dict
+    
+    
+
+crossover_cache = {}
+
 def find_crossovers( connection_list, connection_point_coord_list, debug=False ):
-    """ Find the number of flightline crossovers
+    """Find the number of flightline crossovers.
     
     Given the current y placements of the instantiations in the module to display,
     calculate how many flightline crossovers there are.
     """
 
-    sum_of_gradients = 0
+
+    global crossover_cache # sorry
+    crossover_cache = {}
     
+    sum_of_gradients = 0   
     num_crossovers = 0
 
     num_connections = len(connection_list)
@@ -162,8 +222,20 @@ def find_crossovers( connection_list, connection_point_coord_list, debug=False )
             flightline2 = ( connection_point_coord_list[conn3],
                             connection_point_coord_list[conn4] )
             
-            if is_crossover( flightline1, flightline2, debug=False ):
-                num_crossovers += 1
+            # First, check if we've done this before
+            cache_key = str( (flightline1,flightline2) )
+            
+            crossover = crossover_cache.get(cache_key)
+            if crossover is not None:
+                if crossover:
+                    num_crossovers += 1
+            else: # not in dict, we have to compute...
+                if is_crossover( flightline1, flightline2, debug=False ):
+                    crossover_cache[ cache_key] = True
+                    num_crossovers += 1
+                else:
+                    crossover_cache[ cache_key ] = False                   
+                    
 
     if debug:
         print "Crossovers:", num_crossovers
@@ -194,6 +266,18 @@ def is_crossover( flightline1, flightline2, debug=False ):
     (x1,y1),(x2,y2) = flightline1
     (u1,v1),(u2,v2) = flightline2
 
+
+    # Check bounding box:
+    if not ( ( u1 >= min(x1,x2) and u1 <= max(x1,x2) ) 
+                or
+             ( u2 >= min(x1,x2) and u2 <= max(x1,x2) )
+           ) and (
+             ( v1 >= min(y1,y2) and v1 <= max(y1,y2) )
+                or
+             ( v2 >= min(y1,y2) and v2 <= max(y1,y2) )
+           ):   
+        return False 
+            
     # Gradients of lines
     m1 = gradient(flightline1)
     m2 = gradient(flightline2)
@@ -346,6 +430,10 @@ def yplacement( drawing_object_dict, connection_list, inst_col_dict ):
     # by position to y-axis settings of the blocks.
     drawing_object_name_list = drawing_object_dict.keys()
     drawing_object_name_list.sort()
+
+
+    connection_point_coord_list = find_pin_coords(connection_list, drawing_object_dict, inst_col_dict)
+    a = find_possible_crossovers(connection_list, connection_point_coord_list, debug=True)
 
     # Configure the Genetic Algorithm    
     placement_ga = ga.ga(
