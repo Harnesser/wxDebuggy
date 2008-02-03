@@ -242,17 +242,6 @@ def is_crossover( flightline1, flightline2, debug=False ):
     (x1,y1),(x2,y2) = flightline1
     (u1,v1),(u2,v2) = flightline2
 
-
-    # Check bounding box:
-    if not ( ( u1 >= min(x1,x2) and u1 <= max(x1,x2) ) 
-                or
-             ( u2 >= min(x1,x2) and u2 <= max(x1,x2) )
-           ) and (
-             ( v1 >= min(y1,y2) and v1 <= max(y1,y2) )
-                or
-             ( v2 >= min(y1,y2) and v2 <= max(y1,y2) )
-           ):   
-        return False 
             
     # Gradients of lines
     m1 = gradient(flightline1)
