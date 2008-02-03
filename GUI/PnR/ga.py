@@ -411,7 +411,7 @@ class ga:
 ###  Mutation
 ### - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    def _mutation(self,debug=True):
+    def _mutation(self,debug=False):
         """Mutation.
         
         Instead of generating a random number for each bit in each member of the
