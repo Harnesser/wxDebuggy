@@ -16,6 +16,7 @@ connection_list_ref = None
 inst_col_dict_ref = None
 
 drawing_object_name_list = []
+possible_crossovers = {}
 
 # GA parameters
 BITS_PER_GENE = 4
@@ -188,9 +189,9 @@ def find_possible_crossovers( connection_list, connection_point_coord_list, debu
     
     return possible_crossovers_dict
     
-    
+   
 
-crossover_cache = {}
+
 
 def find_crossovers( connection_list, connection_point_coord_list, debug=False ):
     """Find the number of flightline crossovers.
@@ -199,53 +200,28 @@ def find_crossovers( connection_list, connection_point_coord_list, debug=False )
     calculate how many flightline crossovers there are.
     """
 
-
-    global crossover_cache # sorry
-    crossover_cache = {}
     
-    sum_of_gradients = 0   
     num_crossovers = 0
 
-    num_connections = len(connection_list)
-    for i in range( num_connections ):
-        conn1,conn2 = connection_list[i]
-        
+    for connection1 in possible_crossovers.keys():
+        conn1,conn2 = connection1
         flightline1 = ( connection_point_coord_list[conn1],
                         connection_point_coord_list[conn2] )
-
-        sum_of_gradients += abs( gradient( flightline1 ) )
-
-        
-        for j in range( i+1, num_connections ): 
-            conn3,conn4 = connection_list[j]
-
+                        
+        for connection2 in possible_crossovers[connection1]:
+            conn3,conn4 = connection2          
             flightline2 = ( connection_point_coord_list[conn3],
-                            connection_point_coord_list[conn4] )
+                            connection_point_coord_list[conn4] )            
             
-            # First, check if we've done this before
-            cache_key = str( (flightline1,flightline2) )
-            
-            crossover = crossover_cache.get(cache_key)
-            if crossover is not None:
-                if crossover:
+  
+            if is_crossover( flightline1, flightline2, debug=False ):
                     num_crossovers += 1
-            else: # not in dict, we have to compute...
-                if is_crossover( flightline1, flightline2, debug=False ):
-                    crossover_cache[ cache_key] = True
-                    num_crossovers += 1
-                else:
-                    crossover_cache[ cache_key ] = False                   
-                    
+              
 
     if debug:
         print "Crossovers:", num_crossovers
-
-    # normalise the sum of gradients for the fitness function
-    p = 3000
-    sum_of_gradients = ( 1.0 * (p - sum_of_gradients ) ) / p
-    assert sum_of_gradients >= 0
     
-    return num_crossovers, sum_of_gradients
+    return num_crossovers
 
 
 
@@ -354,19 +330,19 @@ def layout_fitness_function( soul , display=False, max_fitness=None):
     connection_point_coord_list = find_pin_coords(connection_list_ref,
                                                   drawing_object_dict_ref,
                                                   inst_col_dict_ref)
-    num_crossovers, sum_of_gradients = find_crossovers( connection_list_ref,
-                                                        connection_point_coord_list)
+    num_crossovers = find_crossovers( connection_list_ref, connection_point_coord_list)
 
     crossover_fitness = (300.0-num_crossovers)/300.0
     
     y_pos_fitness = ( 128.0 - ( 1.0 * sum(y_values)/len(y_values) ) ) / 128.0
    
     fitness = ( ( y_pos_fitness * CRUNCH_WEIGHTING )  + 
-                ( crossover_fitness * XOVER_WEIGHTING ) +
-                ( sum_of_gradients * GRAD_WEIGHTING ) 
+                ( crossover_fitness * XOVER_WEIGHTING )
               )
               
     return fitness
+     
+     
      
 def gray_decode( gray_code_str ):
     """ 
@@ -380,6 +356,7 @@ def gray_decode( gray_code_str ):
             
     return int( bin_str, 2 )
             
+    
     
 def set_y_placement( soul, debug=False ):
     """ """
@@ -408,6 +385,8 @@ def set_y_placement( soul, debug=False ):
         
     return y_values
     
+    
+    
 def yplacement( drawing_object_dict, connection_list, inst_col_dict ):
     """ Place the instanciations of the current module in the y-axis.
 
@@ -417,6 +396,7 @@ def yplacement( drawing_object_dict, connection_list, inst_col_dict ):
     global inst_col_dict_ref
     global connection_list_ref
     global drawing_object_name_list
+    global possible_crossovers
     
     # Determine the number of objects to place so that we can set up the GA
     num_drawing_objects = len( drawing_object_dict )
@@ -431,9 +411,9 @@ def yplacement( drawing_object_dict, connection_list, inst_col_dict ):
     drawing_object_name_list = drawing_object_dict.keys()
     drawing_object_name_list.sort()
 
-
+    # Determine which nets can possible cross each other
     connection_point_coord_list = find_pin_coords(connection_list, drawing_object_dict, inst_col_dict)
-    a = find_possible_crossovers(connection_list, connection_point_coord_list, debug=True)
+    possible_crossovers = find_possible_crossovers(connection_list, connection_point_coord_list)
 
     # Configure the Genetic Algorithm    
     placement_ga = ga.ga(
