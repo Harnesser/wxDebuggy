@@ -13,7 +13,7 @@ class Top_Frame( wx.Frame ):
 
         wx.Frame.__init__( self, None, -1,
                                      name,
-                                     pos = (50,50), size=(800,500),
+                                     pos = (50,50), size=(1200,800),
                                      style = wx.DEFAULT_FRAME_STYLE)
 
         self.Bind( wx.EVT_TREE_SEL_CHANGED, self.OnNewInstance )
