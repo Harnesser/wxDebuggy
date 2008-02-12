@@ -153,6 +153,15 @@ def find_possible_crossovers( connection_list, connection_point_coord_list, debu
         
         for j in range( i+1, num_connections ): 
             conn3,conn4 = connection_list[j]
+            disregard = False
+            
+            # if they go to and from the same instances, then they will 
+            # either always cross or never cross. disregard them
+            if ( (conn1[0] == conn3[0]) and (conn2[0] == conn4[0])
+                or
+                 (conn1[0] == conn3[1]) and (conn2[1] == conn4[0]) ):
+                print "Disregarding:", ( (conn1,conn2), (conn3,conn4) ) 
+                disregard = True
 
             x3,y3 = connection_point_coord_list[conn3]
             x4,y4 = connection_point_coord_list[conn4]
@@ -165,7 +174,14 @@ def find_possible_crossovers( connection_list, connection_point_coord_list, debu
                    or
                  ( x2 >= min_x and x2 <= max_x )
                ):
-               possible_crossovers_dict.setdefault( ( conn1,conn2), [] ).append( (conn3,conn4) )
+               disregard = False
+            else:    
+               disregard = True
+               
+               
+               
+            if not disregard:
+                possible_crossovers_dict.setdefault( ( conn1,conn2), [] ).append( (conn3,conn4) )
     
     
     if debug:
@@ -304,8 +320,8 @@ def layout_fitness_function( soul , display=False, max_fitness=None):
     * No bounding box incursions
     
     """
-    CRUNCH_WEIGHTING = 1.0   # how crunched up to 0 on the y-axis?
-    XOVER_WEIGHTING = 1.0    # crossover weighting
+    CRUNCH_WEIGHTING = 10.0   # how crunched up to 0 on the y-axis?
+    XOVER_WEIGHTING = 50.0    # crossover weighting
     GRAD_WEIGHTING  = 0.0
     
     #  Fuck. How do I access the drawing object dictionary from in here?
@@ -409,9 +425,9 @@ def yplacement( drawing_object_dict, connection_list, inst_col_dict ):
     placement_ga = ga.ga(
         fitness_function = layout_fitness_function, 
         num_genes = num_drawing_objects,
-        num_generations = 50,
-        population_size = 100,
-        num_crossovers = 1,
+        num_generations = 20,
+        population_size = 120,
+        num_crossovers = 2,
         num_elite = 20,
         num_parents = 28,
         mutation_rate = 0.01,
