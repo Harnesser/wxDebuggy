@@ -134,7 +134,7 @@ def find_pin_coords(connection_list, drawing_object_dict, inst_col_dict, debug=F
 
 
 
-def find_possible_crossovers( connection_list, connection_point_coord_list, debug=False):
+def find_possible_crossovers( connection_list, connection_point_coord_list, debug=True):
     """Find a dictionary of connections which could possibly cross over.
     
     Connections which don't share columns can never cross, so there's no point in 
@@ -177,8 +177,9 @@ def find_possible_crossovers( connection_list, connection_point_coord_list, debu
         
         y = 0
         for i in possible_crossovers_dict.keys():
+            print i 
             for j in possible_crossovers_dict[i]:
-                print i, j
+                print "    ", j
                 y += 1
 
         print "Connection list length = ", num_connections
@@ -303,7 +304,7 @@ def layout_fitness_function( soul , display=False, max_fitness=None):
     * No bounding box incursions
     
     """
-    CRUNCH_WEIGHTING = 0.0   # how crunched up to 0 on the y-axis?
+    CRUNCH_WEIGHTING = 1.0   # how crunched up to 0 on the y-axis?
     XOVER_WEIGHTING = 1.0    # crossover weighting
     GRAD_WEIGHTING  = 0.0
     
