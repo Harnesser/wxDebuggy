@@ -25,6 +25,7 @@ class hdl_parser( object ):
         self.set_parse_actions()
 
     def build_cds_from_file(self, filename ):
+        print 'Parsing "%s"' % (filename)
         return bnf.module_declaration.parseFile( filename )
 
     def set_parse_actions(self):
@@ -48,31 +49,31 @@ class hdl_parser( object ):
 
     # Modules
     def new_module( self, parse_str, loc, toks ):
-        print "New Module:"
+        #print "New Module:"
         self.current_module = vv.Module()    
 
     def name_module( self, parse_str, loc, toks ):
         if not self.current_module.name:    # Is this hackky? 
-            print "  Naming module: ", toks[0]
+            #print "  Naming module: ", toks[0]
             self.current_module.name = toks[0]
 
     def add_module( self, parse_str, loc, toks ):
-        print "  Adding module..."
+        #print "  Adding module..."
         self.cds[self.current_module.name] = self.current_module
-        print "  CDS:", self.cds
+        #print "  CDS:", self.cds
 
     # Ports
     def add_port( self, parse_str, loc, toks ):
-        print "    Found Port named:", toks['Port_Identifier'] 
+        #print "    Found Port named:", toks['Port_Identifier'] 
         port =  vv.Port( toks['Port_Identifier'], toks['Direction'] )
         self.current_module.add_port( port )
 
 
     # Instanciations
     def add_instanciation( self, parse_str, loc, toks ):
-        print "   Found module instanciation:"
-        for key in toks.keys():
-            print "     ", key, toks[key]
+        #print "   Found module instanciation:"
+        #for key in toks.keys():
+            #print "     ", key, toks[key]
         inst = vv.Instance( toks['name_of_instance'], toks['Module_Identifier'] )
 
         for connection in toks['Named_Port_Connection']:
