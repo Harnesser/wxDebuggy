@@ -48,7 +48,7 @@ class Splitter_Window( wx.SplitterWindow ):
         self.connection_list, self.module_drive_dict = self.get_block_connections(module)
 
 
-        if True:
+        if False:
             self.show_connection_lists_and_dictionaries()
 
         #self.write_graphviz( module )
@@ -61,7 +61,7 @@ class Splitter_Window( wx.SplitterWindow ):
         inst_col_dict['_oport'] = 0
         inst_col_dict['_iport'] = 0
         
-        print r"////oOOo\\\\" * 20
+        #print r"////oOOo\\\\" * 20
         inst_col_dict = placement.columnize( self.module_drive_dict, '_iport', inst_col_dict )
 
 
@@ -294,7 +294,6 @@ class Splitter_Window( wx.SplitterWindow ):
                     # This section builds the module-module driver list        
                     instantiated_module = module.inst_dict[net_inst]
                     sink_port = instantiated_module.module_ref.port_dict[net_name]
-                    print "()()() sink_port:", sink_port
                     if sink_port.sigtype == 'normal':
                         module_drive_dict.setdefault('_iport',[]).append(net_inst)      
                     else:   
@@ -312,7 +311,6 @@ class Splitter_Window( wx.SplitterWindow ):
                         # This section builds the module-module driver list 
                         instantiated_module = module.inst_dict[sink_inst]
                         sink_port = instantiated_module.module_ref.port_dict[sink_name]
-                        print "()()() sink_port:", sink_port
                         if sink_port.sigtype == 'normal':
                             module_drive_dict.setdefault(driver_inst,[]).append(sink_inst)      
                         else:   

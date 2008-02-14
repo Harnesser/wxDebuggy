@@ -35,7 +35,7 @@ def columnize( driver_dict, inst, col_dict, load = [], debug = False ):
     col_num = col_dict[inst] + 1
     load.append(inst)
 
-    print "::", inst, driver_dict.keys()
+    if debug: print "::", inst, driver_dict.keys()
 
     #  Go through the drivers of this sink and update their
     # column numbers if necessary
@@ -43,7 +43,7 @@ def columnize( driver_dict, inst, col_dict, load = [], debug = False ):
 
         # Loop dectection...
         if driver in load :
-            print "Loop!!: ", driver, ":", load
+            if debug: print "Loop!!: ", driver, ":", load
             continue
 
         # Only update the column count if needed.  If the load
@@ -134,7 +134,7 @@ def find_pin_coords(connection_list, drawing_object_dict, inst_col_dict, debug=F
 
 
 
-def find_possible_crossovers( connection_list, connection_point_coord_list, debug=True):
+def find_possible_crossovers( connection_list, connection_point_coord_list, debug=False):
     """Find a dictionary of connections which could possibly cross over.
     
     Connections which don't share columns can never cross, so there's no point in 
@@ -160,7 +160,7 @@ def find_possible_crossovers( connection_list, connection_point_coord_list, debu
             if ( (conn1[0] == conn3[0]) and (conn2[0] == conn4[0])
                 or
                  (conn1[0] == conn3[1]) and (conn2[1] == conn4[0]) ):
-                print "Disregarding:", ( (conn1,conn2), (conn3,conn4) ) 
+                if debug: print "Disregarding:", ( (conn1,conn2), (conn3,conn4) ) 
                 disregard = True
 
             x3,y3 = connection_point_coord_list[conn3]
