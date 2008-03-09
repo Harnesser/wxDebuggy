@@ -27,8 +27,13 @@ class Module( Object ):
         return 6
 
 
-    def GetPinDirection( self, pin_name ):
+    def GetPinDirection( self, pin_name, debug=False ):
         port_direction = None
+        
+        if debug:
+            print self.name
+            print self.port_dict
+            
         port = self.port_dict[ pin_name ]
         return port.direction
 
