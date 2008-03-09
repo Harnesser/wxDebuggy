@@ -320,8 +320,8 @@ def layout_fitness_function( soul , display=False, max_fitness=None):
     * No bounding box incursions
     
     """
-    CRUNCH_WEIGHTING = 10.0   # how crunched up to 0 on the y-axis?
-    XOVER_WEIGHTING = 50.0    # crossover weighting
+    CRUNCH_WEIGHTING = 0.0   # how crunched up to 0 on the y-axis?
+    XOVER_WEIGHTING = 1.0    # crossover weighting
     GRAD_WEIGHTING  = 0.0
     
     #  Fuck. How do I access the drawing object dictionary from in here?
@@ -338,7 +338,8 @@ def layout_fitness_function( soul , display=False, max_fitness=None):
                                                   inst_col_dict_ref)
     num_crossovers = find_crossovers( connection_list_ref, connection_point_coord_list)
 
-    crossover_fitness = (300.0-num_crossovers)/300.0
+    #crossover_fitness = (300.0-num_crossovers)/300.0
+    crossover_fitness = num_crossovers
     
     y_pos_fitness = ( 128.0 - ( 1.0 * sum(y_values)/len(y_values) ) ) / 128.0
    
@@ -346,6 +347,9 @@ def layout_fitness_function( soul , display=False, max_fitness=None):
                 ( crossover_fitness * XOVER_WEIGHTING )
               )
               
+    if display:
+        print "Max fitness:", fitness
+        
     return fitness
      
      
@@ -432,11 +436,13 @@ def yplacement( drawing_object_dict, connection_list, inst_col_dict ):
         num_parents = 28,
         mutation_rate = 0.01,
         max_range = 16,
-        mutation_max_deviation = 2
+        mutation_max_deviation = 2,
+        go_low = True,
         )
         
     #  Run the GA, then choose the fittest member of the DGA population as
     # the final layout values
+    print "-"*80
     best_layout = placement_ga.evolve()
     
     # 
