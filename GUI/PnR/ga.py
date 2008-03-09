@@ -39,6 +39,7 @@ class ga:
                  num_elite=2,
                  max_range=127,
                  mutation_max_deviation = 5,
+                 go_low = False,
                  debug=False):
         """  """
 
@@ -53,6 +54,7 @@ class ga:
         self.num_random_souls = 0
         self.max_range = max_range
         self.mutation_max_deviation = mutation_max_deviation
+        self.go_low = go_low
         
         # A few derived sizes
         max_distance = self.max_range
@@ -223,7 +225,8 @@ class ga:
                         
 
         self.population[:] = self._sort_by_fitness(self.population)
-        self.population.reverse()            
+        if not self.go_low:
+            self.population.reverse()            
 
         if debug:
             self._print_population()
