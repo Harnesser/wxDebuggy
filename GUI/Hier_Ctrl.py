@@ -49,6 +49,12 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
                      'tests/rtl/gates/gates1.v',
                      'tests/rtl/gates/gates2.v',
                      'tests/rtl/gates/gates3.v',
+                     "tests/rtl/snake/one_in_four_out.v",
+                     "tests/rtl/snake/snake_1.v",
+                     "tests/rtl/snake/three_in_one_out.v",
+                     "tests/rtl/snake/two_in_three_out.v",
+                     "tests/rtl/snake/two_in_two_out.v",
+                     "tests/rtl/snake/two_in_one_out.v",
                      ]
 
         myparser = hdl_parser()
