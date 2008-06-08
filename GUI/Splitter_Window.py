@@ -174,12 +174,10 @@ class Splitter_Window( wx.SplitterWindow ):
         self.p2.drawobj_list = drawing_object_dict.values()
 
 
-        # Now generate an initial ratsnest of the connections
+        # Wiring
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        self.BuildRatsnest(module)
-
-        #
-        self.add_fake_hypernets()
+        #self.BuildRatsnest(module)
+        #self.add_hypernets()
 
         # Make a call to redraw the schematic
         self.p2.Refresh()
@@ -207,6 +205,35 @@ class Splitter_Window( wx.SplitterWindow ):
             drawobj.endpt    = conn2
             self.p2.drawobj_list.append( drawobj )
             
+            
+    def get_hypernet_list(self):
+        """ Add a list of nets to draw...
+        Each net has at most one vertical segment to simplify the generation
+        of the coords, but the drawing task will handle any number
+        """
+           
+        hypernet_list = []
+        
+        for start_net,end_net in self.connection_list:
+        
+            # Get start point
+            start_point = self.p2.glue_points[start_net]
+            end_point   = self.p2.glue_points[end_net]
+            
+            # Prepare drawing object
+            drawobj = Drawing_Object(name='hypernet',
+                                     parent=self,
+                                     label='hypernet',
+                                     obj_type='hypernet')            
+                
+            drawobj.hypernet_tree = [ start_point.x, start_point.y ]            
+            mid_x = ( ( ( end_point.x - start_point.x ) / 2 ) + start_point.x )
+            drawobj.hypernet_tree.extend( [ mid_x, end_point.y, end_point.x ] )
+        
+            hypernet_list.append( drawobj )    
+        
+        return hypernet_list
+        
             
     def add_fake_hypernets(self):
         """ to test the drawing algorithm """

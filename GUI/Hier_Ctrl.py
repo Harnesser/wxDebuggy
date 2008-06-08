@@ -30,40 +30,41 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
         #
         # Read in a few verilog models that are hierarchical
         #
-        rtl_files = [
-                     'tests/rtl/trivial/top.v',
-                     'tests/rtl/trivial/a.v',
-                     'tests/rtl/trivial/b.v',
-                     'tests/rtl/trivial_clk_rstb/top_clk_rstb.v',
-                     'tests/rtl/trivial_clk_rstb/a_clk_rstb.v',
-                     'tests/rtl/trivial_clk_rstb/b_clk_rstb.v',
-                     'tests/rtl/spider/four_in_four_out.v',
-                     'tests/rtl/spider/one_in_one_out.v',
-                     'tests/rtl/spider/spider.v',
-                     'tests/rtl/spider/two_in_two_out.v',  
-                     'tests/rtl/spider/one_in_two_out.v',
-                     'tests/rtl/spider/two_in_one_out.v',
-                     'tests/rtl/spider/spider_2.v',
-                     'tests/rtl/gates/and2.v',
-                     'tests/rtl/gates/inv.v',
-                     'tests/rtl/gates/gates1.v',
-                     'tests/rtl/gates/gates2.v',
-                     'tests/rtl/gates/gates3.v',
-                     "tests/rtl/snake/one_in_four_out.v",
-                     "tests/rtl/snake/snake_1.v",
-                     "tests/rtl/snake/three_in_one_out.v",
-                     "tests/rtl/snake/two_in_three_out.v",
-                     "tests/rtl/snake/two_in_two_out.v",
-                     "tests/rtl/snake/two_in_one_out.v",
-                     ]
-                     
-        rtl_files = [
-                     'tests/rtl/gates/and2.v',
-                     'tests/rtl/gates/inv.v',
-                     'tests/rtl/gates/gates1.v',
-                     'tests/rtl/gates/gates2.v',
-                     'tests/rtl/gates/gates3.v',
-                     ]            
+        if True:
+            rtl_files = [
+                         'tests/rtl/trivial/top.v',
+                         'tests/rtl/trivial/a.v',
+                         'tests/rtl/trivial/b.v',
+                         'tests/rtl/trivial_clk_rstb/top_clk_rstb.v',
+                         'tests/rtl/trivial_clk_rstb/a_clk_rstb.v',
+                         'tests/rtl/trivial_clk_rstb/b_clk_rstb.v',
+                         'tests/rtl/spider/four_in_four_out.v',
+                         'tests/rtl/spider/one_in_one_out.v',
+                         'tests/rtl/spider/spider.v',
+                         'tests/rtl/spider/two_in_two_out.v',  
+                         'tests/rtl/spider/one_in_two_out.v',
+                         'tests/rtl/spider/two_in_one_out.v',
+                         'tests/rtl/spider/spider_2.v',
+                         'tests/rtl/gates/and2.v',
+                         'tests/rtl/gates/inv.v',
+                         'tests/rtl/gates/gates1.v',
+                         'tests/rtl/gates/gates2.v',
+                         'tests/rtl/gates/gates3.v',
+                         "tests/rtl/snake/one_in_four_out.v",
+                         "tests/rtl/snake/snake_1.v",
+                         "tests/rtl/snake/three_in_one_out.v",
+                         "tests/rtl/snake/two_in_three_out.v",
+                         "tests/rtl/snake/two_in_two_out.v",
+                         "tests/rtl/snake/two_in_one_out.v",
+                         ]
+        else:               
+            rtl_files = [
+                         'tests/rtl/gates/and2.v',
+                         'tests/rtl/gates/inv.v',
+                         'tests/rtl/gates/gates1.v',
+                         'tests/rtl/gates/gates2.v',
+                         'tests/rtl/gates/gates3.v',
+                         ]            
 
         myparser = hdl_parser()
         for rtl_file in rtl_files:

@@ -186,13 +186,11 @@ class Drawing_Object:
             #print "Start", self.startpt, " End", self.endpt
             self.Draw_FlightLine( dc )
         elif self.obj_type == 'hypernet':
-            print self.hypernet_tree
             start_point = wx.Point( self.hypernet_tree.pop(0), self.hypernet_tree.pop(0) )
             self.draw_hypernet( dc, start_point, self.hypernet_tree, "horizontal" )
             
             self.hypernet_tree.insert(0,start_point.y)
             self.hypernet_tree.insert(0,start_point.x)
-            print self.hypernet_tree
         else:
             print "hmmmm...."
 
@@ -316,11 +314,8 @@ class Drawing_Object:
     def Draw_FlightLine( self, dc, selected=False ):
         """ Draw a connection flightline """
 
-        scaling,same_scaling = dc.GetUserScale()
-
         # Set the pen - green
         dc.SetPen(wx.Pen('#00DD00', 1, wx.SOLID))
-
 
         # Decode the start and end points.
         #print self.parent.p2.glue_points.keys()
@@ -344,6 +339,9 @@ class Drawing_Object:
     def draw_hypernet( self, dc, start_point, tree, direction):
         """ Draw orthogonal wires.
         Uses a tree structure as described in [Sander]"""
+
+        # Set the pen - green
+        dc.SetPen(wx.Pen('#00DD00', 1, wx.SOLID))
         
         # self.draw_hypernet( dc, start_point, self.hypernet_tree, "vertical" )
         prev_point = start_point
@@ -362,7 +360,6 @@ class Drawing_Object:
                     end_point = wx.Point( coord, prev_point.y )
                     direction = 'vertical'
                     
-                print prev_point, end_point
                 # draw line segment
                 dc.DrawLinePoint( prev_point, end_point )            
             

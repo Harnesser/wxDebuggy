@@ -84,7 +84,10 @@ class Schem_View( wx.ScrolledWindow ):
             for pin,position in part.glue_points.iteritems():
                 self.glue_points[pin] = position
                 
-
+        hypernet_list = self.parent.get_hypernet_list()
+        for hypernet in hypernet_list:
+            hypernet.Draw(dc,True)
+            
         dc.EndDrawing()
 
 
@@ -140,5 +143,13 @@ class Schem_View( wx.ScrolledWindow ):
         return wx.Point(( event.GetX() + (originX * unitX) ) / self.scaling,
                         ( event.GetY() + (originY * unitY) ) / self.scaling )
 
+
+    def show_glue_point_dict(self):
+        """ A debug thing """
+
+        print "\n\n### Glue Point Dictionary"
+        for key in self.glue_points.keys():
+            print "  [%s]: %s" % ( key, self.glue_points[key] )
+        
 
 
