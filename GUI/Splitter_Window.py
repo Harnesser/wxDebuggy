@@ -178,6 +178,8 @@ class Splitter_Window( wx.SplitterWindow ):
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         self.BuildRatsnest(module)
 
+        #
+        self.add_fake_hypernets()
 
         # Make a call to redraw the schematic
         self.p2.Refresh()
@@ -205,8 +207,20 @@ class Splitter_Window( wx.SplitterWindow ):
             drawobj.endpt    = conn2
             self.p2.drawobj_list.append( drawobj )
             
-
-
+            
+    def add_fake_hypernets(self):
+        """ to test the drawing algorithm """
+        
+        drawobj = Drawing_Object( name='hypernet', parent=self, label="n1", obj_type='hypernet')
+        drawobj.hypernet_tree = [ 50,51, 100, 100, 300 ]
+        
+        self.p2.drawobj_list.append( drawobj )
+        
+        drawobj2 = Drawing_Object( name='hypernet', parent=self, label="n1", obj_type='hypernet')
+        drawobj2.hypernet_tree = [ 200, 200, 250, [ 175, 310 ], [250, 310, 220, 350] ]
+        self.p2.drawobj_list.append( drawobj2 )
+        
+        
     def build_driver_dict(self, module, debug = False ):
         """ Build a dictionary of what each net and input port drives.
 

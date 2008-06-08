@@ -29,6 +29,9 @@ class Drawing_Object:
         self.startpt = None
         self.endpt   = None
 
+        # For hypernets 
+        self.hypernet_tree = []
+        
         # Virtual column number
         self.column_number = 0
         
@@ -182,6 +185,14 @@ class Drawing_Object:
         elif self.obj_type == 'conn':
             #print "Start", self.startpt, " End", self.endpt
             self.Draw_FlightLine( dc )
+        elif self.obj_type == 'hypernet':
+            print self.hypernet_tree
+            start_point = wx.Point( self.hypernet_tree.pop(0), self.hypernet_tree.pop(0) )
+            self.draw_hypernet( dc, start_point, self.hypernet_tree, "horizontal" )
+            
+            self.hypernet_tree.insert(0,start_point.y)
+            self.hypernet_tree.insert(0,start_point.x)
+            print self.hypernet_tree
         else:
             print "hmmmm...."
 
@@ -330,7 +341,35 @@ class Drawing_Object:
             dc.DrawLinePoint( start_point, end_point + wx.Point(1,1) )
 
     
-
+    def draw_hypernet( self, dc, start_point, tree, direction):
+        """ Draw orthogonal wires.
+        Uses a tree structure as described in [Sander]"""
+        
+        # self.draw_hypernet( dc, start_point, self.hypernet_tree, "vertical" )
+        prev_point = start_point
+        
+        for coord in tree:
+            
+            if type(coord) is list:
+                self.draw_hypernet( dc, prev_point, coord, direction )
+            else:
+                         
+                # determine end point
+                if direction == 'vertical':
+                    end_point = wx.Point( prev_point.x, coord )
+                    direction = 'horizontal'
+                else:
+                    end_point = wx.Point( coord, prev_point.y )
+                    direction = 'vertical'
+                    
+                print prev_point, end_point
+                # draw line segment
+                dc.DrawLinePoint( prev_point, end_point )            
+            
+                prev_point = end_point
+    
+    
+    
     def drawInstName( self, dc, inst_name ):
         """ Display the instance name """
 
