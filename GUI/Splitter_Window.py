@@ -2,7 +2,7 @@ import wx
 from Hier_Ctrl import *
 from Schem_View import *
 from Drawing_Object import *
-import PnR.placement_ga as placement
+import PnR.placement_sugiyama as placement
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Splitter_Window
@@ -42,6 +42,11 @@ class Splitter_Window( wx.SplitterWindow ):
 
         # Get vv.Module object 
         module = self.p1.module_dict[ self.p1.cur_module_ref ]
+        
+        graph = placement.build_graph( module )
+
+
+        
         
         # Determine connectivity
         self.driver_dict = self.build_driver_dict(module)
@@ -248,127 +253,7 @@ class Splitter_Window( wx.SplitterWindow ):
         self.p2.drawobj_list.append( drawobj2 )
         
         
-    def build_driver_dict(self, module, debug = False ):
-        """ Build a dictionary of what each net and input port drives.
 
-        Loops thru the instanciations in the current module and adds each
-        bit of the .pin(net) list to the drivers dict depending on the 
-        direction of the pin.  For example, if pin is an output it drives
-        the net, and it's name is the key to the dict.  Otherwise the net 
-        drives the pin, so the net name is the key to the dict.        
-        """
-
-        driver_dict = {}
-
-        # Loop thru instanciations in this module
-        for inst in module.inst_dict.values():
-
-            # Get the module definition of the instanciated module
-            inst_module = inst.module_ref
-
-            # Get the pin:net connections.    
-            for pin,net in inst.port_dict.iteritems():
-            
-                # is 'net' actually a schematic port? if so, rename it
-                if net in module.port_dict:
-
-                    if module.port_dict[net].direction == 'input':
-                        net = ('_iport', net)
-                    else:
-                        net = ('_oport', net) 
-
-                # if it's a net, give it an instance name of '_net' so everything
-                # is a tuple now...
-                elif type(net) is not tuple:
-                    net = ('_net', net)
-    
-
-                # Add to driver_dict if inst.pin is an output...
-                if inst_module.GetPinDirection( pin ) == 'output':
-                    driver_name = (inst.name, pin) #'.'.join( [inst.name, pin] )
-                    driver_dict.setdefault(driver_name, []).append(net)
-
-                # ...
-                else:
-                    sink_name = (inst.name, pin) #'.'.join( [inst.name, pin] )
-                    driver_dict.setdefault(net, []).append(sink_name)
-
-
-        if debug:
-            print "\nDriver Dictionary"
-            for key in driver_dict:
-                print "  ",key, "::::", driver_dict[key]
-
-        return driver_dict
-
-
-
-    def get_block_connections( self, module, debug=False):
-        """Determine the connections in the current module
-
-        This uses the driver_dict to build a connections list.  The driver_dict will
-        contain ((inst,pin),('_net',net)) or (('_net',net),(inst,pin)) and this module 
-        builds a connection list in the form ((inst,pin),(inst,pin))
-        (where inst can also be input or output ports ('_iport' or '_oport') ).
-
-        """
- 
-        module_drive_dict = {} # for column placement
-        point_to_point_connection_list = []
-
-        for driver in self.driver_dict.keys():
-            driver_inst, driver_name = driver # untuple
-
-            driven_things = self.driver_dict[ driver ]
-            for net in driven_things:
-                net_inst, net_name = net # untuple
-
-                if  net_inst is '_oport': # Add output port connections
-                    point_to_point_connection_list.append( (driver,net) )
-
-                    # This section builds the module-module driver list    
-                    module_drive_dict.setdefault(driver_inst, []).append('_oport')           
-
-                if driver_inst is ('_iport'): # Add input port connections 
-                    point_to_point_connection_list.append( (driver, net) )
-
-                    # This section builds the module-module driver list        
-                    instantiated_module = module.inst_dict[net_inst]
-                    sink_port = instantiated_module.module_ref.port_dict[net_name]
-                    if sink_port.sigtype == 'normal':
-                        module_drive_dict.setdefault('_iport',[]).append(net_inst)      
-                    else:   
-                        print "%s looks like a reset/clock" % ( net_inst )
-
-    
-                if net in self.driver_dict:
-
-                    sink_list = self.driver_dict[net]
-                    for sink in sink_list:
-                        sink_inst, sink_name = sink # untuple
-
-                        point_to_point_connection_list.append( (driver, sink) )
-
-                        # This section builds the module-module driver list 
-                        instantiated_module = module.inst_dict[sink_inst]
-                        sink_port = instantiated_module.module_ref.port_dict[sink_name]
-                        if sink_port.sigtype == 'normal':
-                            module_drive_dict.setdefault(driver_inst,[]).append(sink_inst)      
-                        else:   
-                            print "%s looks like a reset/clock" % ( sink_port )
-                     
-
-        module_drive_dict['_oport'] = [ ] 
-
-        if debug:
-            #print "\nPoint-to-Point"
-            #for connection in point_to_point_connection_list:
-            #    print "   ",connection 
-            print "\nModule Driver Dict"
-            for key in module_drive_dict:
-                print "   ", key, " drives: ", module_drive_dict[key]
-
-        return point_to_point_connection_list, module_drive_dict  
 
 
     def show_connection_lists_and_dictionaries(self):
