@@ -38,10 +38,12 @@ def build_graph(module):
     #
     # 4: Insert dummy nodes - this makes the graph 'proper'
     graph = break_up_long_edges(layer_dictionary, graph_edges)
+    # graph returns (layer_dictionary, graph_edges)
     
     #
     # 5: Reduce crossovers by reordering the layers
-    graph = reduce_crossings(graph)
+    #graph = reduce_crossings(graph)
+    
     
     return graph
     
@@ -168,14 +170,17 @@ def break_up_long_edges(layer_dictionary, graph_edges, debug=True):
     
     
     
-    
-    
-    
 def reduce_crossings(graph, debug=True):
     """ Reduce edge crossings.
     By reordering the nodes in each layer, the number of edge crossings is
     reduced.
     """
+
+    layer_dictionary, graph_edges = graph
+    
+    
+    
+    
 
     return graph
     

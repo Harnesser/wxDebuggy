@@ -37,6 +37,7 @@ class Schem_View( wx.ScrolledWindow ):
         self.drawobj_list = []
         self.glue_points = {}
 
+
     def onDoubleClickEvent( self, event ):
         """ See if we've hit a module.  Step into it if we can"""
 
@@ -59,6 +60,7 @@ class Schem_View( wx.ScrolledWindow ):
         self.parent.p1.SelectParentModule()
         self.parent.BuildDrawObjList()
         #self.parent.parent.IndicateCurrentDesign()
+        
         
     def onPaint( self, event ):
         self.DrawSchematic()

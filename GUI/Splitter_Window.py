@@ -41,47 +41,25 @@ class Splitter_Window( wx.SplitterWindow ):
 
 
         # Get vv.Module object 
-        module = self.p1.module_dict[ self.p1.cur_module_ref ]
-        
+        module = self.p1.module_dict[ self.p1.cur_module_ref ]       
         graph = placement.build_graph( module )
 
-
-        
-        
-        # Determine connectivity
-        self.driver_dict = self.build_driver_dict(module)
-        self.connection_list, self.module_drive_dict = self.get_block_connections(module)
-
-
-        if False:
-            self.show_connection_lists_and_dictionaries()
-
-        #self.write_graphviz( module )
-
-        # Place the blocks in columns
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        inst_col_dict = {}
-        for inst in module.inst_dict.values():
-            inst_col_dict[ inst.name ] = 0
-        inst_col_dict['_oport'] = 0
-        inst_col_dict['_iport'] = 0
-        
-        #print r"////oOOo\\\\" * 20
-        inst_col_dict = placement.columnize( self.module_drive_dict, '_iport', inst_col_dict )
-
-
-        prev_y_pos = [0] * ( max( inst_col_dict.values() ) + 1 )
+   
+#        prev_y_pos = [0] * ( max( inst_col_dict.values() ) + 1 )
         
         drawing_object_dict = {} 
    
         # Add module instanciations to the list
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        x_pos = 3
+        y_pos = 0
+        
         if module.inst_dict.values() :
             for iii,inst in enumerate(module.inst_dict.values()):
 
                 # Unitless positions for the meantime
-                x_pos = inst_col_dict[inst.name]
-                y_pos = prev_y_pos[ inst_col_dict[inst.name] ] + 1         
+                #x_pos += 1 #inst_col_dict[inst.name]
+                y_pos += 1 #prev_y_pos[ inst_col_dict[inst.name] ] + 1         
 
                 drawobj = Drawing_Object( name=inst.module_ref.name,
                                            parent=self.p2, #hmmm
@@ -103,8 +81,8 @@ class Splitter_Window( wx.SplitterWindow ):
                 drawing_object_dict[inst.name] = drawobj
 
                 # Next y_position
-                max_y_size = max( len(drawobj.lhs_ports), len(drawobj.rhs_ports) )
-                prev_y_pos[ inst_col_dict[inst.name] ] = y_pos + max_y_size
+                #max_y_size = max( len(drawobj.lhs_ports), len(drawobj.rhs_ports) )
+                #prev_y_pos[ inst_col_dict[inst.name] ] = y_pos + max_y_size
                 
         else:
             # a wee fake thingy for modules with no sub modules
@@ -118,6 +96,9 @@ class Splitter_Window( wx.SplitterWindow ):
 
         # Add the port instances
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        x_pos = 1
+        y_pos = 0
+        
         if module.port_name_list:
             for port in module.port_dict.values():
                 
@@ -127,8 +108,8 @@ class Splitter_Window( wx.SplitterWindow ):
                     key = '_oport'
 
                 # Unitless positions for the meantime
-                x_pos = inst_col_dict[key]
-                y_pos = prev_y_pos[ inst_col_dict[key] ] + 1  
+                #x_pos += 2 # inst_col_dict[key]
+                y_pos += 2 # prev_y_pos[ inst_col_dict[key] ] + 1  
                 drawobj = Drawing_Object( name='port',
                                            parent=self.p2, #hmmm
                                            label=port.GetLabelStr(),
@@ -145,7 +126,7 @@ class Splitter_Window( wx.SplitterWindow ):
                 drawing_object_dict[port.GetLabelStr()] = drawobj
 
                 # Next y_position
-                prev_y_pos[ inst_col_dict[key] ] = y_pos + 1
+                #prev_y_pos[ inst_col_dict[key] ] = y_pos + 1
 
         else:
             print "Woops, modules should have ports, " + \
@@ -155,11 +136,11 @@ class Splitter_Window( wx.SplitterWindow ):
         # Sort out the y-positions of the modules in each column
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         #placement.find_pin_coords( self.connection_list, drawing_object_dict, inst_col_dict, True )
-        placement.yplacement(
-            drawing_object_dict,
-            self.connection_list,
-            inst_col_dict
-            )
+ #       placement.yplacement(
+ #           drawing_object_dict,
+ #           self.connection_list,
+ #           inst_col_dict
+ #           )
 
         # Re-Scale the drawing positions of the objects to draw
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
