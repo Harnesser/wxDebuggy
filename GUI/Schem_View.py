@@ -57,7 +57,7 @@ class Schem_View( wx.ScrolledWindow ):
 
         # Check for a module doubleclick by checking the bounding boxes
         mousepoint = self._getEventCoordinates( event )
-        for obj in self.drawobj_list:
+        for obj in self.drawing_object_dict.values():
             if obj.objectContainsPoint( mousepoint.x, mousepoint.y ):
                 self.dclick_module = obj.label
                 
@@ -72,7 +72,7 @@ class Schem_View( wx.ScrolledWindow ):
 
     def onRightDoubleClickEvent( self, event ):
         self.treeview.SelectParentModule()
-        #self.Refresh()
+        self.Refresh()
         #self.parent.parent.IndicateCurrentDesign()
         
         
@@ -98,7 +98,8 @@ class Schem_View( wx.ScrolledWindow ):
 
         # Draw Stuff
         dc.BeginDrawing()
-        
+        dc.Clear()
+                
         for part in self.drawing_object_dict.values():
             part.Draw(dc,True)
             # build gluepoints list -
