@@ -72,7 +72,7 @@ class Schem_View( wx.ScrolledWindow ):
 
     def onRightDoubleClickEvent( self, event ):
         self.treeview.SelectParentModule()
-        self.Refresh()
+        #self.Refresh()
         #self.parent.parent.IndicateCurrentDesign()
         
         
