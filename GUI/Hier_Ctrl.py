@@ -146,6 +146,8 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
         self.SelectItem( first_module )
         self.UpdateHierInfo()
         
+    def get_current_module_ref(self):
+        return self.module_dict[self.cur_module_ref]
         
 
     def OnSelectModule( self, event ):
