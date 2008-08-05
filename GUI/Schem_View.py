@@ -1,8 +1,6 @@
 import wx
 import PnR
 
-from Drawing_Object import *
-
 #
 # Global Constants
 #
@@ -87,10 +85,8 @@ class Schem_View( wx.ScrolledWindow ):
         """ """
         self._get_current_module()
         
-        self.build_drawing_object_dict()
-    
-        self.layout_engine.place_and_route(self.current_module,
-                                           self.drawing_object_dict)
+        self.drawing_object_dict = \
+           self.layout_engine.place_and_route(self.current_module)
         
         self.draw_schematic()
 
@@ -123,104 +119,13 @@ class Schem_View( wx.ScrolledWindow ):
         dc.EndDrawing()
 
 
-    def _get_current_module(self):
+    def _get_current_module(self, debug=True):
         """ Find out which module we should be drawing."""
         
         self.current_module = self.treeview.get_current_module_ref()  
         
-
-    def build_drawing_object_dict( self ):
-        """ Build the list of objects to display on the screen.
-
-        Add the instance modules and ports."""
-        
-        
-        self.drawing_object_dict = {} 
-   
-        # Add module instanciations to the list
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        x_pos = 3
-        y_pos = 0
-        
-        if self.current_module.inst_dict.values() :
-            for iii,inst in enumerate(self.current_module.inst_dict.values()):
-
-                # Unitless positions for the meantime
-                #x_pos += 1 #inst_col_dict[inst.name]
-                y_pos += 1 #prev_y_pos[ inst_col_dict[inst.name] ] + 1         
-
-                drawobj = Drawing_Object( name=inst.module_ref.name,
-                                           parent=self, #hmmm
-                                           label=inst.name,
-                                           obj_type='module',
-                                           position=wx.Point(x_pos, y_pos)
-                                        )
-
-                submod = inst.module_ref
-                for port_name in submod.port_name_list:
-                    port = submod.port_dict[ port_name ] # This preserves port ordering
-                    if port.direction == 'input':
-                        drawobj.lhs_ports.append( port.GetLabelStr() )
-                    else:
-                        drawobj.rhs_ports.append( port.GetLabelStr() )
-
-                
-                # Add to drawing object dict
-                self.drawing_object_dict[inst.name] = drawobj
-
-                # Next y_position
-                #max_y_size = max( len(drawobj.lhs_ports), len(drawobj.rhs_ports) )
-                #prev_y_pos[ inst_col_dict[inst.name] ] = y_pos + max_y_size
-                
-        else:
-            # a wee fake thingy for modules with no sub modules
-            drawobj = Drawing_Object( name='_Nothing_',
-                                       parent=self, #hmmm, for flightlines only! FIXME
-                                       label='_here',
-                                       obj_type='module')
-
-            self.drawing_object_dict['_Nothing'] = drawobj
-
-
-        # Add the port instances
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        x_pos = 1
-        y_pos = 0
-        
-        if self.current_module.port_name_list:
-            for port in self.current_module.port_dict.values():
-                
-                if port.direction == 'input':
-                    key = '_iport'
-                else:
-                    key = '_oport'
-
-                # Unitless positions for the meantime
-                #x_pos += 2 # inst_col_dict[key]
-                y_pos += 2 # prev_y_pos[ inst_col_dict[key] ] + 1  
-                drawobj = Drawing_Object( name='port',
-                                           parent=self, #hmmm
-                                           label=port.GetLabelStr(),
-                                           obj_type='port' )
-
-                #print port.direction
-                drawobj.position = wx.Point( x_pos, y_pos )
-                if port.direction == 'output':
-                    drawobj.mirror = True
-
-                drawobj._update_sizes()
-
-                # Add to drawing object dict
-                self.drawing_object_dict[port.GetLabelStr()] = drawobj
-
-                # Next y_position
-                #prev_y_pos[ inst_col_dict[key] ] = y_pos + 1
-
-        else:
-            print "Woops, modules should have ports, " + \
-                  self.current_module.name + " doesn't seem to have ones!"
-
-
+        if debug:
+            print "Changed module to ", self.current_module.name
 
 
     def BuildRatsnest( self, module ):

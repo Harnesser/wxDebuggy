@@ -59,6 +59,9 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
                          ]
         else:               
             rtl_files = [
+                         'tests/rtl/trivial/top.v',
+                         'tests/rtl/trivial/a.v',
+                         'tests/rtl/trivial/b.v',
                          'tests/rtl/gates/and2.v',
                          'tests/rtl/gates/inv.v',
                          'tests/rtl/gates/gates1.v',

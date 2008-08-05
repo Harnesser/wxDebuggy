@@ -18,6 +18,7 @@ list.
 #import Routing_Engine
 #import Ordering_Engine
 import wx
+from Drawing_Object import *
 
 class Layout_Engine:
     """ Schematic Layout Engine.
@@ -30,26 +31,31 @@ class Layout_Engine:
         
         self.driver_dictionary = None   #keys = drivers, values = nets/ports driven
         self.connection_list = None
-        self.layer_dictionary = None       
+        self.layer_dict = None       
 
+        self.drawing_object_dict = {}
         #self.routing_engine = PnR.Routing_Engine()
         #self.ordering_engine = PnR.Ordering_Engine()
 
         
-    def place_and_route(self, module, drawing_object_dictionary ):
+    def place_and_route(self, module ):
         """ Place and Route a Module."""
         
         self.module = module # should I type-check?
-        #self.graph_edges = self._extract_graph(module)
+        self.graph_edges = self._extract_graph()
         
-        #self.driver_dictionary = self._build_driver_dictionary_module(self.module)
-        #self.connection_list = self._get_connection_list(self.module)
-        #self.graph_dictionary = self._get_graph_dictionart(self.connection_list)
+        #  Build a list of the module and port blocks that we have to place
+        # Connections will be added later  
+        self.drawing_object_dict = self._build_drawing_object_dict()
         
-        #self.layer_dictionary = _determine_layering(graph_edges)
+        # Determine which layer of the schematic the blocks belong on
+        self.layer_dict = self._determine_layering(self.graph_edges)       
         
-        self._old_place_and_route( drawing_object_dictionary )
+        # Update the x-position of the blocks depending on what layer they've
+        # been placed on.
+        self._update_block_x_positions()
         
+        return self.drawing_object_dict
         
     ## =============================================================================
     ##
@@ -57,20 +63,24 @@ class Layout_Engine:
     ##
     ## =============================================================================
     
-    def _extract_graph(module):
+    def _extract_graph(self, debug=True):
         """ Get a graph of the circuit to display.
         
         Returns the graph in the form ( [List of Vertices], [List of Edges] ).
         """
         
-        driver_dictionary = build_driver_dictionary(module)
-        connection_list = get_connection_list(driver_dictionary)
-        graph_edges = get_graph_dictionary(connection_list)
+        driver_dictionary = self._build_driver_dictionary(self.module)
+        connection_list = self._get_connection_list(driver_dictionary)
+        graph_edges = self._get_graph_dictionary(connection_list)
         
+        if debug:
+            print ":::: Graph Edges"
+            print graph_edges
+            
         return graph_edges
     
     
-    def _build_driver_dictionary(module, debug=True ):
+    def _build_driver_dictionary(self, debug=True ):
         """ Build a dictionary of what each net and input port drives.
 
         Loops thru the instanciations in the current module and adds each
@@ -83,7 +93,7 @@ class Layout_Engine:
         driver_dict = {}
 
         # Loop thru instanciations in this module
-        for inst in module.inst_dict.values():
+        for inst in self.module.inst_dict.values():
 
             # Get the module definition of the instanciated module
             inst_module = inst.module_ref
@@ -92,9 +102,9 @@ class Layout_Engine:
             for pin,net in inst.port_dict.iteritems():
             
                 # is 'net' actually a schematic port? if so, rename it
-                if net in module.port_dict:
+                if net in self.module.port_dict:
 
-                    if module.port_dict[net].direction == 'input':
+                    if self.module.port_dict[net].direction == 'input':
                         net = ('_iport', net)
                     else:
                         net = ('_oport', net) 
@@ -125,7 +135,7 @@ class Layout_Engine:
 
 
 
-    def _get_connection_list( driver_dict, debug=True):
+    def _get_connection_list( self, driver_dict, debug=True):
         """Determine the connections in the current module
 
         This uses the driver_dict to build a connections list.  The driver_dict will
@@ -168,7 +178,7 @@ class Layout_Engine:
             
             
 
-    def _get_graph_dictionary(connection_list, debug=True):
+    def _get_graph_dictionary(self, connection_list, debug=True):
         """Build a graph from the circuit connection list.
         
         Returns a directed graph of the circuit as a dictionary. Keys are vertices,
@@ -220,7 +230,7 @@ class Layout_Engine:
         return graph_dictionary
     
     
-    def _determine_layering(graph, inst='_iport', col_dict = {}, path = [], debug = False ):
+    def _determine_layering(self, graph, inst='_iport', col_dict = {}, path = [], debug = False ):
         """ Layer the graph.
         
         Find the drivers of the current inst, and set their
@@ -232,21 +242,25 @@ class Layout_Engine:
         Column[-1] = Output ports
 
         Look out for loops by doing something magical..."""
-
+        
         col_num = col_dict.get(inst, 0) + 1
         path.append(inst)
 
-        print "::", inst, graph.keys()
+        if debug:
+            print ":: Determine Layering"
+            print "  Inst:",inst
+            print " Graph keys", graph.keys()
 
         #  Go through the drivers of this sink and update their
         # column numbers if necessary
-        
+
+        if debug: print "Inst:", inst, "; Sinks:", graph.get(inst,[])        
         for sink in graph.get(inst,[]):
 
-            print "SINK:" + sink
+            if debug: print "SINK:" + sink
             # Loop detection...
             if sink in path :
-                print "Loop!!: ", sink, ":", path
+                if debug: print "Loop!!: ", sink, ":", path
                 continue
 
             # Only update the column count if needed.  If the load
@@ -254,11 +268,12 @@ class Layout_Engine:
             # col number alone. 
             if col_num > col_dict.get(sink,0):
                 col_dict[sink] = col_num
-                col_dict = determine_layering( graph, sink, col_dict, path )
+                col_dict = self._determine_layering( graph, sink, col_dict, path)
                 
         path.pop()
         
         if debug:
+            print '::::: Layering Dictionary'
             for key in col_dict.keys():
                 print ("        " * ( col_dict[key] )) + key.center(8) 
             print "-" * 80
@@ -267,7 +282,27 @@ class Layout_Engine:
         return col_dict
         
         
-    def _old_place_and_route(self, drawing_object_dict):
+        
+    def _update_block_x_positions(self, debug=True):
+        """ Update the blocks' x positions dependant on their layering."""
+        
+        y_pos = 10
+        if debug:
+            print ":::: Update Block Positions"
+            
+            print 'Drawing Object_Dict Keys\n', self.drawing_object_dict.keys()
+            print '\nLayer Dictionary Keys\n', self.layer_dict.keys()
+            print
+            
+        for name in self.drawing_object_dict.keys():
+            drawing_obj = self.drawing_object_dict[name]
+            position = wx.Point( self.layer_dict[name] * 200, y_pos )
+            
+            drawing_obj.setPosition( position ) 
+            y_pos += 10
+        
+       
+    def _old_place_and_route(self):
         """A simple (useless) place and route."""
         
         # Sort out the y-positions of the modules in each column
@@ -281,7 +316,7 @@ class Layout_Engine:
 
         # Re-Scale the drawing positions of the objects to draw
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        for draw_obj in drawing_object_dict.values():
+        for draw_obj in self.drawing_object_dict.values():
 
             if draw_obj.obj_type is 'module':
                 x_pos = ( 150 * draw_obj.position.x )
@@ -294,15 +329,81 @@ class Layout_Engine:
             draw_obj._update_sizes()
 
 
-        # Wiring
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        #self.BuildRatsnest(module)
-        #self.add_hypernets()
+        
+    def _build_drawing_object_dict( self ):
+        """ Build the list of objects to display on the screen.
 
-        # Make a call to redraw the schematic
-        #self.p2.Refresh()
+        Add the instance modules and ports."""
         
         
+        drawing_object_dict = {} 
+   
+        # Add module instanciations to the list
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        if self.module.inst_dict.values() :
+            for iii,inst in enumerate(self.module.inst_dict.values()):
+
+                drawobj = Drawing_Object( name=inst.module_ref.name,
+                                           parent=self,  #hmmm, for flightlines only! FIXME
+                                           label=inst.name,
+                                           obj_type='module',
+                                        )
+
+                submod = inst.module_ref
+                for port_name in submod.port_name_list:
+                    port = submod.port_dict[ port_name ] # This preserves port ordering
+                    if port.direction == 'input':
+                        drawobj.lhs_ports.append( port.GetLabelStr() )
+                    else:
+                        drawobj.rhs_ports.append( port.GetLabelStr() )
+
+                
+                # Add to drawing object dict
+                drawing_object_dict[inst.name] = drawobj
+                
+        else:
+            # a wee fake thingy for modules with no sub modules
+            drawobj = Drawing_Object( name='_Nothing_',
+                                       parent=self, #hmmm, for flightlines only! FIXME
+                                       label='_here',
+                                       obj_type='moddule')
+
+            drawing_object_dict['_Nothing'] = drawobj
+
+
+        # Add the port instances
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        if self.module.port_name_list:
+            for port in self.module.port_dict.values():
+                
+                if port.direction == 'input':
+                    key = '_iport'
+                else:
+                    key = '_oport'
+
+                # Unitless positions for the meantime
+                #x_pos += 2 # inst_col_dict[key]
+                drawobj = Drawing_Object( name='port',
+                                           parent=self, #hmmm
+                                           label=port.GetLabelStr(),
+                                           obj_type='port' )
+
+                #print port.direction
+                if port.direction == 'output':
+                    drawobj.mirror = True
+
+                drawobj._update_sizes()
+
+                # Add to drawing object dict
+                drawing_object_dict[port.GetLabelStr()] = drawobj
+
+        else:
+            print "Woops, modules should have ports, " + \
+                  self.module.name + " doesn't seem to have ones!"
+
+        return drawing_object_dict
+
+     
         
         
     
