@@ -1,6 +1,6 @@
 import wx
+import PnR
 
-import PnR.placement_sugiyama as placement
 from Drawing_Object import *
 
 #
@@ -21,7 +21,7 @@ class Schem_View( wx.ScrolledWindow ):
     def __init__(self, parent, treeview ):
 
         self.treeview = treeview # pointer to the treeview
-        self.cur_module_ref = None
+        self.current_module = None
         
         # Set up the window        
         wx.ScrolledWindow.__init__( self, parent, style=wx.SUNKEN_BORDER )       
@@ -37,7 +37,10 @@ class Schem_View( wx.ScrolledWindow ):
         # Variables
         self.scaling = 1.0
         self.dclick_module = None
-        
+
+        # Layout Engine
+        self.layout_engine = PnR.Layout_Engine()
+                
         # Drawing objects
         self.drawing_object_dict = {}
         self.glue_points = {}
@@ -82,8 +85,13 @@ class Schem_View( wx.ScrolledWindow ):
 
     def draw_new_schematic(self):
         """ """
+        self._get_current_module()
+        
         self.build_drawing_object_dict()
-        self.place_and_route()
+    
+        self.layout_engine.place_and_route(self.current_module,
+                                           self.drawing_object_dict)
+        
         self.draw_schematic()
 
         
@@ -115,18 +123,17 @@ class Schem_View( wx.ScrolledWindow ):
         dc.EndDrawing()
 
 
+    def _get_current_module(self):
+        """ Find out which module we should be drawing."""
+        
+        self.current_module = self.treeview.get_current_module_ref()  
+        
+
     def build_drawing_object_dict( self ):
         """ Build the list of objects to display on the screen.
 
         Add the instance modules and ports."""
-
-
         
-        # Get vv.Module object 
-        print self.treeview
-        module = self.treeview.get_current_module_ref()       
-        graph = placement.build_graph( module )          
-#        prev_y_pos = [0] * ( max( inst_col_dict.values() ) + 1 )
         
         self.drawing_object_dict = {} 
    
@@ -135,8 +142,8 @@ class Schem_View( wx.ScrolledWindow ):
         x_pos = 3
         y_pos = 0
         
-        if module.inst_dict.values() :
-            for iii,inst in enumerate(module.inst_dict.values()):
+        if self.current_module.inst_dict.values() :
+            for iii,inst in enumerate(self.current_module.inst_dict.values()):
 
                 # Unitless positions for the meantime
                 #x_pos += 1 #inst_col_dict[inst.name]
@@ -180,8 +187,8 @@ class Schem_View( wx.ScrolledWindow ):
         x_pos = 1
         y_pos = 0
         
-        if module.port_name_list:
-            for port in module.port_dict.values():
+        if self.current_module.port_name_list:
+            for port in self.current_module.port_dict.values():
                 
                 if port.direction == 'input':
                     key = '_iport'
@@ -211,44 +218,9 @@ class Schem_View( wx.ScrolledWindow ):
 
         else:
             print "Woops, modules should have ports, " + \
-                  module.name + " doesn't seem to have ones!"
+                  self.current_module.name + " doesn't seem to have ones!"
 
 
-
-    def place_and_route(self):
-        """A simple (useless) place and route."""
-        
-        # Sort out the y-positions of the modules in each column
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        #placement.find_pin_coords( self.connection_list, drawing_object_dict, inst_col_dict, True )
- #       placement.yplacement(
- #           drawing_object_dict,
- #           self.connection_list,
- #           inst_col_dict
- #           )
-
-        # Re-Scale the drawing positions of the objects to draw
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        for draw_obj in self.drawing_object_dict.values():
-
-            if draw_obj.obj_type is 'module':
-                x_pos = ( 150 * draw_obj.position.x )
-                y_pos = ( draw_obj.position.y ) * 50
-            elif  draw_obj.obj_type is 'port':
-                x_pos = 50 + ( 150 * draw_obj.position.x )
-                y_pos = ( draw_obj.position.y ) * 50       
-
-            draw_obj.setPosition( wx.Point( x_pos, y_pos ) )
-            draw_obj._update_sizes()
-
-
-        # Wiring
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        #self.BuildRatsnest(module)
-        #self.add_hypernets()
-
-        # Make a call to redraw the schematic
-        #self.p2.Refresh()
 
 
     def BuildRatsnest( self, module ):
