@@ -32,7 +32,8 @@ class Layout_Engine:
         self.driver_dictionary = None   #keys = drivers, values = nets/ports driven
         self.connection_list = None
         self.layer_dict = None       
-
+        
+        self.glue_points = {}
         self.drawing_object_dict = {}
         #self.routing_engine = PnR.Routing_Engine()
         #self.ordering_engine = PnR.Ordering_Engine()
@@ -55,6 +56,9 @@ class Layout_Engine:
         # been placed on.
         self._update_block_x_positions()
         
+        # Route
+        self._route_connections()
+        
         return self.drawing_object_dict
         
     ## =============================================================================
@@ -70,8 +74,8 @@ class Layout_Engine:
         """
         
         driver_dictionary = self._build_driver_dictionary(self.module)
-        connection_list = self._get_connection_list(driver_dictionary)
-        graph_edges = self._get_graph_dictionary(connection_list)
+        self.connection_list = self._get_connection_list(driver_dictionary)
+        graph_edges = self._get_graph_dictionary(self.connection_list)
         
         if debug:
             print ":::: Graph Edges"
@@ -299,7 +303,7 @@ class Layout_Engine:
             position = wx.Point( self.layer_dict[name] * 200, y_pos )
             
             drawing_obj.setPosition( position ) 
-            y_pos += 10
+            y_pos += 50
         
        
     def _old_place_and_route(self):
@@ -403,7 +407,68 @@ class Layout_Engine:
 
         return drawing_object_dict
 
-     
+
+
+    def _determine_glue_points(self):
+        """ Find glue Points for pins on instantiations."""
+        
+        for part in self.drawing_object_dict.values():
+            part.build_glue_points_dict()
+            
+            if part.obj_type == 'hypernet':
+                print "Woops - shouldn't have hypernets at this stage..."
+             
+            for pin,position in part.glue_points.iteritems():
+                self.glue_points[pin] = position
+                
+        self._show_glue_point_dict()
+        
+
+    def _show_glue_point_dict(self):
+        """ A debug thing """
+
+        print "\n\n### Glue Point Dictionary"
+        for key in self.glue_points.keys():
+            print "  [%s]: %s" % ( key, self.glue_points[key] )
+
+
+    def _route_connections( self ):
+        """ First cut routing of the nets.
+        
+        This works layer by layer.  The space between the layers is
+        divided into tracks and only one net section may be on a track.
+        """
+        
+        self._determine_glue_points()
+        
+        #hypernet_list = []
+        net_id = 0
+        
+        for start_net,end_net in self.connection_list:
+        
+            netname = 'hypernet_'+str(net_id)
+            # Get start point
+            start_point = self.glue_points[start_net]
+            end_point   = self.glue_points[end_net]
+            
+            # Prepare drawing object
+            drawobj = Drawing_Object(name=netname,
+                                     parent=self,
+                                     label=netname,
+                                     obj_type='hypernet')            
+                
+            drawobj.hypernet_tree = [ start_point.x, start_point.y ]            
+            mid_x = ( ( ( end_point.x - start_point.x ) / 2 ) + start_point.x )
+            drawobj.hypernet_tree.extend( [ mid_x, end_point.y, end_point.x ] )
+        
+            #hypernet_list.append( drawobj )    
+            
+            self.drawing_object_dict[netname] = drawobj  
+            net_id += 1
+            
+        #return hypernet_list
+        
+        
         
         
     
