@@ -41,7 +41,6 @@ class Schem_View( wx.ScrolledWindow ):
                 
         # Drawing objects
         self.drawing_object_dict = {}
-        self.glue_points = {}
 
 
     def set_treeview( self, treeview ):
@@ -106,15 +105,6 @@ class Schem_View( wx.ScrolledWindow ):
                 
         for part in self.drawing_object_dict.values():
             part.Draw(dc,True)
-            # build gluepoints list -
-            # NOTE! Connections must be drawn last or we'll have no
-            # gluepoint list!
-            for pin,position in part.glue_points.iteritems():
-                self.glue_points[pin] = position
-                
-        #hypernet_list = self.get_hypernet_list()
-        #for hypernet in hypernet_list:
-        #    hypernet.Draw(dc,True)
             
         dc.EndDrawing()
 
@@ -151,35 +141,7 @@ class Schem_View( wx.ScrolledWindow ):
             #self.drawing_object_dict.append( drawobj )
             
             
-    def get_hypernet_list(self):
-        """ Add a list of nets to draw...
-        Each net has at most one vertical segment to simplify the generation
-        of the coords, but the drawing task will handle any number
-        """
-           
-        hypernet_list = []
-        
-        for start_net,end_net in self.connection_list:
-        
-            # Get start point
-            start_point = self.glue_points[start_net]
-            end_point   = self.glue_points[end_net]
-            
-            # Prepare drawing object
-            drawobj = Drawing_Object(name='hypernet',
-                                     parent=self,
-                                     label='hypernet',
-                                     obj_type='hypernet')            
-                
-            drawobj.hypernet_tree = [ start_point.x, start_point.y ]            
-            mid_x = ( ( ( end_point.x - start_point.x ) / 2 ) + start_point.x )
-            drawobj.hypernet_tree.extend( [ mid_x, end_point.y, end_point.x ] )
-        
-            hypernet_list.append( drawobj )    
-        
-        return hypernet_list
-        
-            
+ 
     def add_fake_hypernets(self):
         """ to test the drawing algorithm """
         
@@ -334,14 +296,5 @@ class Schem_View( wx.ScrolledWindow ):
         #print self.scaling, (event.GetX() + (originX * unitX )) / self.scaling
         return wx.Point(( event.GetX() + (originX * unitX) ) / self.scaling,
                         ( event.GetY() + (originY * unitY) ) / self.scaling )
-
-
-    def show_glue_point_dict(self):
-        """ A debug thing """
-
-        print "\n\n### Glue Point Dictionary"
-        for key in self.glue_points.keys():
-            print "  [%s]: %s" % ( key, self.glue_points[key] )
-        
 
 
