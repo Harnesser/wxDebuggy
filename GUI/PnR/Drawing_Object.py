@@ -175,6 +175,70 @@ class Drawing_Object:
     # PUBLIC DRAWING METHOD
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
+    def build_glue_points_dict(self):
+        """
+        """
+
+        self.glue_points = {}
+        
+        if self.obj_type == 'module':
+            for iii, port_name in enumerate(self.lhs_ports):
+                ypos_pin = self.position.y + (iii+1)*self.pin_separation
+
+                # Draw the line
+                start_point = wx.Point( self.position.x, ypos_pin )
+
+                glue_point_key = (self.label, port_name)
+                self.glue_points[glue_point_key] = start_point # - self.position
+
+
+            xpos_pin = self.position.x + self.bbox.width
+            for iii, port_name in enumerate(self.rhs_ports):
+                ypos_pin = self.position.y + (iii+1)*self.pin_separation
+
+                # Draw the line
+                start_point = wx.Point( xpos_pin, ypos_pin )
+           
+                glue_point_key = (self.label, port_name)
+                self.glue_points[glue_point_key] = start_point #- self.position       
+
+        elif self.obj_type == 'port':
+
+            # Draw the polygon
+            port_height = 15
+            port_width  = 20
+            if self.mirror: # Output Ports
+                port_polygon_points = [ wx.Point(port_width/3,0), 
+                                        wx.Point(port_width,0),
+                                        wx.Point(port_width,port_height),
+                                        wx.Point(port_width/3,port_height),
+                                        wx.Point(0,port_height/2) ]       # glue point
+     
+            else: # Input ports
+                port_polygon_points = [ wx.Point(0,0), 
+                                        wx.Point((2.0/3.0)*port_width,0),
+                                        wx.Point(port_width,port_height/2), # glue point
+                                        wx.Point((2.0/3.0)*port_width,port_height),
+                                        wx.Point(0,port_height) ]
+          
+                
+            # Move the port polygons to the required screen position
+            for pin,point in enumerate( port_polygon_points ) :
+                port_polygon_points[pin] = point + self.position
+            
+            
+            # See if we need to RJ text, and fill the glue point dictionary
+            if self.mirror: # output ports
+                glue_point_key = ('_oport', self.label)
+                self.glue_points[glue_point_key] =  port_polygon_points[4] #- self.position
+            else: # input ports
+                glue_point_key = ('_iport', self.label)
+                self.glue_points[glue_point_key] =  port_polygon_points[2] #- self.position
+      
+        
+        
+
+
     def Draw(self, dc, selected=False):
 
         #print "Drawing.. ", self.obj_type
