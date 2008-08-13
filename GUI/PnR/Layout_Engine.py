@@ -474,7 +474,7 @@ class Layout_Engine:
 
         print "\n\n### Glue Point Dictionary"
         for key in self.glue_points.keys():
-            print "  [%s]: %s" % ( key, self.glue_points[key] )
+            print "  %s : %s" % ( str(key).rjust(30), self.glue_points[key] )
 
 
     def _show_drawing_object_dict(self, debug=True):
@@ -613,7 +613,7 @@ class Layout_Engine:
         
 
 
-    def _route_connections( self ):
+    def _route_connections( self, debug=True ):
         """ First cut routing of the nets.
         
         This works layer by layer.  The space between the layers is
@@ -635,16 +635,15 @@ class Layout_Engine:
         # hypernet_list = []
         net_id = 0
         
-        for connection in self.connection_list:
-            start_net,end_net = connection
+        for start_conn, end_conn in self.connection_list:
 
-            layer = self._get_layer( connection )
-            track = track_dictionary.set_default( layer, 0 )
+            layer = self._get_layer( start_conn )
+            track = track_dictionary.setdefault( layer, 0 )
 
             netname = 'hypernet_'+str(net_id)
             # Get start point
-            start_point = self.glue_points[start_net]
-            end_point   = self.glue_points[end_net]
+            start_point = self.glue_points[start_conn]
+            end_point   = self.glue_points[end_conn]
             
             # Prepare drawing object
             drawobj = Drawing_Object(name=netname,
@@ -668,6 +667,11 @@ class Layout_Engine:
             net_id += 1
             track_dictionary[layer] += 1
 
+            if debug:
+                print "FROM:", start_conn, " TO:", end_conn
+                print "   X:", start_point.x, mid_x, end_point.x
+                print "   ", drawobj.hypernet_tree
+
         #return hypernet_list
         
         
@@ -676,7 +680,7 @@ class Layout_Engine:
             """ Find out which layer a given connection point is on."""
 
             inst_name, pin_name = connection_point
-            if inst_name.startswith('_'): # it's a port...
+            if inst_name is '_iport' or inst_name is '_oport': # it's a port...
                 key_value = pin_name
             else: # it's an instance
                 key_value = inst_name
