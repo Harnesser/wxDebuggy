@@ -31,6 +31,7 @@ class Drawing_Object:
 
         # For hypernets 
         self.hypernet_tree = []
+        self.layer = None
         
         # Virtual column number
         self.column_number = 0
@@ -248,6 +249,13 @@ class Drawing_Object:
 
         
 
+    def is_hypernet(self):
+        """ True if a connection/hypernet. """
+    
+        if self.obj_type == 'hypernet':
+            return True
+        else:
+            return False
 
 
     def Draw(self, dc, selected=False):
