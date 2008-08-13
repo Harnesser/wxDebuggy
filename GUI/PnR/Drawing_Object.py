@@ -202,6 +202,7 @@ class Drawing_Object:
                 glue_point_key = (self.label, port_name)
                 self.glue_points[glue_point_key] = start_point #- self.position       
 
+
         elif self.obj_type == 'port':
 
             # Draw the polygon
@@ -235,8 +236,17 @@ class Drawing_Object:
                 glue_point_key = ('_iport', self.label)
                 self.glue_points[glue_point_key] =  port_polygon_points[2] #- self.position
       
+
+        elif self.obj_type == 'passthru':
+
+            glue_point_key = ( self.label, '_in' )
+            self.glue_points[glue_point_key] =  self.startpt + self.position
+
+            glue_point_key = ( self.label, '_out' )
+            self.glue_points[glue_point_key] =  self.endpt + self.position
+
         
-        
+
 
 
     def Draw(self, dc, selected=False):
@@ -244,17 +254,25 @@ class Drawing_Object:
         #print "Drawing.. ", self.obj_type
         if self.obj_type == 'module':
             self.Draw_Module( dc, selected)
+
         elif self.obj_type == 'port':
             self.Draw_Port( dc )
+
         elif self.obj_type == 'conn':
             #print "Start", self.startpt, " End", self.endpt
             self.Draw_FlightLine( dc )
+
         elif self.obj_type == 'hypernet':
             start_point = wx.Point( self.hypernet_tree.pop(0), self.hypernet_tree.pop(0) )
             self.draw_hypernet( dc, start_point, self.hypernet_tree, "horizontal" )
             
+	        # redo the poping
             self.hypernet_tree.insert(0,start_point.y)
             self.hypernet_tree.insert(0,start_point.x)
+        
+        elif self.obj_type == 'passthru':
+            self._draw_passthru( dc )
+
         else:
             print "hmmmm...."
 
@@ -322,6 +340,7 @@ class Drawing_Object:
         # draw the instance name of the module
         self.drawInstName( dc, self.label )
 
+
     def Draw_Port( self, dc, selected=False ):
         """ Draw a port symbol """
 
@@ -373,6 +392,19 @@ class Drawing_Object:
         # Draw and label port
         dc.DrawPolygon( port_polygon_points )
         self.drawPinLabel( dc, self.label, label_position, rj )
+
+
+    def _draw_passthru( self, dc, selected=False ):
+        """ Draw a passthru.
+         (a fake module for layering purposes)
+        """
+        
+        # Set the pen - black
+        dc.SetPen(wx.Pen('#000000', 1, wx.SOLID))
+
+        dc.DrawLinePoint( self.glue_points[ (self.label, '_in') ] ,
+                          self.glue_points[ (self.label, '_out') ] )
+        
 
 
     def Draw_FlightLine( self, dc, selected=False ):
