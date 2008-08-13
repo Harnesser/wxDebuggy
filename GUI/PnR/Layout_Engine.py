@@ -635,8 +635,12 @@ class Layout_Engine:
         # hypernet_list = []
         net_id = 0
         
-        for start_net,end_net in self.connection_list:
-        
+        for connection in self.connection_list:
+            start_net,end_net = connection
+
+            layer = self._get_layer( connection )
+            track = track_dictionary.set_default( layer, 0 )
+
             netname = 'hypernet_'+str(net_id)
             # Get start point
             start_point = self.glue_points[start_net]
@@ -651,8 +655,8 @@ class Layout_Engine:
             drawobj.hypernet_tree = [ start_point.x, start_point.y ]   
          
             # Midway point.
-            
             mid_x = ( ( ( end_point.x - start_point.x ) / 2 ) + start_point.x )
+            mid_x += track * 5
             drawobj.hypernet_tree.append( mid_x )
 
             # End point
@@ -662,10 +666,24 @@ class Layout_Engine:
             
             self.drawing_object_dict[netname] = drawobj  
             net_id += 1
-            
+            track_dictionary[layer] += 1
+
         #return hypernet_list
         
         
-        
+
+    def _get_layer(self, connection_point):
+            """ Find out which layer a given connection point is on."""
+
+            inst_name, pin_name = connection_point
+            if inst_name.startswith('_'): # it's a port...
+                key_value = pin_name
+            else: # it's an instance
+                key_value = inst_name
+
+            return self.layer_dict[key_value]
+
+                
+    
         
     
