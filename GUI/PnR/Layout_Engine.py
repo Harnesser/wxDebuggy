@@ -32,11 +32,15 @@ class Layout_Engine:
         self.driver_dictionary = None   #keys = drivers, values = nets/ports driven
         self.connection_list = None
         self.layer_dict = None       
-        
+        self.graph_edges = None
+
         self.glue_points = {}
         self.drawing_object_dict = {}
         #self.routing_engine = PnR.Routing_Engine()
         #self.ordering_engine = PnR.Ordering_Engine()
+
+	    # Hypernet track dictionary
+        self.track_dict = {} # key = layer, values = tracks used. 	
 
         
     def place_and_route(self, module ):
@@ -44,14 +48,20 @@ class Layout_Engine:
         
         self.module = module # should I type-check?
         self.graph_edges = self._extract_graph()
-        
+                
+        # Determine which layer of the schematic the blocks belong on
+        self.layer_dict = {}
+        self.layer_dict = self._determine_layering(self.graph_edges,
+                                                   col_dict=self.layer_dict)   
+    
+        #  Insert dummy nodes to break up long edges -
+        # this makes the graph 'proper'
+        self._break_up_long_edges()
+
         #  Build a list of the module and port blocks that we have to place
         # Connections will be added later  
-        self.drawing_object_dict = self._build_drawing_object_dict()
-        
-        # Determine which layer of the schematic the blocks belong on
-        self.layer_dict = self._determine_layering(self.graph_edges)       
-        
+        self._build_drawing_object_dict()
+
         # Update the x-position of the blocks depending on what layer they've
         # been placed on.
         self._update_block_x_positions()
@@ -69,8 +79,6 @@ class Layout_Engine:
     
     def _extract_graph(self, debug=True):
         """ Get a graph of the circuit to display.
-        
-        Returns the graph in the form ( [List of Vertices], [List of Edges] ).
         """
         
         driver_dictionary = self._build_driver_dictionary(self.module)
@@ -179,6 +187,16 @@ class Layout_Engine:
                 print "   ",connection 
 
         return point_to_point_connection_list
+
+
+    def _show_connections(self, debug = True ):
+
+        if debug:
+            print "\nPoint-to-Point"
+            for connection in self.connection_list:
+                print "   ",connection 
+
+
             
             
 
@@ -195,7 +213,7 @@ class Layout_Engine:
                  'E': ['F'],
                  'F': ['C']}
 
-        Pins on each instantiation are ignored.  Two additional vesrtices are added,
+        Pins on each instantiation are ignored.  Two additional vertices are added,
         '_iport' which connects to input ports, and '_oport' which links output ports.
         
         See: http://www.python.org/doc/essays/graphs.html 
@@ -334,13 +352,13 @@ class Layout_Engine:
 
 
         
-    def _build_drawing_object_dict( self ):
+    def _build_drawing_object_dict( self, debug = True):
         """ Build the list of objects to display on the screen.
 
         Add the instance modules and ports."""
         
         
-        drawing_object_dict = {} 
+        self.drawing_object_dict = {} 
    
         # Add module instanciations to the list
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -363,7 +381,7 @@ class Layout_Engine:
 
                 
                 # Add to drawing object dict
-                drawing_object_dict[inst.name] = drawobj
+                self.drawing_object_dict[inst.name] = drawobj
                 
         else:
             # a wee fake thingy for modules with no sub modules
@@ -372,7 +390,7 @@ class Layout_Engine:
                                        label='_here',
                                        obj_type='moddule')
 
-            drawing_object_dict['_Nothing'] = drawobj
+            self.drawing_object_dict['_Nothing'] = drawobj
 
 
         # Add the port instances
@@ -399,19 +417,46 @@ class Layout_Engine:
                 drawobj._update_sizes()
 
                 # Add to drawing object dict
-                drawing_object_dict[port.GetLabelStr()] = drawobj
+                self.drawing_object_dict[port.GetLabelStr()] = drawobj
 
         else:
             print "Woops, modules should have ports, " + \
                   self.module.name + " doesn't seem to have ones!"
 
-        return drawing_object_dict
+
+        #  Add any passthrus as they are needed.  These are vertice
+        # names in the graph dictionary which are not covered by
+        # inst or port names.
+        for node in self.graph_edges.keys():
+            if not self.drawing_object_dict.get( node, None ):
+                if node == '_iport':
+                    continue
+
+                if debug: print "Found a new thang..", node
+                
+                drawobj = Drawing_Object( name=node,
+                                          parent=self,  #hmmm, for flightlines only! FIXME
+                                          label=node,
+                                          obj_type='passthru',
+                                        )                
+
+                drawobj.lhs_ports.append( '_in' )
+                drawobj.rhs_ports.append( '_out' )
+                drawobj.startpt = wx.Point(0,0)
+                drawobj.endpt   = wx.Point(20,0)
+
+                self.drawing_object_dict[node] = drawobj
+
+
+        self._show_drawing_object_dict(debug)
 
 
 
     def _determine_glue_points(self):
         """ Find glue Points for pins on instantiations."""
         
+        self.glue_points = {}
+
         for part in self.drawing_object_dict.values():
             part.build_glue_points_dict()
             
@@ -432,6 +477,142 @@ class Layout_Engine:
             print "  [%s]: %s" % ( key, self.glue_points[key] )
 
 
+    def _show_drawing_object_dict(self, debug=True):
+        """ A debug thing """
+
+        print "\n\n### Drawing Object Dictionary"
+        for key in self.drawing_object_dict.keys():
+            print "  [%s]: %s" % ( key, self.drawing_object_dict[key] )
+
+
+    def _break_up_long_edges(self, debug=True):
+        """ Insert dummy nodes for long edges.
+        Produces a 'proper graph'.    
+        """
+        
+        # turn the layer graph inside out so that layer numbers are the keys.
+        graph_layers = {}
+        for key in self.layer_dict.keys():
+            graph_layers.setdefault( self.layer_dict[key], []).append(key)     
+
+        
+        # Dummy nodes are placed in long edges (span >1)
+        edges_for_removal = []
+        for u in self.graph_edges.keys():
+            for v in self.graph_edges[u]:
+                start_layer = self.layer_dict.get(v,0) 
+                end_layer   = self.layer_dict.get(u,0) 
+                span = abs( start_layer - end_layer )
+                
+                if span > 1: # we've found a long edge..
+                    print "!Found a long edge: (%s,%s)" % (u,v)   
+                    edges_for_removal.append( (u,v) )
+                
+        # Delete edges - can't delete items from lists when iterating over them
+        for u,v in edges_for_removal:
+            start_layer = self.layer_dict.get(v,0) 
+            end_layer   = self.layer_dict.get(u,0)        
+
+            start_vertice = u
+            for i in range( min(start_layer,end_layer) + 1, max(start_layer,end_layer) ):
+                new_vertice_name = '_' + u + '__to__' + v + '_' + str(i)
+                graph_layers[i].append(new_vertice_name)
+                self.graph_edges.setdefault(start_vertice,set()).add(new_vertice_name)
+                self.layer_dict[new_vertice_name] = i
+
+            self.graph_edges.setdefault(new_vertice_name,set()).add(v)
+                    
+
+
+        ## Now fix the connection list
+        connections_for_removal = []
+        new_connection_list = []
+        for connection  in self.connection_list:
+            (start_inst,start_port),(end_inst,end_port) = connection
+
+            if start_inst.startswith('_'):
+                start_layer = self.layer_dict[start_port]
+                start_place = start_port
+            else:
+                start_layer = self.layer_dict[start_inst] 
+                start_place = start_inst
+
+
+            if end_inst.startswith('_'):
+                end_layer   = self.layer_dict[end_port]        
+                end_place   = end_port
+            else:
+                end_layer   = self.layer_dict[end_inst] 
+                end_place   = end_inst
+
+            span = abs( start_layer - end_layer )
+            
+            if span > 1: # we've found a long edge..
+                print "!Found a long edge connection: ", connection
+                connections_for_removal.append( connection )
+            else: 
+                new_connection_list.append( connection )
+        
+
+        for connection in connections_for_removal:
+            (start_inst,start_port),(end_inst,end_port) = connection
+           
+            if start_inst.startswith('_'):
+                start_layer = self.layer_dict[start_port]
+                start_place = start_port
+            else:
+                start_layer = self.layer_dict[start_inst] 
+                start_place = start_inst
+
+
+            if end_inst.startswith('_'):
+                end_layer   = self.layer_dict[end_port]        
+                end_place   = end_port
+            else:
+                end_layer   = self.layer_dict[end_inst] 
+                end_place   = end_inst
+
+            start_vertice = start_inst
+            start_edge = start_port
+
+            print "Start place:", start_place
+            print "End place:", end_place
+
+            for i in range( min(start_layer,end_layer) + 1, max(start_layer,end_layer) ):
+                new_vertice_name = '_' + start_place + '__to__' + end_place + '_' + str(i)
+                new_connection = ( ( start_vertice, start_edge ), 
+                                   ( new_vertice_name, '_in' ) )
+
+                new_connection_list.append( new_connection )
+
+                # update for the next go...
+                start_vertice = new_vertice_name
+                start_edge    = '_out'
+                
+
+            new_connection = ( ( start_vertice, start_edge ), 
+                               ( end_inst, end_port) )
+            new_connection_list.append( new_connection )
+
+        self.connection_list = new_connection_list
+        self._show_connections()
+         
+        #                
+        if debug:
+        
+            print "\nGraph Edges Dictionary"
+            for key in self.graph_edges.keys():
+                print key," :", self.graph_edges[key]        
+                        
+        
+            print "\nGraph Layers Dictionary"
+            for key in graph_layers.keys():
+                print key," :", graph_layers[key]  
+                        
+        return True
+        
+
+
     def _route_connections( self ):
         """ First cut routing of the nets.
         
@@ -441,7 +622,17 @@ class Layout_Engine:
         
         self._determine_glue_points()
         
-        #hypernet_list = []
+        #  Keep track on which tracks we're routing the horizontal
+        # sections of the nets on.  Forcing each horizontal section
+        # to be on a unique track will prevent them from running on 
+        # top of each other.  Consult this dictionary before assigning
+        # horizontal tracks.
+        #  Keys are horizontal routing channel ids, '0' is the channel 
+        # between the inputs and the first layer of modules.  The 
+        # value is the next available track.
+        track_dictionary = {}
+
+        # hypernet_list = []
         net_id = 0
         
         for start_net,end_net in self.connection_list:
@@ -457,9 +648,15 @@ class Layout_Engine:
                                      label=netname,
                                      obj_type='hypernet')            
                 
-            drawobj.hypernet_tree = [ start_point.x, start_point.y ]            
+            drawobj.hypernet_tree = [ start_point.x, start_point.y ]   
+         
+            # Midway point.
+            
             mid_x = ( ( ( end_point.x - start_point.x ) / 2 ) + start_point.x )
-            drawobj.hypernet_tree.extend( [ mid_x, end_point.y, end_point.x ] )
+            drawobj.hypernet_tree.append( mid_x )
+
+            # End point
+            drawobj.hypernet_tree.extend( [ end_point.y, end_point.x ] )
         
             #hypernet_list.append( drawobj )    
             
