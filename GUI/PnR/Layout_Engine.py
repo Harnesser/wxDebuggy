@@ -39,6 +39,8 @@ class Layout_Engine:
         #self.routing_engine = PnR.Routing_Engine()
         #self.ordering_engine = PnR.Ordering_Engine()
 
+        self.layered_connection_dict = {}
+        self.layered_drawing_object_dict = {} # key = layer, value = list of objects
 	    # Hypernet track dictionary
         self.track_dict = {} # key = layer, values = tracks used. 	
 
@@ -62,12 +64,17 @@ class Layout_Engine:
         # Connections will be added later  
         self._build_drawing_object_dict()
 
+
         # Update the x-position of the blocks depending on what layer they've
         # been placed on.
         self._update_block_x_positions()
         
         # Route
         self._route_connections()
+
+        # Layered ditionaries
+        self._build_layered_connection_dict()
+        self._build_layered_drawing_object_dict()
         
         return self.drawing_object_dict
         
@@ -448,11 +455,13 @@ class Layout_Engine:
                 self.drawing_object_dict[node] = drawobj
 
 
-        self._show_drawing_object_dict(debug)
+        self._show_dictionary( "Drawing Object Dictionary",
+                               self.drawing_object_dict,
+                               debug)
 
 
 
-    def _determine_glue_points(self):
+    def _determine_glue_points(self, debug=False):
         """ Find glue Points for pins on instantiations."""
         
         self.glue_points = {}
@@ -466,23 +475,10 @@ class Layout_Engine:
             for pin,position in part.glue_points.iteritems():
                 self.glue_points[pin] = position
                 
-        self._show_glue_point_dict()
+        self._show_dictionary( "Glue Point Dictionary",
+                               self.glue_points,
+                               debug)
         
-
-    def _show_glue_point_dict(self):
-        """ A debug thing """
-
-        print "\n\n### Glue Point Dictionary"
-        for key in self.glue_points.keys():
-            print "  %s : %s" % ( str(key).rjust(30), self.glue_points[key] )
-
-
-    def _show_drawing_object_dict(self, debug=True):
-        """ A debug thing """
-
-        print "\n\n### Drawing Object Dictionary"
-        for key in self.drawing_object_dict.keys():
-            print "  [%s]: %s" % ( key, self.drawing_object_dict[key] )
 
 
     def _break_up_long_edges(self, debug=True):
@@ -597,23 +593,22 @@ class Layout_Engine:
         self.connection_list = new_connection_list
         self._show_connections()
          
-        #                
-        if debug:
-        
-            print "\nGraph Edges Dictionary"
-            for key in self.graph_edges.keys():
-                print key," :", self.graph_edges[key]        
-                        
-        
-            print "\nGraph Layers Dictionary"
-            for key in graph_layers.keys():
-                print key," :", graph_layers[key]  
-                        
+                      
+        # DEBUG
+        self._show_dictionary( "Graph Edges Dictionary",
+                               self.graph_edges,
+                               debug )
+
+        self._show_dictionary( "Graph Layers Dictionary",
+                               graph_layers,
+                               debug )
+
+
         return True
         
 
 
-    def _route_connections( self, debug=True ):
+    def _route_connections( self, debug=False ):
         """ First cut routing of the nets.
         
         This works layer by layer.  The space between the layers is
@@ -637,10 +632,12 @@ class Layout_Engine:
         
         for start_conn, end_conn in self.connection_list:
 
+            # Track info for horizontal sections
             layer = self._get_layer( start_conn )
             track = track_dictionary.setdefault( layer, 0 )
 
             netname = 'hypernet_'+str(net_id)
+
             # Get start point
             start_point = self.glue_points[start_conn]
             end_point   = self.glue_points[end_conn]
@@ -650,10 +647,11 @@ class Layout_Engine:
                                      parent=self,
                                      label=netname,
                                      obj_type='hypernet')            
-                
+         
+            drawobj.layer = layer       
             drawobj.hypernet_tree = [ start_point.x, start_point.y ]   
          
-            # Midway point.
+            # Midway point - this is the x co-ord for the horizontal section
             mid_x = ( ( ( end_point.x - start_point.x ) / 2 ) + start_point.x )
             mid_x += track * 5
             drawobj.hypernet_tree.append( mid_x )
@@ -661,8 +659,8 @@ class Layout_Engine:
             # End point
             drawobj.hypernet_tree.extend( [ end_point.y, end_point.x ] )
         
-            #hypernet_list.append( drawobj )    
-            
+           
+            # ...
             self.drawing_object_dict[netname] = drawobj  
             net_id += 1
             track_dictionary[layer] += 1
@@ -672,22 +670,74 @@ class Layout_Engine:
                 print "   X:", start_point.x, mid_x, end_point.x
                 print "   ", drawobj.hypernet_tree
 
-        #return hypernet_list
         
         
 
     def _get_layer(self, connection_point):
-            """ Find out which layer a given connection point is on."""
+        """ Find out which layer a given connection point is on."""
 
-            inst_name, pin_name = connection_point
-            if inst_name is '_iport' or inst_name is '_oport': # it's a port...
-                key_value = pin_name
-            else: # it's an instance
-                key_value = inst_name
+        inst_name, pin_name = connection_point
+        if inst_name is '_iport' or inst_name is '_oport': # it's a port...
+            key_value = pin_name
+        else: # it's an instance
+            key_value = inst_name
 
-            return self.layer_dict[key_value]
+        return self.layer_dict[key_value]
 
                 
+
+    def _build_layered_connection_dict(self, debug=True):
+        """ Layered Connection Dictionary.
+
+        key = layer
+        value = ordered list of connections, ordered by track.
+        """
+
+        self.layered_connection_dict = {}
+        for drawobj in self.drawing_object_dict.values():
+
+            if not drawobj.is_hypernet():
+                continue
+
+            self.layered_connection_dict.setdefault(drawobj.layer, []).append(drawobj)
+
+        self._show_dictionary( "Layered Connection Dictionary",
+                               self.layered_connection_dict,
+                               debug )
+
+
+    def _build_layered_drawing_object_dict(self, debug=True):
+        """ Layered Drawing Object Dictionary.
+
+        key = layer
+        value = ordered list of drawing objects, ordered by y-position
+        """
+
+        self.layered_drawing_object_dict = {}
+
+        for drawobj in self.drawing_object_dict.values():
     
+            if drawobj.is_hypernet():
+                continue
+
+            layer = self.layer_dict[ drawobj.label ]
+            drawobj.layer = layer
+            self.layered_drawing_object_dict.setdefault(layer, []).append(drawobj)    
+    
+        self._show_dictionary( "Layered Drawing Object Dictionary",
+                               self.layered_drawing_object_dict,
+                               debug )
         
-    
+
+
+
+    def _show_dictionary(self, title, dictionary, debug=True ):
+        """ Prettyprint a dictionary """
+
+        if debug:
+            print "\n\n###", title
+            for key in dictionary.keys():
+                name = dictionary[key]
+                print "  %s : %s" % ( str(key).rjust(30), name )
+
+
