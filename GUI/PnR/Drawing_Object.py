@@ -180,7 +180,8 @@ class Drawing_Object:
         """
 
         self.glue_points = {}
-        
+        self._update_sizes()
+
         if self.obj_type == 'module':
             for iii, port_name in enumerate(self.lhs_ports):
                 ypos_pin = self.position.y + (iii+1)*self.pin_separation
