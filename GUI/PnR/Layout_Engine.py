@@ -76,6 +76,9 @@ class Layout_Engine:
         self._build_layered_connection_dict()
         self._build_layered_drawing_object_dict()
         
+        # Crossover count...
+        self._count_crossovers()
+
         return self.drawing_object_dict
         
     ## =============================================================================
@@ -84,7 +87,7 @@ class Layout_Engine:
     ##
     ## =============================================================================
     
-    def _extract_graph(self, debug=True):
+    def _extract_graph(self, debug=False):
         """ Get a graph of the circuit to display.
         """
         
@@ -99,7 +102,7 @@ class Layout_Engine:
         return graph_edges
     
     
-    def _build_driver_dictionary(self, debug=True ):
+    def _build_driver_dictionary(self, debug=False ):
         """ Build a dictionary of what each net and input port drives.
 
         Loops thru the instanciations in the current module and adds each
@@ -154,7 +157,7 @@ class Layout_Engine:
 
 
 
-    def _get_connection_list( self, driver_dict, debug=True):
+    def _get_connection_list( self, driver_dict, debug=False):
         """Determine the connections in the current module
 
         This uses the driver_dict to build a connections list.  The driver_dict will
@@ -196,7 +199,7 @@ class Layout_Engine:
         return point_to_point_connection_list
 
 
-    def _show_connections(self, debug = True ):
+    def _show_connections(self, debug=True ):
 
         if debug:
             print "\nPoint-to-Point"
@@ -207,7 +210,7 @@ class Layout_Engine:
             
             
 
-    def _get_graph_dictionary(self, connection_list, debug=True):
+    def _get_graph_dictionary(self, connection_list, debug=False):
         """Build a graph from the circuit connection list.
         
         Returns a directed graph of the circuit as a dictionary. Keys are vertices,
@@ -312,7 +315,7 @@ class Layout_Engine:
         
         
         
-    def _update_block_x_positions(self, debug=True):
+    def _update_block_x_positions(self, debug=False):
         """ Update the blocks' x positions dependant on their layering."""
         
         y_pos = 10
@@ -359,7 +362,7 @@ class Layout_Engine:
 
 
         
-    def _build_drawing_object_dict( self, debug = True):
+    def _build_drawing_object_dict( self, debug=False):
         """ Build the list of objects to display on the screen.
 
         Add the instance modules and ports."""
@@ -461,7 +464,7 @@ class Layout_Engine:
 
 
 
-    def _determine_glue_points(self, debug=False):
+    def _determine_glue_points(self, debug=True):
         """ Find glue Points for pins on instantiations."""
         
         self.glue_points = {}
@@ -481,7 +484,7 @@ class Layout_Engine:
         
 
 
-    def _break_up_long_edges(self, debug=True):
+    def _break_up_long_edges(self, debug=False):
         """ Insert dummy nodes for long edges.
         Produces a 'proper graph'.    
         """
@@ -684,9 +687,123 @@ class Layout_Engine:
 
         return self.layer_dict[key_value]
 
-                
 
-    def _build_layered_connection_dict(self, debug=True):
+    def _count_crossovers(self):
+        """ Count the crossovers in the diagram.
+        """
+
+        total_crossovers = 0
+        num_layers = max(self.layered_drawing_object_dict.keys())
+
+        for layer in range(0,num_layers ) :
+            total_crossovers += self._count_crossovers_on_layer(layer)
+
+        print "Crossovers:", total_crossovers
+
+
+    def _count_crossovers_on_layer(self, layer=None, debug=True):
+        """ Count crossovers between layer x and x+1.
+
+        """
+
+        crossover_count = 0
+
+        drawobj_list = self.layered_connection_dict.get(layer,[])
+        num_draw_objs = len(drawobj_list)
+        if debug:
+            print "================================================================"
+            print len(drawobj_list), " nets on layer", layer
+
+
+        for i in range( num_draw_objs-1 ):
+            drawobj1 = drawobj_list[i]
+            if not drawobj1: continue
+
+            segment_gen1 = drawobj1.hypernet_generator()
+
+            for segment1_start, segment1_end in segment_gen1:
+    
+                for j in range(i+1,num_draw_objs):
+                    drawobj2 = drawobj_list[j]
+                    if not drawobj2: continue
+                    if drawobj1 == drawobj2: continue
+
+                    segment_gen2 = drawobj2.hypernet_generator()
+
+                    for segment2_start, segment2_end in segment_gen2:
+                        if self._lines_cross( segment1_start, segment1_end,
+                                              segment2_start, segment2_end ):
+                            crossover_count += 1
+
+        return crossover_count
+
+
+    def _lines_cross(self, line1_start, line1_end, line2_start, line2_end, debug = True ):
+        """ Determine if flightlines cross over eachother
+
+        Construct the line eqn for each segment and then find the crossing
+        point if one exists.  Then check that this crossing point is on both 
+        line segments.
+
+        """
+        x1,y1 = line1_start
+        x2,y2 = line1_end
+        x3,y3 = line2_start
+        x4,y4 = line2_end
+        
+        print line1_start, line1_end, line2_start, line2_end
+
+
+#        if x1 == x2:
+#            line1_direction = 'horizontal'
+#        else:
+#            line1_direction = 'vertical'
+
+#        if x3 == x4:
+#            line2_direction = 'horizontal'
+#        else:
+#            line2_direction = 'vertical'
+
+
+#       if line1_direction == 'horizontal' and line2_direction == 'horizontal':
+#            return self._overlaps(x1,x2,x3,x4)
+#        elif line1_direction == 'vertical' and line2_direction == 'vertical':
+#            return self._overlaps(y1,y2,y3,y4)          
+
+
+        if self._overlaps(x1,x2,x3,x4) and self._overlaps(y1,y2,y3,y4):
+            print " !!!!!!!!!! !!!!!! !!!!!! overlaps"
+            return True
+        else:
+            print " don't cross"
+            return False
+            
+
+    def _overlaps(self, y1,y2,y3,y4 ):
+        
+        ymax = max( y3, y4 )
+        ymin = min( y3, y4 )
+
+        if( ( (y1 >= ymin) and (y1 <= ymax) )
+            or
+            ( (y2 >= ymin) and (y2 <= ymax) )
+          ):
+            return True
+        
+
+        ymax = max( y1, y2 )
+        ymin = min( y1, y2 )      
+  
+        if( ( (y3 >= ymin) and (y3 <= ymax) )
+            or
+            ( (y4 >= ymin) and (y4 <= ymax) )
+          ):
+            return True
+        
+        return False
+
+
+    def _build_layered_connection_dict(self, debug=False):
         """ Layered Connection Dictionary.
 
         key = layer
@@ -706,7 +823,7 @@ class Layout_Engine:
                                debug )
 
 
-    def _build_layered_drawing_object_dict(self, debug=True):
+    def _build_layered_drawing_object_dict(self, debug=False):
         """ Layered Drawing Object Dictionary.
 
         key = layer
