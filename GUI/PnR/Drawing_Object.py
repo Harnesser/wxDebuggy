@@ -272,12 +272,7 @@ class Drawing_Object:
             self.Draw_FlightLine( dc )
 
         elif self.obj_type == 'hypernet':
-            start_point = wx.Point( self.hypernet_tree.pop(0), self.hypernet_tree.pop(0) )
-            self.draw_hypernet( dc, start_point, self.hypernet_tree, "horizontal" )
-            
-	        # redo the poping
-            self.hypernet_tree.insert(0,start_point.y)
-            self.hypernet_tree.insert(0,start_point.x)
+            self.draw_hypernet(dc)
         
         elif self.obj_type == 'passthru':
             self._draw_passthru( dc )
@@ -286,6 +281,35 @@ class Drawing_Object:
             print "hmmmm...."
 
         self.MarkGluePoints(dc)
+
+
+
+    def hypernet_generator(self):
+        """ A Generator to give out hypernet line segments. """
+
+        direction = 'horizontal' # state
+
+        for point_index in range(2, len(self.hypernet_tree), 1 ):
+
+            if direction == 'horizontal':
+                start_point = ( self.hypernet_tree[point_index-2],
+                                self.hypernet_tree[point_index-1] )
+                end_point   = ( self.hypernet_tree[point_index],
+                                self.hypernet_tree[point_index-1] )
+                direction = 'vertical'
+
+            else:
+                start_point = ( self.hypernet_tree[point_index-1],
+                                self.hypernet_tree[point_index-2] )
+                end_point   = ( self.hypernet_tree[point_index-1],
+                                self.hypernet_tree[point_index] )
+
+                direction = 'horizontal'               
+       
+            yield start_point, end_point
+
+            
+
 
     def Draw_Module( self, dc, selected ):
         """ Draw a module symbol """
@@ -441,37 +465,19 @@ class Drawing_Object:
             dc.DrawLinePoint( start_point, end_point + wx.Point(1,1) )
 
     
-    def draw_hypernet( self, dc, start_point, tree, direction):
-        """ Draw orthogonal wires.
-        Uses a tree structure as described in [Sander]"""
+    def draw_hypernet( self, dc ):
+        """ Draw Orthogonal wires. 
+
+        Uses a generator..."""
 
         # Set the pen - green
         dc.SetPen(wx.Pen('#00DD00', 1, wx.SOLID))
         
-        # self.draw_hypernet( dc, start_point, self.hypernet_tree, "vertical" )
-        prev_point = start_point
-        
-        for coord in tree:
-            
-            if type(coord) is list:
-                self.draw_hypernet( dc, prev_point, coord, direction )
-            else:
-                         
-                # determine end point
-                if direction == 'vertical':
-                    end_point = wx.Point( prev_point.x, coord )
-                    direction = 'horizontal'
-                else:
-                    end_point = wx.Point( coord, prev_point.y )
-                    direction = 'vertical'
-                    
-                # draw line segment
-                dc.DrawLinePoint( prev_point, end_point )            
-            
-                prev_point = end_point
-    
-    
-    
+        segment_gen = self.hypernet_generator()
+        for start_point,end_point in segment_gen:
+            dc.DrawLinePoint( start_point, end_point )  
+  
+ 
     def drawInstName( self, dc, inst_name ):
         """ Display the instance name """
 
