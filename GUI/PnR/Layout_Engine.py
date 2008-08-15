@@ -652,15 +652,17 @@ class Layout_Engine:
                                      obj_type='hypernet')            
          
             drawobj.layer = layer       
-            drawobj.hypernet_tree = [ start_point.x, start_point.y ]   
-         
-            # Midway point - this is the x co-ord for the horizontal section
-            mid_x = ( ( ( end_point.x - start_point.x ) / 2 ) + start_point.x )
-            mid_x += track * 5
-            drawobj.hypernet_tree.append( mid_x )
+            drawobj.track = track
 
-            # End point
-            drawobj.hypernet_tree.extend( [ end_point.y, end_point.x ] )
+            # Midway point - this is the x co-ord for the horizontal section
+            drawobj.horizontal_origin = ( ( ( end_point.x - start_point.x ) / 2 ) 
+                                           + start_point.x )
+
+            drawobj.hypernet_tree = [ start_point.x, start_point.y, 
+                                      0,  # horizontal section position
+                                      end_point.y, end_point.x ]
+
+            drawobj.update_horizontal_position()
         
            
             # ...
@@ -688,6 +690,21 @@ class Layout_Engine:
         return self.layer_dict[key_value]
 
 
+
+    def _assign_horizontal_sections_to_tracks(self, layer):
+        """ Assign the horizontal sections to tracks.
+
+        Greedy assign as described in [Eschbach et al].
+        """
+    
+        num_tracks = len( self.layered_connection_dict[layer] )
+
+        for track in range(num_tracks):
+            min_cost = 10000000 # inf if i could...
+
+
+
+
     def _count_crossovers(self):
         """ Count the crossovers in the diagram.
         """
@@ -699,6 +716,7 @@ class Layout_Engine:
             total_crossovers += self._count_crossovers_on_layer(layer)
 
         print "Crossovers:", total_crossovers
+
 
 
     def _count_crossovers_on_layer(self, layer=None, debug=True):
@@ -750,32 +768,10 @@ class Layout_Engine:
         x2,y2 = line1_end
         x3,y3 = line2_start
         x4,y4 = line2_end
-        
-        print line1_start, line1_end, line2_start, line2_end
-
-
-#        if x1 == x2:
-#            line1_direction = 'horizontal'
-#        else:
-#            line1_direction = 'vertical'
-
-#        if x3 == x4:
-#            line2_direction = 'horizontal'
-#        else:
-#            line2_direction = 'vertical'
-
-
-#       if line1_direction == 'horizontal' and line2_direction == 'horizontal':
-#            return self._overlaps(x1,x2,x3,x4)
-#        elif line1_direction == 'vertical' and line2_direction == 'vertical':
-#            return self._overlaps(y1,y2,y3,y4)          
-
-
+     
         if self._overlaps(x1,x2,x3,x4) and self._overlaps(y1,y2,y3,y4):
-            print " !!!!!!!!!! !!!!!! !!!!!! overlaps"
             return True
         else:
-            print " don't cross"
             return False
             
 

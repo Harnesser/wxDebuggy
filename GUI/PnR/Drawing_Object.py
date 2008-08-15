@@ -32,6 +32,8 @@ class Drawing_Object:
         # For hypernets 
         self.hypernet_tree = []
         self.layer = None
+        self.horizontal_origin = 0
+        self.track = 0
         
         # Virtual column number
         self.column_number = 0
@@ -248,6 +250,12 @@ class Drawing_Object:
             self.glue_points[glue_point_key] =  self.endpt + self.position
 
         
+    def update_horizontal_position(self):
+        """ """
+
+        self.hypernet_tree[2] = self.horizontal_origin + ( self.track * 5 )
+
+
 
     def is_hypernet(self):
         """ True if a connection/hypernet. """
