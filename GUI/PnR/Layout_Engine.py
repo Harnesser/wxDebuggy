@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 """ Building a graph from a circuit description.
 
 Edges on a graph are specified as (u,v) where u and v are vertices in the graph.
@@ -15,10 +17,12 @@ list.
 # Love is all you need! #
 
 # ... and these modules...
-#import Routing_Engine
-#import Ordering_Engine
 import wx
 from Drawing_Object import *
+import pickle
+
+#import Routing_Engine
+#import Ordering_Engine
 
 class Layout_Engine:
     """ Schematic Layout Engine.
@@ -69,16 +73,18 @@ class Layout_Engine:
         # been placed on.
         self._update_block_x_positions()
         
-        # Route
-        self._route_connections()
-
         # Layered ditionaries
         self._build_layered_connection_dict()
         self._build_layered_drawing_object_dict()
+
+        # Route
+        self._route_connections()
         
         # Crossover count...
         self._count_crossovers()
 
+        self._pickle_module_for_tests()
+        
         return self.drawing_object_dict
         
     ## =============================================================================
@@ -610,6 +616,24 @@ class Layout_Engine:
         return True
         
 
+    def _assign_tracks(self, debug=False):
+        """ Assign horizontal net segments to tracks.
+        
+        Based on the ordered list of connections...
+        """
+        
+        layer_list = self.layered_connection_dict.keys()
+        layer_list.sort()
+        
+        
+        for layer in layer_list:
+            track = 0
+            
+            nets = self.layered_connection_dict[layer]
+            
+            
+            
+        
 
     def _route_connections( self, debug=False ):
         """ First cut routing of the nets.
@@ -695,9 +719,16 @@ class Layout_Engine:
         """ Assign the horizontal sections to tracks.
 
         Greedy assign as described in [Eschbach et al].
+        
+        First assign each horizontal section to a unique track.  
+        Then we see which net will cause the least crossovers on the top track.
+        Then we see which of the other nets causes the least crossovers on the 2nd track.
+        And so on until all nets are assigned to a track.
         """
     
-        num_tracks = len( self.layered_connection_dict[layer] )
+        layer_list = self.layered_connection_dict[layer][:] # copy it.
+        num_tracks = len( layer_list)
+    
 
         for track in range(num_tracks):
             min_cost = 10000000 # inf if i could...
@@ -854,3 +885,36 @@ class Layout_Engine:
                 print "  %s : %s" % ( str(key).rjust(30), name )
 
 
+    def _pickle_module_for_tests(self):
+        """ Pickle an RTL module data structure for unittesting this module. """
+        
+        if False:
+            hPICKLE = open('rtl_module.dat','wb')
+            pickle.dump( self.module, hPICKLE )
+            hPICKLE.close()
+            print self.module
+        
+               
+        
+if __name__ == '__main__':
+
+    import sys
+    sys.path.append('../../')
+    import pprint
+    
+    def load_rtl_module_pickle():
+        """ Load pickled RTL module datastructure. """
+        
+        hPICKLE = open('rtl_module.dat','rb')
+        module = pickle.load(hPICKLE)
+        pprint.pprint(module)
+        
+        hPICKLE.close()
+        return module
+ 
+    module = load_rtl_module_pickle()
+    
+    eng = Layout_Engine()
+    eng.place_and_route(module)
+    
+    

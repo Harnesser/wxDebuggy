@@ -46,7 +46,10 @@ class Drawing_Object:
         # Pin label font
         self.pin_label_size   = 10
         self.pin_label_colour = wx.RED
-        self.pin_label_font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT).GetFaceName()
+        try:
+            self.pin_label_font = wx.SystemSettings_GetFont(wx.SYS_DEFAULT_GUI_FONT).GetFaceName()
+        except wx._core.PyNoAppError : # for messing...  
+            self.pin_label_font = None
         self.pin_separation   = 14
         self.pin_length       = 10
 
