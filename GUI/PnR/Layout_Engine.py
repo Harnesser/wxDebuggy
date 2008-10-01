@@ -72,13 +72,14 @@ class Layout_Engine:
         # Update the x-position of the blocks depending on what layer they've
         # been placed on.
         self._update_block_x_positions()
-        
+        self._add_hypernets_to_drawing_object_dict()
+                
         # Layered ditionaries
         self._build_layered_connection_dict()
         self._build_layered_drawing_object_dict()
 
         # Route
-        self._route_connections()
+        #self._route_connections()
         
         # Crossover count...
         self._count_crossovers()
@@ -470,7 +471,7 @@ class Layout_Engine:
 
 
 
-    def _determine_glue_points(self, debug=True):
+    def _determine_glue_points(self, debug=False):
         """ Find glue Points for pins on instantiations."""
         
         self.glue_points = {}
@@ -631,11 +632,9 @@ class Layout_Engine:
             
             nets = self.layered_connection_dict[layer]
             
-            
-            
-        
+              
 
-    def _route_connections( self, debug=False ):
+    def _add_hypernets_to_drawing_object_dict( self, debug=False ):
         """ First cut routing of the nets.
         
         This works layer by layer.  The space between the layers is
@@ -696,7 +695,7 @@ class Layout_Engine:
 
             if debug:
                 print "FROM:", start_conn, " TO:", end_conn
-                print "   X:", start_point.x, mid_x, end_point.x
+                print "   X:", start_point.x, end_point.x
                 print "   ", drawobj.hypernet_tree
 
         
@@ -757,7 +756,10 @@ class Layout_Engine:
 
         crossover_count = 0
 
+
+        pprint.pprint( self.layered_connection_dict )
         drawobj_list = self.layered_connection_dict.get(layer,[])
+        
         num_draw_objs = len(drawobj_list)
         if debug:
             print "================================================================"
@@ -766,7 +768,8 @@ class Layout_Engine:
 
         for i in range( num_draw_objs-1 ):
             drawobj1 = drawobj_list[i]
-            if not drawobj1: continue
+            if not drawobj1: 
+                continue
 
             segment_gen1 = drawobj1.hypernet_generator()
 
@@ -778,7 +781,7 @@ class Layout_Engine:
                     if drawobj1 == drawobj2: continue
 
                     segment_gen2 = drawobj2.hypernet_generator()
-
+                        
                     for segment2_start, segment2_end in segment_gen2:
                         if self._lines_cross( segment1_start, segment1_end,
                                               segment2_start, segment2_end ):
@@ -787,7 +790,7 @@ class Layout_Engine:
         return crossover_count
 
 
-    def _lines_cross(self, line1_start, line1_end, line2_start, line2_end, debug = True ):
+    def _lines_cross(self, line1_start, line1_end, line2_start, line2_end, debug = False ):
         """ Determine if flightlines cross over eachother
 
         Construct the line eqn for each segment and then find the crossing
@@ -839,7 +842,7 @@ class Layout_Engine:
 
         self.layered_connection_dict = {}
         for drawobj in self.drawing_object_dict.values():
-
+            
             if not drawobj.is_hypernet():
                 continue
 
