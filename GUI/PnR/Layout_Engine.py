@@ -79,10 +79,9 @@ class Layout_Engine:
         self._build_layered_drawing_object_dict()
 
         # Route
-        #self._route_connections()
-        
-        # Crossover count...
         self._count_crossovers()
+        self._minimize_crossovers()
+        self._count_crossovers()        
 
         self._pickle_module_for_tests()
         
@@ -617,21 +616,18 @@ class Layout_Engine:
         return True
         
 
-    def _assign_tracks(self, debug=False):
+    def _assign_tracks_in_layer(self, layer, debug=False):
         """ Assign horizontal net segments to tracks.
         
         Based on the ordered list of connections...
         """
-        
-        layer_list = self.layered_connection_dict.keys()
-        layer_list.sort()
-        
-        
-        for layer in layer_list:
-            track = 0
-            
-            nets = self.layered_connection_dict[layer]
-            
+
+        nets = self.layered_connection_dict[layer]
+        track = 0
+        for net in nets:
+            net.track = track
+            net.update_horizontal_position()
+            track += 1                
               
 
     def _add_hypernets_to_drawing_object_dict( self, debug=False ):
@@ -713,8 +709,31 @@ class Layout_Engine:
         return self.layer_dict[key_value]
 
 
+    def _reord( self, old_list, _from, _to ):
+        """ """
+       
+        assert _from < len(old_list)
+        assert _to   < len(old_list)
+        
+        list_ = old_list[:]
+        mover = list_[_from]#; print list_, mover
+        del( list_[_from] )#; print list_
+        list_.insert( _to, mover)#; print list_
 
-    def _assign_horizontal_sections_to_tracks(self, layer):
+        return list_
+        
+
+
+    def _minimize_crossovers(self):
+        """ """
+        
+        num_layers = len( self.layered_connection_dict.keys() )
+        for layer in range(1,num_layers+1):
+            self._assign_horizontal_sections_to_tracks(layer)
+            
+        
+
+    def _assign_horizontal_sections_to_tracks(self, layer, debug=True):
         """ Assign the horizontal sections to tracks.
 
         Greedy assign as described in [Eschbach et al].
@@ -725,12 +744,41 @@ class Layout_Engine:
         And so on until all nets are assigned to a track.
         """
     
+        
+        self._show_dictionary( "Layered Connection Dictionary",
+                                self.layered_connection_dict,
+                               debug)
+        
+        
         layer_list = self.layered_connection_dict[layer][:] # copy it.
-        num_tracks = len( layer_list)
+        num_tracks = len(layer_list)
     
 
-        for track in range(num_tracks):
+        for track_index in range(num_tracks):
+        
             min_cost = 10000000 # inf if i could...
+            best_net = None
+            
+            for net_index in range(track_index, num_tracks):
+                
+                # Move the net to the track and 
+                new_layer_list = self._reord( layer_list, _from=net_index, _to=track_index )
+                self.layered_connection_dict[layer] = new_layer_list
+                self._assign_tracks_in_layer(layer)
+                
+                # Count the crossovers and keep an eye on the best performers
+                crossover_count = self._count_crossovers_on_layer(layer)
+                if crossover_count < min_cost:
+                    min_cost = crossover_count
+                    best_net = net_index
+                    
+                if debug:
+                    print "Track:%d, Net:%d, Crossovers:%d" % (track_index,
+                                                               net_index, 
+                                                               crossover_count)
+                    
+            # update the net ordered list to the best so far
+            layer_list = self._reord( layer_list, _from=best_net, _to=track_index)
 
 
 
@@ -749,15 +797,13 @@ class Layout_Engine:
 
 
 
-    def _count_crossovers_on_layer(self, layer=None, debug=True):
+    def _count_crossovers_on_layer(self, layer=None, debug=False):
         """ Count crossovers between layer x and x+1.
 
         """
 
         crossover_count = 0
 
-
-        pprint.pprint( self.layered_connection_dict )
         drawobj_list = self.layered_connection_dict.get(layer,[])
         
         num_draw_objs = len(drawobj_list)
