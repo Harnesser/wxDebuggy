@@ -15,6 +15,7 @@ class Drawing_Object:
 
         #
         self.parent    = parent
+        self.name      = name
         self.label     = label
         self.position  = position
         self.bbox      = bbox
@@ -69,6 +70,7 @@ class Drawing_Object:
 
     def SetPosition( self, position = wx.Point(0,0) ):
         self.position = position
+        self.build_glue_points_dict()
 
     def SetBoundBox( self, size = wx.Size(0,0) ):
         self.bbox = size
@@ -89,6 +91,7 @@ class Drawing_Object:
         """ Set the origin (top-left corner) for this DrawingObject.
         """
         self.position = position
+        self.build_glue_points_dict()
 
     def getPosition(self):
         """ Return this vv.DrawingObject's position.

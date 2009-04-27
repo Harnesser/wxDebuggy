@@ -73,25 +73,36 @@ class Layout_Engine:
 
         # Update the x-position of the blocks depending on what layer they've
         # been placed on.
-        self._update_block_x_positions()
-        #self._add_hypernets_to_drawing_object_dict()
                 
-        # Layered ditionaries
+        # Layered dictionaries
         self._build_layered_connection_dict()
         self._build_layered_drawing_object_dict()
-
+        self._update_block_x_positions()
+        
         # Route
         self._pnr_algorithm() 
-        
+        #self._pnr_algorithm() 
+                
         #self._pickle_module_for_tests()
         
+        
+        # Drawing objects
+        drawing_objects = {}
+        
+        # Add blocks to list
+        for layer in self.layered_drawing_object_dict.keys():
+            for drawing_obj in self.layered_drawing_object_dict[layer]:
+                print "Block Name:", drawing_obj.label
+                drawing_objects[drawing_obj.label] = drawing_obj
+                
         # Add hypernets to drawing object_dict...
         for layer in self.layered_connection_dict.keys():
             for drawing_obj in self.layered_connection_dict[layer]:
-                self.drawing_object_dict[drawing_obj.label] = drawing_obj
+                print "Hypernet Name:", drawing_obj.label
+                drawing_objects[drawing_obj.label] = drawing_obj
             
         
-        return self.drawing_object_dict
+        return drawing_objects
         
     ## =============================================================================
     ##
@@ -334,17 +345,16 @@ class Layout_Engine:
         if debug:
             print ":::: Update Block Positions"
             
-            print 'Drawing Object_Dict Keys\n', self.drawing_object_dict.keys()
-            print '\nLayer Dictionary Keys\n', self.layer_dict.keys()
-            print
+            print 'Layered Drawing Object_Dict Keys\n', self.layered_drawing_object_dict.keys()
 
-        y_pos = 10            
-        for name in self.drawing_object_dict.keys():
-            drawing_obj = self.drawing_object_dict[name]
-            position = wx.Point( self.layer_dict[name] * 200, y_pos )
-            
-            drawing_obj.setPosition( position ) 
-            y_pos += 50
+            print
+        
+        for layer in self.layered_drawing_object_dict.keys():
+            y_pos = 10
+            for drawing_obj in self.layered_drawing_object_dict[layer]:
+                position = wx.Point( layer * 200, y_pos )
+                drawing_obj.setPosition( position ) 
+                y_pos += 50
         
       
     def _update_block_y_positions(self, layer, debug=False):
@@ -360,8 +370,9 @@ class Layout_Engine:
         y_pos = 10
         drawing_objs = self.layered_drawing_object_dict[layer]
         for drawing_obj in drawing_objs:
-            position = drawing_obj.position
+            position = drawing_obj.getPosition()
             position.y = y_pos
+            drawing_obj.setPosition( position )
             y_pos += 50
             
         
@@ -393,7 +404,7 @@ class Layout_Engine:
 
 
         
-    def _build_drawing_object_dict( self, debug=False):
+    def _build_drawing_object_dict( self, debug=True):
         """ Build the list of objects to display on the screen.
 
         Add the instance modules and ports."""
@@ -468,14 +479,14 @@ class Layout_Engine:
         #  Add any passthrus as they are needed.  These are vertice
         # names in the graph dictionary which are not covered by
         # inst or port names.
+        passthru_id = 0
         for node in self.graph_edges.keys():
             if not self.drawing_object_dict.get( node, None ):
                 if node == '_iport':
                     continue
 
                 if debug: print "Found a new thang..", node
-                
-                drawobj = Drawing_Object( name=node,
+                drawobj = Drawing_Object( name=node + '_' + str(passthru_id),
                                           parent=self,  #hmmm, for flightlines only! FIXME
                                           label=node,
                                           obj_type='passthru',
@@ -488,26 +499,28 @@ class Layout_Engine:
 
                 self.drawing_object_dict[node] = drawobj
 
-
+                passthru_id += 1
+                
         self._show_dictionary( "Drawing Object Dictionary",
                                self.drawing_object_dict,
                                debug)
 
 
 
-    def _determine_glue_points(self, debug=False):
+    def _determine_glue_points(self, debug=True ):
         """ Find glue Points for pins on instantiations."""
         
         self.glue_points = {}
 
-        for part in self.drawing_object_dict.values():
-            part.build_glue_points_dict()
+        for layer in self.layered_drawing_object_dict.keys():
+            for drawing_obj in self.layered_drawing_object_dict[layer]:
+                drawing_obj.build_glue_points_dict()
             
-            if part.obj_type == 'hypernet':
-                print "Woops - shouldn't have hypernets at this stage..."
+                if drawing_obj.obj_type == 'hypernet':
+                    print "Woops - shouldn't have hypernets at this stage..."
              
-            for pin,position in part.glue_points.iteritems():
-                self.glue_points[pin] = position
+                for pin,position in drawing_obj.glue_points.iteritems():
+                    self.glue_points[pin] = position
                 
         self._show_dictionary( "Glue Point Dictionary",
                                self.glue_points,
@@ -661,10 +674,10 @@ class Layout_Engine:
         """
 
         nets = self.layered_connection_dict[layer]
-        self._assign_hypernet_tracks( layer, debug )
+        self._assign_hypernet_tracks( nets, debug )
                    
               
-    def _build_hypernets(self, layer, debug=False):
+    def _build_hypernets(self, layer, debug=True):
         """ """
         hypernet_dict = {}
         c_crossovers = 0
@@ -721,9 +734,11 @@ class Layout_Engine:
             track_dictionary[i_layer] += 1
 
             if debug:
-                print "FROM:", start_conn, " TO:", end_conn
+                print "Hypernet:", drawobj.label
+                print "   FROM:", start_conn, " TO:", end_conn
                 print "   X:", start_point.x, end_point.x
                 print "   ", drawobj.hypernet_tree
+                print "   Layer:", i_layer
 
 
         hypernets = hypernet_dict[layer]
@@ -855,10 +870,12 @@ class Layout_Engine:
             
             for net_index in range(track_index, c_tracks):
                 
+                self._print_hypernets('before', hypernets)
                 # Move the net to the track and 
                 new_layer_list = self._reord( layer_list, _from=net_index, _to=track_index )
                 hypernets = new_layer_list
                 self._assign_hypernet_tracks(hypernets)
+                self._print_hypernets('after', hypernets)
                 
                 # Count the crossovers and keep an eye on the best performers
                 crossover_count = self._count_hypernet_crossovers(hypernets)
@@ -876,6 +893,12 @@ class Layout_Engine:
         
         return layer_list
         
+    def _print_hypernets( self, title, hypernets ):
+        
+        print "Hypernet dump", title
+        for hypernet in hypernets:
+            print "  ", hypernet.label, hypernet.hypernet_tree
+            
         
     def _assign_horizontal_sections_to_tracks(self, layer, debug=True):
         """ Assign the horizontal sections to tracks.
@@ -904,11 +927,21 @@ class Layout_Engine:
         c_layers = max(self.layered_drawing_object_dict.keys())
         c_crossovers = 0
         
+        # First, make sure everything is in place
+        for layer in self.layered_drawing_object_dict.keys():
+            self._update_block_x_positions(layer)
+            self._update_block_y_positions(layer)
+            
+        #self._print_debug_info()
+        
+        # Now optimize
         for layer in range(1, c_layers):
             drawing_objects_in_layer = self.layered_drawing_object_dict[layer]
 
             for i in range(0, len(drawing_objects_in_layer)-1):            
 
+                #self._update_block_x_positions(layer)
+                #self._update_block_y_positions(layer)
                 ( hypernets_before, c_crossovers_before ) = self._build_hypernets(layer)
 
                 self._swap_drawing_object(layer, i)
@@ -930,8 +963,39 @@ class Layout_Engine:
                 print "%d[%i], before:%d; after:%d; total:%d" % ( layer, i,
                     c_crossovers_before, c_crossovers_after, c_crossovers )
         
+                #self._print_debug_info()
 
-                             
+
+    def _print_debug_info(self):
+        """ """
+        indent = '  '
+        
+        print ( '-*' * 50 )
+        print "Drawing Objects"
+        for layer in self.layered_drawing_object_dict.keys():
+            print ( indent * 2 ) + "Layer ", layer
+            for drawing_obj in self.layered_drawing_object_dict[layer]:
+                print ( indent * 3 ) + "Object '%s'" % drawing_obj.label
+                print ( indent * 4 ) + "Position: ", drawing_obj.getPosition()
+                for gp in drawing_obj.glue_points.keys():
+                    print ( indent * 4 ), gp, drawing_obj.glue_points[gp]
+                    
+        print "Hypernets"
+        for layer in self.layered_connection_dict.keys():
+            print ( indent * 2 ) + "Layer ", layer
+            for drawing_obj in self.layered_connection_dict[layer]:
+                print ( indent * 3 ) + "Hypernet '%s'" % drawing_obj.label
+                
+                segment_gen1 = drawing_obj.hypernet_generator()
+                coords = []
+                for segment1_start, segment1_end in segment_gen1:
+                    coords.append( "(%s,%s)" % ( segment1_start, segment1_end ) )
+                print ( indent * 4 ) + ', '.join(coords)
+
+                                        
+                                            
+                                         
+                                         
     def _swap_drawing_object( self, layer, drawing_obj_index, debug=True):
         """ Swap a drawing object with it's neighbour. """
         

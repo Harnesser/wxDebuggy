@@ -30,7 +30,7 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
         #
         # Read in a few verilog models that are hierarchical
         #
-        if False:
+        if True:
             rtl_files = [
                          'tests/rtl/trivial/top.v',
                          'tests/rtl/trivial/a.v',
