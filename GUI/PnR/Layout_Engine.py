@@ -30,9 +30,10 @@ class Layout_Engine:
     This module extracts the graph information from the module to draw
     then delegates to other classes to do the layout."""
     
-    def __init__(self):
+    def __init__(self, use_pickled_module=False):
         self.module = None    # The Module to draw
-        
+        self.use_pickled_module = use_pickled_module
+            
         self.driver_dictionary = None   #keys = drivers, values = nets/ports driven
         self.connection_list = None
         self.layer_dict = None       
@@ -49,10 +50,10 @@ class Layout_Engine:
         
 	    # Hypernet track dictionary
         self.track_dict = {} # key = layer, values = tracks used. 	
-
+    
 
         
-    def place_and_route(self, module ):
+    def place_and_route(self, module, debug=False ):
         """ Place and Route a Module."""
         
         self.module = module # should I type-check?
@@ -80,11 +81,7 @@ class Layout_Engine:
         self._update_block_x_positions()
         
         # Route
-        self._pnr_algorithm() 
-        #self._pnr_algorithm() 
-                
-        #self._pickle_module_for_tests()
-        
+        self._run_egb_pnr_algorithm() 
         
         # Drawing objects
         drawing_objects = {}
@@ -92,16 +89,20 @@ class Layout_Engine:
         # Add blocks to list
         for layer in self.layered_drawing_object_dict.keys():
             for drawing_obj in self.layered_drawing_object_dict[layer]:
-                print "Block Name:", drawing_obj.label
+                if debug: print "Block Name:", drawing_obj.label
                 drawing_objects[drawing_obj.label] = drawing_obj
                 
         # Add hypernets to drawing object_dict...
         for layer in self.layered_connection_dict.keys():
             for drawing_obj in self.layered_connection_dict[layer]:
-                print "Hypernet Name:", drawing_obj.label
+                if debug: print "Hypernet Name:", drawing_obj.label
                 drawing_objects[drawing_obj.label] = drawing_obj
             
-        
+        # In full GUI mode, pickle the RTL module for unit testing this Python module
+        #if not self.use_pickled_module:
+        #    self._pickle_module_for_tests() 
+       
+        # We're done. The GUI will draw these objects
         return drawing_objects
         
     ## =============================================================================
@@ -222,7 +223,7 @@ class Layout_Engine:
         return point_to_point_connection_list
 
 
-    def _show_connections(self, debug=True ):
+    def _show_connections(self, debug=False ):
 
         if debug:
             print "\nPoint-to-Point"
@@ -343,10 +344,8 @@ class Layout_Engine:
         
 
         if debug:
-            print ":::: Update Block Positions"
-            
+            print ":::: Update Block X Positions"
             print 'Layered Drawing Object_Dict Keys\n', self.layered_drawing_object_dict.keys()
-
             print
         
         for layer in self.layered_drawing_object_dict.keys():
@@ -361,7 +360,7 @@ class Layout_Engine:
         """ Update the blocks' y positions depending on their position in the layer list."""
         
         if debug:
-            print ":::: Update Block Positions, Layer:", layer
+            print ":::: Update Block Y Positions, Layer:", layer
             
             print 'Drawing Object_Dict Keys\n', self.drawing_object_dict.keys()
             print '\nLayer Dictionary Keys\n', self.layer_dict.keys()
@@ -404,7 +403,7 @@ class Layout_Engine:
 
 
         
-    def _build_drawing_object_dict( self, debug=True):
+    def _build_drawing_object_dict( self, debug=False):
         """ Build the list of objects to display on the screen.
 
         Add the instance modules and ports."""
@@ -507,7 +506,7 @@ class Layout_Engine:
 
 
 
-    def _determine_glue_points(self, debug=True ):
+    def _determine_glue_points(self, debug=False ):
         """ Find glue Points for pins on instantiations."""
         
         self.glue_points = {}
@@ -677,7 +676,7 @@ class Layout_Engine:
         self._assign_hypernet_tracks( nets, debug )
                    
               
-    def _build_hypernets(self, layer, debug=True):
+    def _build_hypernets(self, layer, debug=False):
         """ """
         hypernet_dict = {}
         c_crossovers = 0
@@ -850,7 +849,7 @@ class Layout_Engine:
             self._assign_horizontal_sections_to_tracks(layer)
             
         
-    def _optimize_hypernet_tracks(self, hypernets, debug=True):
+    def _optimize_hypernet_tracks(self, hypernets, debug=False):
         """ Assign the horizontal sections to tracks.
 
         Greedy assign as described in [Eschbach et al].
@@ -870,12 +869,12 @@ class Layout_Engine:
             
             for net_index in range(track_index, c_tracks):
                 
-                self._print_hypernets('before', hypernets)
+                if debug: self._print_hypernets('before', hypernets)
                 # Move the net to the track and 
                 new_layer_list = self._reord( layer_list, _from=net_index, _to=track_index )
                 hypernets = new_layer_list
                 self._assign_hypernet_tracks(hypernets)
-                self._print_hypernets('after', hypernets)
+                if debug: self._print_hypernets('after', hypernets)
                 
                 # Count the crossovers and keep an eye on the best performers
                 crossover_count = self._count_hypernet_crossovers(hypernets)
@@ -900,7 +899,7 @@ class Layout_Engine:
             print "  ", hypernet.label, hypernet.hypernet_tree
             
         
-    def _assign_horizontal_sections_to_tracks(self, layer, debug=True):
+    def _assign_horizontal_sections_to_tracks(self, layer, debug=False):
         """ Assign the horizontal sections to tracks.
 
         Greedy assign as described in [Eschbach et al].
@@ -920,7 +919,7 @@ class Layout_Engine:
 
 
 
-    def _pnr_algorithm(self, debug=True):
+    def _run_egb_pnr_algorithm(self, debug=False):
         """ Optimize the placement of the blocks to reduce overall crossovers.
         """
         
@@ -929,10 +928,10 @@ class Layout_Engine:
         
         # First, make sure everything is in place
         for layer in self.layered_drawing_object_dict.keys():
-            self._update_block_x_positions(layer)
+            self._update_block_x_positions()
             self._update_block_y_positions(layer)
             
-        #self._print_debug_info()
+        if debug: self._print_debug_info()
         
         # Now optimize
         for layer in range(1, c_layers):
@@ -940,8 +939,6 @@ class Layout_Engine:
 
             for i in range(0, len(drawing_objects_in_layer)-1):            
 
-                #self._update_block_x_positions(layer)
-                #self._update_block_y_positions(layer)
                 ( hypernets_before, c_crossovers_before ) = self._build_hypernets(layer)
 
                 self._swap_drawing_object(layer, i)
@@ -960,11 +957,13 @@ class Layout_Engine:
                     self.layered_connection_dict[layer] = hypernets_before
                     c_crossovers += c_crossovers_before                    
                     
-                print "%d[%i], before:%d; after:%d; total:%d" % ( layer, i,
-                    c_crossovers_before, c_crossovers_after, c_crossovers )
+                if debug:
+                    print "%d[%i], before:%d; after:%d; total:%d" % ( layer, i,
+                        c_crossovers_before, c_crossovers_after, c_crossovers )
         
-                #self._print_debug_info()
+                if debug: self._print_debug_info()
 
+        return c_crossovers
 
     def _print_debug_info(self):
         """ """
@@ -996,7 +995,7 @@ class Layout_Engine:
                                             
                                          
                                          
-    def _swap_drawing_object( self, layer, drawing_obj_index, debug=True):
+    def _swap_drawing_object( self, layer, drawing_obj_index, debug=False):
         """ Swap a drawing object with it's neighbour. """
         
         drawing_objects = self.layered_drawing_object_dict[layer] # really an alias...
@@ -1031,7 +1030,8 @@ class Layout_Engine:
             total_crossovers += self._count_crossovers_on_layer(layer)
 
         print "Crossovers:", total_crossovers
-
+        return total_crossovers
+        
 
     def _count_hypernet_crossovers(self, hypernets, debug=False):
         """ Count crossovers between hypernets
@@ -1144,7 +1144,7 @@ class Layout_Engine:
                                debug )
 
 
-    def _build_layered_drawing_object_dict(self, debug=True):
+    def _build_layered_drawing_object_dict(self, debug=False):
         """ Layered Drawing Object Dictionary.
 
         Hypernets are *not* included...
@@ -1186,13 +1186,16 @@ class Layout_Engine:
 
 
     def _pickle_module_for_tests(self):
-        """ Pickle an RTL module data structure for unittesting this module. """
+        """ Pickle an RTL module data structure for unittesting this module. 
         
-        if False:
-            hPICKLE = open('rtl_module.dat','wb')
-            pickle.dump( self.module, hPICKLE )
-            hPICKLE.close()
-            print self.module
+        Only executed in full GUI mode.
+        """       
+        
+        filename = self.module.name + '.dat'
+        hPICKLE = open('./tests/module_pickles/' + filename,'wb')
+        pickle.dump( self.module, hPICKLE )
+        hPICKLE.close()
+        print 'Pickling: "%s"' % filename
         
                
         
@@ -1214,7 +1217,7 @@ if __name__ == '__main__':
  
     module = load_rtl_module_pickle()
     
-    eng = Layout_Engine()
+    eng = Layout_Engine( use_pickled_module=True )
     eng.place_and_route(module)
     
     
