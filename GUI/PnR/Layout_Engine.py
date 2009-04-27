@@ -1029,7 +1029,6 @@ class Layout_Engine:
         for layer in range(0,num_layers) :
             total_crossovers += self._count_crossovers_on_layer(layer)
 
-        print "Crossovers:", total_crossovers
         return total_crossovers
         
 
@@ -1205,19 +1204,26 @@ if __name__ == '__main__':
     sys.path.append('../../')
     import pprint
     
-    def load_rtl_module_pickle():
+    def load_rtl_module_pickle(module_name):
         """ Load pickled RTL module datastructure. """
         
-        hPICKLE = open('rtl_module.dat','rb')
+        hPICKLE = open('../../tests/module_pickles/' + module_name + '.dat','rb')
         module = pickle.load(hPICKLE)
         pprint.pprint(module)
         
         hPICKLE.close()
         return module
  
-    module = load_rtl_module_pickle()
-    
+    try:
+        module_name = sys.argv[1]
+    except IndexError:
+        module_name = 'top'
+            
+    module = load_rtl_module_pickle(module_name)
     eng = Layout_Engine( use_pickled_module=True )
     eng.place_and_route(module)
     
-    
+    print '\n\n' + ( '=8' * 30 )
+    print '  Module "%s"' % module_name
+    print '  * Crossovers: %d' % eng._count_crossovers()
+    print ( '=8' * 30 )
