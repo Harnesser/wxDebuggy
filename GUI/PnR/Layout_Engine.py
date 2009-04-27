@@ -904,7 +904,7 @@ class Layout_Engine:
         c_layers = max(self.layered_drawing_object_dict.keys())
         c_crossovers = 0
         
-        for layer in range(1, c_layers-1):
+        for layer in range(1, c_layers):
             drawing_objects_in_layer = self.layered_drawing_object_dict[layer]
 
             for i in range(0, len(drawing_objects_in_layer)-1):            
