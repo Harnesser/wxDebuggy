@@ -72,8 +72,10 @@ class ValidCrossingSegments( unittest.TestCase ):
         eng.place_and_route(module)      
         c_crossovers = eng._count_crossovers()
         print 'Final crossovers for %s:%d' % ( module_name, c_crossovers )
+        eng._write_debug_info_text( directory='./results' )
         self.assert_( c_crossovers == c_crossovers_expected )
-               
+
+
 
         
 def suite():

@@ -919,12 +919,15 @@ class Layout_Engine:
 
 
 
-    def _run_egb_pnr_algorithm(self, debug=False):
+    def _run_egb_pnr_algorithm(self, debug=False, change_direction=False):
         """ Optimize the placement of the blocks to reduce overall crossovers.
+        
+        
         """
         
         c_layers = max(self.layered_drawing_object_dict.keys())
-        c_crossovers = 0
+        c_crossovers_prev = 1000000
+        inputs_to_outputs = True
         
         # First, make sure everything is in place
         for layer in self.layered_drawing_object_dict.keys():
@@ -934,68 +937,113 @@ class Layout_Engine:
         if debug: self._print_debug_info()
         
         # Now optimize
-        for layer in range(1, c_layers):
-            drawing_objects_in_layer = self.layered_drawing_object_dict[layer]
+        while True:
+            c_crossovers = 0
+            
+            if inputs_to_outputs:
+                start_ = 1
+                end_   = c_layers
+                inc_   = 1
+            else:
+                start_ = c_layers
+                end_   = 1
+                inc_   = -1
+                
+            if change_direction :
+                inputs_to_outputs = not inputs_to_outputs
+                
+                
+            for layer in xrange( start_, end_, inc_ ):
+                drawing_objects = self.layered_drawing_object_dict[layer]
+                c_crossovers = self._optimize_layer( layer, drawing_objects, c_crossovers )
 
-            for i in range(0, len(drawing_objects_in_layer)-1):            
+            print c_crossovers, c_crossovers_prev
+            if c_crossovers >= c_crossovers_prev :
+                break
+                
+            c_crossovers_prev = c_crossovers  
+            
+        print self._count_crossovers()
+        return c_crossovers
+        
+        
+    def _optimize_layer( self, layer, drawing_objects_in_layer, c_crossovers, debug=True):
+        """ """
+                              
+        for i in xrange(0, len(drawing_objects_in_layer)-1):            
 
-                ( hypernets_before, c_crossovers_before ) = self._build_hypernets(layer)
+            ( hypernets_before, c_crossovers_before ) = self._build_hypernets(layer)
 
-                self._swap_drawing_object(layer, i)
+            self._swap_drawing_object(layer, i)
+            self._update_block_y_positions(layer)
+            
+            ( hypernets_after, c_crossovers_after ) = self._build_hypernets(layer)
+            
+            if c_crossovers_after <= c_crossovers_before:
+                self.layered_connection_dict[layer] = hypernets_after
+                c_crossovers += c_crossovers_after
+
+            else: # return list to original condition by swapping again
+                self._swap_drawing_object(layer, i) 
                 self._update_block_y_positions(layer)
                 
-                ( hypernets_after, c_crossovers_after ) = self._build_hypernets(layer)
+                self.layered_connection_dict[layer] = hypernets_before
+                c_crossovers += c_crossovers_before                    
                 
-                if c_crossovers_after <= c_crossovers_before:
-                    self.layered_connection_dict[layer] = hypernets_after
-                    c_crossovers += c_crossovers_after
-
-                else: # return list to original condition by swapping again
-                    self._swap_drawing_object(layer, i) 
-                    self._update_block_y_positions(layer)
-                    
-                    self.layered_connection_dict[layer] = hypernets_before
-                    c_crossovers += c_crossovers_before                    
-                    
-                if debug:
-                    print "%d[%i], before:%d; after:%d; total:%d" % ( layer, i,
-                        c_crossovers_before, c_crossovers_after, c_crossovers )
-        
-                if debug: self._print_debug_info()
+            if debug:
+                print "%d[%i], before:%d; after:%d; total:%d" % ( layer, i,
+                    c_crossovers_before, c_crossovers_after, c_crossovers )
+    
+            #if debug: self._print_debug_info()
 
         return c_crossovers
 
+
     def _print_debug_info(self):
         """ """
-        indent = '  '
+        print self._get_debug_info_text()
         
-        print ( '-*' * 50 )
-        print "Drawing Objects"
+    def _write_debug_info_text(self, directory='./'):
+        """ """
+        hLOG = open( directory + '/' + self.module.name + '.dat' , 'w')
+        hLOG.write( self._get_debug_info_text() )
+        hLOG.close()       
+        
+    def _get_debug_info_text(self):
+        """ Make a string of the debug info """
+                
+        indent = '  '
+        text_list = []
+        
+        
+        text_list.append( '-*' * 50 )
+        text_list.append( "Drawing Objects" )
         for layer in self.layered_drawing_object_dict.keys():
-            print ( indent * 2 ) + "Layer ", layer
+            text_list.append( ( indent * 2 ) + "Layer %d" % layer )
             for drawing_obj in self.layered_drawing_object_dict[layer]:
-                print ( indent * 3 ) + "Object '%s'" % drawing_obj.label
-                print ( indent * 4 ) + "Position: ", drawing_obj.getPosition()
+                text_list.append( ( indent * 3 ) + "Object '%s'" % drawing_obj.label )
+                text_list.append( ( indent * 4 ) + "Position: %s" % drawing_obj.getPosition() )
                 for gp in drawing_obj.glue_points.keys():
-                    print ( indent * 4 ), gp, drawing_obj.glue_points[gp]
+                    text_list.append( "%s %s %s" % ( ( indent * 4 ),
+                                      gp, drawing_obj.glue_points[gp] ) )
                     
-        print "Hypernets"
+        text_list.append( "Hypernets" )
         for layer in self.layered_connection_dict.keys():
-            print ( indent * 2 ) + "Layer ", layer
+            text_list.append( ( indent * 2 ) + "Layer %d" % layer )
             for drawing_obj in self.layered_connection_dict[layer]:
-                print ( indent * 3 ) + "Hypernet '%s'" % drawing_obj.label
+                text_list.append( ( indent * 3 ) + "Hypernet '%s'" % drawing_obj.label )
                 
                 segment_gen1 = drawing_obj.hypernet_generator()
                 coords = []
                 for segment1_start, segment1_end in segment_gen1:
                     coords.append( "(%s,%s)" % ( segment1_start, segment1_end ) )
-                print ( indent * 4 ) + ', '.join(coords)
-
-                                        
-                                            
+                text_list.append( ( indent * 4 ) + ', '.join(coords) )
+                         
+                         
+        return '\n'.join(text_list)                                                       
+                                
                                          
-                                         
-    def _swap_drawing_object( self, layer, drawing_obj_index, debug=False):
+    def _swap_drawing_object( self, layer, drawing_obj_index, debug=True):
         """ Swap a drawing object with it's neighbour. """
         
         drawing_objects = self.layered_drawing_object_dict[layer] # really an alias...
@@ -1227,3 +1275,5 @@ if __name__ == '__main__':
     print '  Module "%s"' % module_name
     print '  * Crossovers: %d' % eng._count_crossovers()
     print ( '=8' * 30 )
+    eng._write_debug_info_text()
+    
