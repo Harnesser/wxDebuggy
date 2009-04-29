@@ -17,64 +17,88 @@ else:
 import vv
 import Layout_Engine as mut
 
-class ValidCrossingSegments( unittest.TestCase ):
 
+class ValidCrossingSegments( unittest.TestCase ):
+        
+     
     #
     # Test Methods
     #
     def testCrossoverCount_Spider(self):
-        """ Crossover Check: 'spider' """        
-        self._coreCrossoverCount( 'spider', 0 )
+        """ Crossover Check: 'spider' """   
+        layout = self._get_layout('spider')
+        self.assert_( layout._count_crossovers() == 0 )
         
-    def testCrossoverCount_Spider2(self):
-        """ Crossover Check: 'spider_2' """        
-        self._coreCrossoverCount( 'spider_2', 0 )
+    def testLaterCount_Spider(self):
+        """ Layer Count Check: 'spider' """
+        layout = self._get_layout('spider')
+        self.assert_( layout.get_number_of_layers() == 7 )
         
-    def testCrossoverCount_Spider1(self):
-        """ Crossover Check: 'snake_1' """        
-        self._coreCrossoverCount( 'snake_1', 0 )
+    def testBlockCounts_Spider(self):
+        """ Block Count Check: 'spider' """
+        layout = self._get_layout('spider')
+        self.assert_( layout.get_blocks_per_layer(1) == 4 )
+        self.assert_( layout.get_blocks_per_layer(2) == 4 )
+        self.assert_( layout.get_blocks_per_layer(3) == 2 )
+        self.assert_( layout.get_blocks_per_layer(4) == 1 )
+        self.assert_( layout.get_blocks_per_layer(5) == 2 )
+        self.assert_( layout.get_blocks_per_layer(6) == 4 )
+        self.assert_( layout.get_blocks_per_layer(7) == 4 )
+        
+    def testHypernetCounts_Spider(self):
+        """ Hypernet Count Check: 'spider' """
+        layout = self._get_layout('spider')
+        self.assert_( layout.get_hypernets_per_layer(1) == 4 )
+        self.assert_( layout.get_hypernets_per_layer(2) == 4 )        
+        self.assert_( layout.get_hypernets_per_layer(3) == 2 )        
+        self.assert_( layout.get_hypernets_per_layer(4) == 2 )        
+        self.assert_( layout.get_hypernets_per_layer(5) == 4 )
+        self.assert_( layout.get_hypernets_per_layer(6) == 4 )
 
-    def testCrossoverCount_Gates1(self):
-        """ Crossover Check: 'gates1' """        
-        self._coreCrossoverCount( 'gates1', 0 )
+                
+#    def testCrossoverCount_Spider2(self):
+#        """ Crossover Check: 'spider_2' """        
+#        self._coreCrossoverCount( 'spider_2', 0 )
         
-    def testCrossoverCount_Gates2(self):
-        """ Crossover Check: 'gates2' """        
-        self._coreCrossoverCount( 'gates2', 0 )
+#    def testCrossoverCount_Spider1(self):
+#        """ Crossover Check: 'snake_1' """        
+#        self._coreCrossoverCount( 'snake_1', 0 )
+
+#    def testCrossoverCount_Gates1(self):
+#        """ Crossover Check: 'gates1' """        
+#        self._coreCrossoverCount( 'gates1', 0 )
         
-    def testCrossoverCount_Gates3(self):
-        """ Crossover Check: 'gates3' """        
-        self._coreCrossoverCount( 'gates3', 0 )
+#    def testCrossoverCount_Gates2(self):
+#        """ Crossover Check: 'gates2' """        
+#        self._coreCrossoverCount( 'gates2', 0 )
         
-    def testCrossoverCount_Top(self):
-        """ Crossover Check: 'top' """        
-        self._coreCrossoverCount( 'top', 0 )
+#    def testCrossoverCount_Gates3(self):
+#        """ Crossover Check: 'gates3' """        
+#        self._coreCrossoverCount( 'gates3', 0 )
+        
+#    def testCrossoverCount_Top(self):
+#        """ Crossover Check: 'top' """        
+#        self._coreCrossoverCount( 'top', 0 )
                       
     #
     # Helper Methods
     #
     def _load_rtl_module_pickle( self, module_name ):
         """ Load pickled RTL module datastructure. """
-        
         hPICKLE = open('../../module_pickles/' + module_name +'.dat','rb')
         module = pickle.load(hPICKLE)
         pprint.pprint(module)
         
         hPICKLE.close()
         return module
- 
 
-    def _coreCrossoverCount(self, module_name, c_crossovers_expected):
-        """ """
+    def _get_layout(self, module_name ):
+        """ Load in the module and run the layout. """
         module = self._load_rtl_module_pickle(module_name)
+        layout = mut.Layout_Engine( use_pickled_module=True )
+        layout.place_and_route(module)        
     
-        eng = mut.Layout_Engine( use_pickled_module=True )
-        eng.place_and_route(module)      
-        c_crossovers = eng._count_crossovers()
-        print 'Final crossovers for %s:%d' % ( module_name, c_crossovers )
-        eng._write_debug_info_text( directory='./results' )
-        self.assert_( c_crossovers == c_crossovers_expected )
-
+        return layout
 
 
         

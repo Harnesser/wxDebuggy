@@ -919,7 +919,7 @@ class Layout_Engine:
 
 
 
-    def _run_egb_pnr_algorithm(self, debug=False, change_direction=False):
+    def _run_egb_pnr_algorithm(self, change_direction=False, debug=False ):
         """ Optimize the placement of the blocks to reduce overall crossovers.
         
         
@@ -944,10 +944,12 @@ class Layout_Engine:
                 start_ = 1
                 end_   = c_layers
                 inc_   = 1
+                layer_ = 0
             else:
                 start_ = c_layers
                 end_   = 1
                 inc_   = -1
+                layer_ = -1
                 
             if change_direction :
                 inputs_to_outputs = not inputs_to_outputs
@@ -955,10 +957,13 @@ class Layout_Engine:
                 
             for layer in xrange( start_, end_, inc_ ):
                 drawing_objects = self.layered_drawing_object_dict[layer]
-                c_crossovers = self._optimize_layer( layer, drawing_objects, c_crossovers )
+                c_crossovers = self._optimize_layer( layer,
+                                                     layer + layer_,
+                                                     drawing_objects,
+                                                     c_crossovers )
 
-            print c_crossovers, c_crossovers_prev
-            if c_crossovers >= c_crossovers_prev :
+            if debug: print c_crossovers, c_crossovers_prev
+            if inputs_to_outputs and ( c_crossovers >= c_crossovers_prev ) :
                 break
                 
             c_crossovers_prev = c_crossovers  
@@ -967,17 +972,19 @@ class Layout_Engine:
         return c_crossovers
         
         
-    def _optimize_layer( self, layer, drawing_objects_in_layer, c_crossovers, debug=True):
+    def _optimize_layer( self, layer, hypernet_layer, 
+                               drawing_objects_in_layer, c_crossovers, 
+                               debug=False):
         """ """
                               
         for i in xrange(0, len(drawing_objects_in_layer)-1):            
 
-            ( hypernets_before, c_crossovers_before ) = self._build_hypernets(layer)
+            ( hypernets_before, c_crossovers_before ) = self._build_hypernets(hypernet_layer)
 
             self._swap_drawing_object(layer, i)
             self._update_block_y_positions(layer)
             
-            ( hypernets_after, c_crossovers_after ) = self._build_hypernets(layer)
+            ( hypernets_after, c_crossovers_after ) = self._build_hypernets(hypernet_layer)
             
             if c_crossovers_after <= c_crossovers_before:
                 self.layered_connection_dict[layer] = hypernets_after
@@ -987,7 +994,7 @@ class Layout_Engine:
                 self._swap_drawing_object(layer, i) 
                 self._update_block_y_positions(layer)
                 
-                self.layered_connection_dict[layer] = hypernets_before
+                self.layered_connection_dict[hypernet_layer] = hypernets_before
                 c_crossovers += c_crossovers_before                    
                 
             if debug:
@@ -1043,7 +1050,7 @@ class Layout_Engine:
         return '\n'.join(text_list)                                                       
                                 
                                          
-    def _swap_drawing_object( self, layer, drawing_obj_index, debug=True):
+    def _swap_drawing_object( self, layer, drawing_obj_index, debug=False):
         """ Swap a drawing object with it's neighbour. """
         
         drawing_objects = self.layered_drawing_object_dict[layer] # really an alias...
@@ -1219,9 +1226,9 @@ class Layout_Engine:
                     print "    ", drawing_obj.label
                     
         
-
-
-
+    ###
+    ### Methods for debug
+    ###
     def _show_dictionary(self, title, dictionary, debug=True ):
         """ Prettyprint a dictionary """
 
@@ -1244,7 +1251,22 @@ class Layout_Engine:
         hPICKLE.close()
         print 'Pickling: "%s"' % filename
         
-               
+    ###
+    ### Methods for Unit Tests
+    ###
+    def get_number_of_layers(self):
+        """ Return the number of layers in the layout. """
+        return( len( self.layered_drawing_object_dict.keys() ) )
+        
+    def get_blocks_per_layer(self,layer):
+        """ Return a list of blocks in the given layer """
+        return len( self.layered_drawing_object_dict[layer] )
+ 
+                    
+    def get_hypernets_per_layer(self, layer):
+        """ Return the nets in the given layer. """
+        return len( self.layered_connection_dict[layer] )
+        
         
 if __name__ == '__main__':
 
