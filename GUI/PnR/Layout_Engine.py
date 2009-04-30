@@ -2,7 +2,7 @@
 
 """ Building a graph from a circuit description.
 
-Edges on a graph are specified as (u,v) where u and v are vertices in the graph.
+Edges on a graph are specified as (u,v) where u and v are verticesbul in the graph.
 In an electrical circuit, instantiations are the vertices and the wires are the
 edges.  Edges in a graph for an electrical circuit are directed, as there is a 
 flow from output to input ports.  A 'netlist' lists the connections of ports to
@@ -44,9 +44,8 @@ class Layout_Engine:
         #self.routing_engine = PnR.Routing_Engine()
         #self.ordering_engine = PnR.Ordering_Engine()
 
-        self.layered_connection_dict = {}
+        self.layered_connection_dict = {} # key = layer, value = list of hypernet drawing objects
         self.layered_drawing_object_dict = {} # key = layer, value = list of objects
-        self.layered_hyperedge_dict = {}      # key = layer, value = list of hypernet drawing objects
         
 	    # Hypernet track dictionary
         self.track_dict = {} # key = layer, values = tracks used. 	
@@ -74,10 +73,10 @@ class Layout_Engine:
 
         # Update the x-position of the blocks depending on what layer they've
         # been placed on.
-                
+        self.glue_points = {}  
         # Layered dictionaries
-        self._build_layered_connection_dict()
         self._build_layered_drawing_object_dict()
+        self._build_layered_connection_dict()
         self._update_block_x_positions()
         
         # Route
@@ -230,9 +229,6 @@ class Layout_Engine:
             for connection in self.connection_list:
                 print "   ",connection 
 
-
-            
-            
 
     def _get_graph_dictionary(self, connection_list, debug=False):
         """Build a graph from the circuit connection list.
@@ -551,17 +547,18 @@ class Layout_Engine:
                     edges_for_removal.append( (u,v) )
                 
         # Delete edges - can't delete items from lists when iterating over them
+        uid = 0
         for u,v in edges_for_removal:
             start_layer = self.layer_dict.get(v,0) 
             end_layer   = self.layer_dict.get(u,0)        
 
             start_vertice = u
             for i in range( min(start_layer,end_layer) + 1, max(start_layer,end_layer) ):
-                new_vertice_name = '_' + u + '__to__' + v + '_' + str(i)
+                new_vertice_name = '_%s__to__%s_%d' % ( u, v, i ) 
                 graph_layers[i].append(new_vertice_name)
                 self.graph_edges.setdefault(start_vertice,set()).add(new_vertice_name)
                 self.layer_dict[new_vertice_name] = i
-
+                uid += 1
             self.graph_edges.setdefault(new_vertice_name,set()).add(v)
                     
 
@@ -676,12 +673,9 @@ class Layout_Engine:
         self._assign_hypernet_tracks( nets, debug )
                    
               
-    def _build_hypernets(self, layer, debug=False):
+    def _update_hypernets(self, layer, debug=True):
         """ """
-        hypernet_dict = {}
-        c_crossovers = 0
-        
-        self._determine_glue_points()
+       
         #  Keep track on which tracks we're routing the horizontal
         # sections of the nets on.  Forcing each horizontal section
         # to be on a unique track will prevent them from running on 
@@ -691,68 +685,60 @@ class Layout_Engine:
         # between the inputs and the first layer of modules.  The 
         # value is the next available track.
         track_dictionary = {}
-
-        # hypernet_list = []
-        net_id = 0
         
-        for start_conn, end_conn in self.connection_list:
+        if debug : print "Updating hypernets...."
+        for hypernet in self.layered_connection_dict[layer]:
 
             # Track info for horizontal sections
-            i_layer = self._get_layer( start_conn )
-            track = track_dictionary.setdefault( i_layer, 0 )
-
-            netname = 'hypernet_'+str(net_id)
+            track = track_dictionary.setdefault( layer, 0 )
 
             # Get start point
-            start_point = self.glue_points[start_conn]
-            end_point   = self.glue_points[end_conn]
-            
-            # Prepare drawing object
-            drawobj = Drawing_Object(name=netname,
-                                     parent=self,
-                                     label=netname,
-                                     obj_type='hypernet')            
-         
-            drawobj.layer = i_layer       
-            drawobj.track = track
+            start_point = self.glue_points[hypernet.start_conn]
+            end_point   = self.glue_points[hypernet.end_conn]
 
             # Midway point - this is the x co-ord for the horizontal section
-            drawobj.horizontal_origin = ( ( ( end_point.x - start_point.x ) / 2 ) 
+            hypernet.horizontal_origin = ( ( ( end_point.x - start_point.x ) / 2 ) 
                                            + start_point.x )
 
-            drawobj.hypernet_tree = [ start_point.x, start_point.y, 
+            hypernet.hypernet_tree = [ start_point.x, start_point.y, 
                                       0,  # horizontal section position
                                       end_point.y, end_point.x ]
-
-            drawobj.update_horizontal_position()
-        
-           
+                                      
+            hypernet.track = track
+            hypernet.update_horizontal_position()
+             
             # ...
-            hypernet_dict.setdefault(i_layer, []).append(drawobj)  
-            net_id += 1
-            track_dictionary[i_layer] += 1
+            track_dictionary[layer] += 1
 
             if debug:
-                print "Hypernet:", drawobj.label
-                print "   FROM:", start_conn, " TO:", end_conn
+                print "Hypernet:", hypernet.label
+                print "   FROM:", hypernet.start_conn, " TO:", hypernet.end_conn
                 print "   X:", start_point.x, end_point.x
-                print "   ", drawobj.hypernet_tree
-                print "   Layer:", i_layer
+                print "   ", hypernet.hypernet_tree
+                print "   Layer:", layer
 
-
-        hypernets = hypernet_dict[layer]
-        self._optimize_hypernet_tracks(hypernets)
-        c_crossovers = self._count_hypernet_crossovers(hypernets)
-        return ( hypernets, c_crossovers )
+        
+    def _get_new_crossover_count(self, layer ):
+        """ Crossover count
+        Recalculates the hypernet start and stop co-ords.
+        """
+        
+        self._update_block_y_positions(layer)
+        self._determine_glue_points()
+        self._update_hypernets(layer)
+        self._optimize_hypernet_tracks( self.layered_connection_dict[layer] )
+        c_crossovers = self._count_crossovers_on_layer( layer )
+        
+        return c_crossovers        
         
         
-        
-    def _add_hypernets_to_drawing_object_dict( self, debug=False ):
+    def _build_layered_connection_dict( self, debug=False ):
         """ First cut routing of the nets.
         
         This works layer by layer.  The space between the layers is
         divided into tracks and only one net section may be on a track.
         """
+        self.layered_connection_dict = {}
         
         self._determine_glue_points()
         
@@ -768,7 +754,7 @@ class Layout_Engine:
 
         # hypernet_list = []
         net_id = 0
-        
+            
         for start_conn, end_conn in self.connection_list:
 
             # Track info for horizontal sections
@@ -789,7 +775,9 @@ class Layout_Engine:
          
             drawobj.layer = layer       
             drawobj.track = track
-
+            drawobj.start_conn = start_conn
+            drawobj.end_conn = end_conn
+            
             # Midway point - this is the x co-ord for the horizontal section
             drawobj.horizontal_origin = ( ( ( end_point.x - start_point.x ) / 2 ) 
                                            + start_point.x )
@@ -802,7 +790,7 @@ class Layout_Engine:
         
            
             # ...
-            self.drawing_object_dict[netname] = drawobj  
+            self.layered_connection_dict.setdefault( layer, [] ).append( drawobj ) 
             net_id += 1
             track_dictionary[layer] += 1
 
@@ -926,6 +914,7 @@ class Layout_Engine:
         """
         
         c_layers = max(self.layered_drawing_object_dict.keys())
+        print self.layered_drawing_object_dict.keys()
         c_crossovers_prev = 1000000
         inputs_to_outputs = True
         
@@ -942,11 +931,11 @@ class Layout_Engine:
             
             if inputs_to_outputs:
                 start_ = 1
-                end_   = c_layers
+                end_   = c_layers + 1
                 inc_   = 1
                 layer_ = 0
             else:
-                start_ = c_layers
+                start_ = c_layers + 1
                 end_   = 1
                 inc_   = -1
                 layer_ = -1
@@ -956,9 +945,15 @@ class Layout_Engine:
                 
                 
             for layer in xrange( start_, end_, inc_ ):
+                print "Optimising Layer %d...", layer
                 drawing_objects = self.layered_drawing_object_dict[layer]
+                
+                hypernet_layer = layer
+                if hypernet_layer == c_layers :
+                    hypernet_layer = layer - 1
+                    
                 c_crossovers = self._optimize_layer( layer,
-                                                     layer + layer_,
+                                                     hypernet_layer,
                                                      drawing_objects,
                                                      c_crossovers )
 
@@ -979,22 +974,19 @@ class Layout_Engine:
                               
         for i in xrange(0, len(drawing_objects_in_layer)-1):            
 
-            ( hypernets_before, c_crossovers_before ) = self._build_hypernets(hypernet_layer)
+            c_crossovers_before = self._get_new_crossover_count( hypernet_layer )
 
             self._swap_drawing_object(layer, i)
-            self._update_block_y_positions(layer)
             
-            ( hypernets_after, c_crossovers_after ) = self._build_hypernets(hypernet_layer)
+            c_crossovers_after = self._get_new_crossover_count( hypernet_layer )
             
             if c_crossovers_after <= c_crossovers_before:
-                self.layered_connection_dict[layer] = hypernets_after
                 c_crossovers += c_crossovers_after
 
             else: # return list to original condition by swapping again
                 self._swap_drawing_object(layer, i) 
                 self._update_block_y_positions(layer)
-                
-                self.layered_connection_dict[hypernet_layer] = hypernets_before
+                c_crossovers_before = self._get_new_crossover_count( hypernet_layer )
                 c_crossovers += c_crossovers_before                    
                 
             if debug:
@@ -1178,26 +1170,6 @@ class Layout_Engine:
         return False
 
 
-    def _build_layered_connection_dict(self, debug=False):
-        """ Layered Connection Dictionary.
-
-        key = layer
-        value = ordered list of connections, ordered by track.
-        """
-
-        self.layered_connection_dict = {}
-        for drawobj in self.drawing_object_dict.values():
-            
-            if not drawobj.is_hypernet():
-                continue
-
-            self.layered_connection_dict.setdefault(drawobj.layer, []).append(drawobj)
-
-        self._show_dictionary( "Layered Connection Dictionary",
-                               self.layered_connection_dict,
-                               debug )
-
-
     def _build_layered_drawing_object_dict(self, debug=False):
         """ Layered Drawing Object Dictionary.
 
@@ -1261,12 +1233,12 @@ class Layout_Engine:
     def get_blocks_per_layer(self,layer):
         """ Return a list of blocks in the given layer """
         return len( self.layered_drawing_object_dict[layer] )
- 
                     
     def get_hypernets_per_layer(self, layer):
         """ Return the nets in the given layer. """
         return len( self.layered_connection_dict[layer] )
         
+
         
 if __name__ == '__main__':
 
@@ -1293,9 +1265,11 @@ if __name__ == '__main__':
     eng = Layout_Engine( use_pickled_module=True )
     eng.place_and_route(module)
     
+    eng._write_debug_info_text()    
+    print eng._get_debug_info_text()
     print '\n\n' + ( '=8' * 30 )
     print '  Module "%s"' % module_name
     print '  * Crossovers: %d' % eng._count_crossovers()
     print ( '=8' * 30 )
-    eng._write_debug_info_text()
+
     
