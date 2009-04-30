@@ -80,8 +80,9 @@ class Layout_Engine:
         self._update_block_x_positions()
         
         # Route
-        self._run_egb_pnr_algorithm() 
-        
+        #self._run_egb_pnr_algorithm() 
+        self._run_egb_pnr_algorithm( change_direction=True )
+         
         # Drawing objects
         drawing_objects = {}
         
@@ -673,7 +674,7 @@ class Layout_Engine:
         self._assign_hypernet_tracks( nets, debug )
                    
               
-    def _update_hypernets(self, layer, debug=True):
+    def _update_hypernets(self, layer, debug=False):
         """ """
        
         #  Keep track on which tracks we're routing the horizontal
@@ -917,7 +918,10 @@ class Layout_Engine:
         print self.layered_drawing_object_dict.keys()
         c_crossovers_prev = 1000000
         inputs_to_outputs = True
-        
+
+        MAX_TRIES = 30
+        c_tries = 0
+                
         # First, make sure everything is in place
         for layer in self.layered_drawing_object_dict.keys():
             self._update_block_x_positions()
@@ -925,6 +929,12 @@ class Layout_Engine:
             
         if debug: self._print_debug_info()
         
+                        
+        if change_direction :
+            inputs_to_outputs = False
+        else:
+            inputs_to_outputs = True
+                
         # Now optimize
         while True:
             c_crossovers = 0
@@ -935,22 +945,26 @@ class Layout_Engine:
                 inc_   = 1
                 layer_ = 0
             else:
-                start_ = c_layers + 1
-                end_   = 1
+                start_ = c_layers
+                end_   = 0
                 inc_   = -1
                 layer_ = -1
-                
-            if change_direction :
-                inputs_to_outputs = not inputs_to_outputs
+
                 
                 
             for layer in xrange( start_, end_, inc_ ):
                 print "Optimising Layer %d...", layer
                 drawing_objects = self.layered_drawing_object_dict[layer]
                 
-                hypernet_layer = layer
-                if hypernet_layer == c_layers :
+                if inputs_to_outputs:
+                    hypernet_layer = layer
+                    if hypernet_layer == c_layers :
+                        hypernet_layer = layer - 1
+                else :
                     hypernet_layer = layer - 1
+                    if hypernet_layer == 0 :
+                        hypernet_layer = 1
+                    
                     
                 c_crossovers = self._optimize_layer( layer,
                                                      hypernet_layer,
@@ -963,16 +977,28 @@ class Layout_Engine:
                 
             c_crossovers_prev = c_crossovers  
             
+            c_tries += 1
+            if c_tries > MAX_TRIES :
+                break
+            
         print self._count_crossovers()
         return c_crossovers
         
         
     def _optimize_layer( self, layer, hypernet_layer, 
                                drawing_objects_in_layer, c_crossovers, 
-                               debug=False):
+                               debug=True):
         """ """
                               
-        for i in xrange(0, len(drawing_objects_in_layer)-1):            
+        c_objects = len(drawing_objects_in_layer)  
+        
+        # Bail out early if there's nothing to optimize
+        c_crossovers_now = self._get_new_crossover_count( hypernet_layer ) 
+        if ( c_objects <= 1 ) or ( c_crossovers_now == 0 ):
+            return c_crossovers_now
+                       
+        # Swap each block with its neighbour in turn to see if it reduces crossovers
+        for i in xrange( c_objects-1 ):            
 
             c_crossovers_before = self._get_new_crossover_count( hypernet_layer )
 
@@ -990,7 +1016,7 @@ class Layout_Engine:
                 c_crossovers += c_crossovers_before                    
                 
             if debug:
-                print "%d[%i], before:%d; after:%d; total:%d" % ( layer, i,
+                print "Layer %d, object %d - before:%d; after:%d; total:%d" % ( layer, i,
                     c_crossovers_before, c_crossovers_after, c_crossovers )
     
             #if debug: self._print_debug_info()
@@ -1046,6 +1072,9 @@ class Layout_Engine:
         """ Swap a drawing object with it's neighbour. """
         
         drawing_objects = self.layered_drawing_object_dict[layer] # really an alias...
+        if len(drawing_objects) <= 1:
+            return # no point in doing this...
+            
         tmp_drawing_obj_1 = drawing_objects[drawing_obj_index]
         
         if debug:
