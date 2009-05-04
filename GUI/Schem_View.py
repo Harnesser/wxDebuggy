@@ -1,6 +1,6 @@
 import wx
 import PnR
-
+import time
 #
 # Global Constants
 #
@@ -42,6 +42,12 @@ class Schem_View( wx.ScrolledWindow ):
         # Drawing objects
         self.drawing_object_dict = {}
 
+        # Timer for algorithm visualisation
+        self.gen = None
+        self.animate = True
+        self.timer = wx.Timer(self)
+        self.timer.Start(500) # 1000 milliseconds = 1 second
+        self.Bind(wx.EVT_TIMER, self.OnTimer)
 
     def set_treeview( self, treeview ):
         """ A pointer to the treeview hierarchy object.
@@ -49,8 +55,7 @@ class Schem_View( wx.ScrolledWindow ):
         So we can talk to it, and tell it that we've changed hierarchy.
         """
         self.treeview = treeview
-        
-        
+               
 
     def onDoubleClickEvent( self, event ):
         """ See if we've hit a module.  Step into it if we can"""
@@ -77,18 +82,22 @@ class Schem_View( wx.ScrolledWindow ):
         
         
     def onPaint( self, event ):
-        self.draw_new_schematic()
+        self.draw_schematic()
 
 
     def draw_new_schematic(self):
         """ """
         self._get_current_module()
-        
-        self.drawing_object_dict = \
-           self.layout_engine.place_and_route(self.current_module)
-        
+        self.gen = self.layout_engine.place_and_route(self.current_module,
+                                                      animate = self.animate)
+        self.drawing_object_dict = self.gen.next()
         self.draw_schematic()
 
+    def OnTimer(self,event):
+        """ """
+        if self.animate:
+             self.drawing_object_dict = self.gen.next()
+             self.Refresh()
         
     def draw_schematic( self ):
         """ Draw the schematic

@@ -52,7 +52,7 @@ class Layout_Engine:
     
 
         
-    def place_and_route(self, module, debug=False ):
+    def place_and_route(self, module, animate=False, debug=False ):
         """ Place and Route a Module."""
         
         self.module = module # should I type-check?
@@ -80,9 +80,18 @@ class Layout_Engine:
         self._update_block_x_positions()
         
         # Route
-        #self._run_egb_pnr_algorithm() 
-        self._run_egb_pnr_algorithm( change_direction=True )
+        if animate:
+            print "Animating"
+            for c_crossovers in self._run_egb_pnr_generator( change_direction = False ):
+                print "pnr yielding..."
+                yield self._flatten_dicts()
+        else :       
+            self._run_egb_pnr_algorithm( change_direction=True )
+            yield self._flatten_dicts()
          
+    def _flatten_dicts(self,debug=False):
+        """ """
+
         # Drawing objects
         drawing_objects = {}
         
@@ -986,6 +995,8 @@ class Layout_Engine:
             c_tries += 1
             if c_tries > MAX_TRIES :
                 break
+                
+            yield c_crossovers
             
         print self._count_crossovers()
         yield c_crossovers
@@ -1298,7 +1309,8 @@ if __name__ == '__main__':
             
     module = load_rtl_module_pickle(module_name)
     eng = Layout_Engine( use_pickled_module=True )
-    eng.place_and_route(module)
+    for stuff in eng.place_and_route(module):
+        pass
     
     eng._write_debug_info_text()    
     print eng._get_debug_info_text()
