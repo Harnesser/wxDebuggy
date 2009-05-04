@@ -907,8 +907,14 @@ class Layout_Engine:
         self._optimize_hypernet_tracks( self.layered_connection_dict[layer], debug )
 
 
-
     def _run_egb_pnr_algorithm(self, change_direction=False, debug=False ):
+        """ Call the PnR generator until it's done. """
+        
+        for c_crossovers in self._run_egb_pnr_generator( change_direction, debug ):
+            pass
+            
+            
+    def _run_egb_pnr_generator(self, change_direction=False, debug=False ):
         """ Optimize the placement of the blocks to reduce overall crossovers.
         
         
@@ -982,7 +988,7 @@ class Layout_Engine:
                 break
             
         print self._count_crossovers()
-        return c_crossovers
+        yield c_crossovers
         
         
     def _optimize_layer( self, layer, hypernet_layer, 
