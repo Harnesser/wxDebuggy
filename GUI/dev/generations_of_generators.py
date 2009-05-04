@@ -27,8 +27,15 @@ def gen2_list():
         yield mylist
                     
 if __name__ == '__main__':
+
+    gen = gen2()
+    print gen.next()
+    print gen.next() 
+    
     for num in gen2():
         print num
         
     for mylist in gen2_list():
         print mylist
+        
+
