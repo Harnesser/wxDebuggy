@@ -46,7 +46,7 @@ class Schem_View( wx.ScrolledWindow ):
         self.gen = None
         self.animate = True
         self.timer = wx.Timer(self)
-        self.timer.Start(500) # 1000 milliseconds = 1 second
+        self.timer.Start(2000) # 1000 milliseconds = 1 second
         self.Bind(wx.EVT_TIMER, self.OnTimer)
 
     def set_treeview( self, treeview ):
@@ -96,8 +96,12 @@ class Schem_View( wx.ScrolledWindow ):
     def OnTimer(self,event):
         """ """
         if self.animate:
-             self.drawing_object_dict = self.gen.next()
-             self.Refresh()
+            try:  
+                self.drawing_object_dict = self.gen.next()
+            except StopIteration:
+                pass
+                
+            self.Refresh()
         
     def draw_schematic( self ):
         """ Draw the schematic
