@@ -19,7 +19,6 @@ module fanin_8to1
   two_in_one_out clapton ( .out(four),     .in1(seven), .in2(pi) );
   two_in_one_out young   ( .out(zero),     .in1(forty), .in2(eleventy) );
   
-  two_in_one_out marty   ( .out(y), .in1(four), .in2(zero) );
-
+  two_in_one_out marty   ( .out(y), .in1(zero), .in2(four) );
 endmodule
 
