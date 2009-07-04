@@ -22,6 +22,7 @@ from Drawing_Object import *
 import pickle
 import graph_builder
 import lib_pnr_debug as libdb
+import pprint
 
 #import Routing_Engine
 #import Ordering_Engine
@@ -148,9 +149,12 @@ class Layout_Engine:
         y_pos = 10
         drawing_objs = self.layered_drawing_object_dict[layer]
         for drawing_obj in drawing_objs:
+            if debug: print "--- ", drawing_obj.label
             position = drawing_obj.getPosition()
+            if debug: print "---- ", position
             position.y = y_pos
             drawing_obj.setPosition( position )
+            if debug: print "---- ", drawing_obj.getPosition()
             y_pos += 50
             
         
@@ -285,7 +289,7 @@ class Layout_Engine:
 
 
 
-    def _determine_glue_points(self, debug=False ):
+    def _determine_glue_points(self, debug=False):
         """ Find glue Points for pins on instantiations."""
         
         self.glue_points = {}
@@ -375,17 +379,18 @@ class Layout_Engine:
                 print "   Layer:", layer
 
         
-    def _get_new_crossover_count(self, layer ):
+    def _get_crossover_count(self, layer, debug=False ):
         """ Crossover count
         Recalculates the hypernet start and stop co-ords.
         """
-        
-        self._update_block_y_positions(layer)
+  
         self._determine_glue_points()
         self._update_hypernets(layer)
         self._optimize_hypernet_tracks( self.layered_connection_dict[layer] )
         c_crossovers = self._count_crossovers_on_layer( layer )
         
+        if debug:
+            print "New crossover count for layer", layer, " : ", c_crossovers
         return c_crossovers        
         
         
@@ -562,7 +567,7 @@ class Layout_Engine:
         self._optimize_hypernet_tracks( self.layered_connection_dict[layer], debug )
 
 
-    def _run_egb_pnr_algorithm(self, change_direction=False, debug=False ):
+    def _run_egb_pnr_algorithm(self, change_direction=False, debug=False):
         """ Call the PnR generator until it's done. """
         
         for c_crossovers in self._run_egb_pnr_generator( change_direction, debug ):
@@ -572,7 +577,15 @@ class Layout_Engine:
     def _run_egb_pnr_generator(self, change_direction=False, debug=False ):
         """ Optimize the placement of the blocks to reduce overall crossovers.
         
+                       =-----=     =-----=     =-----= 
+              A  o-----+     +-----+     +-----+     +------o  Y
+                       =-----=     =-----=     =-----=
+                     
+        Block index:
+                [1]      [2]         [3]         [4]       [5]
         
+        Hypernet index
+                    [1]        [2]         [3]         [4]         
         """
         
         c_layers = max(self.layered_drawing_object_dict.keys())
@@ -588,86 +601,96 @@ class Layout_Engine:
             self._update_block_x_positions()
             self._update_block_y_positions(layer)
             
-        if debug: self._print_debug_info()
-        
+        if debug: 
+            self._print_debug_info()
+            pprint.pprint( self.layered_drawing_object_dict )
+
                         
         if change_direction :
             inputs_to_outputs = False
         else:
             inputs_to_outputs = True
                 
-        # Now optimize
+        # Now optimize - layers start from [1], not [0]
         while True:
             c_crossovers = 0
             
             if inputs_to_outputs:
-                start_ = 1
+                start_ = 2
                 end_   = c_layers + 1
                 inc_   = 1
-                layer_ = 0
+
             else:
                 start_ = c_layers
                 end_   = 0
                 inc_   = -1
-                layer_ = -1
 
-                
-                
+            # Loop thru all layers except the input pin layer and optimize.
             for layer in xrange( start_, end_, inc_ ):
-                print "Optimising Layer %d...", layer
+                #print "Optimising Layer ", layer
                 drawing_objects = self.layered_drawing_object_dict[layer]
-                
+                if drawing_objects == None:
+                    continue
+                    
                 if inputs_to_outputs:
-                    hypernet_layer = layer
-                    if hypernet_layer == c_layers :
-                        hypernet_layer = layer - 1
+                    hypernet_layer = layer - 1
                 else :
                     hypernet_layer = layer - 1
                     if hypernet_layer == 0 :
                         hypernet_layer = 1
-                    
-                    
+                                       
                 c_crossovers = self._optimize_layer( layer,
                                                      hypernet_layer,
                                                      drawing_objects,
                                                      c_crossovers )
 
+            # Now do input pin layer
+            #print "Optimising Layer", layer
+            c_crossovers = self._optimize_layer( 1,
+                                                 1,
+                                                 self.layered_drawing_object_dict[1],
+                                                 c_crossovers )
+                                                 
             if debug: print c_crossovers, c_crossovers_prev
-            if inputs_to_outputs and ( c_crossovers >= c_crossovers_prev ) :
-                break
+#            if inputs_to_outputs and ( c_crossovers >= c_crossovers_prev ) :
+#                print "Crossovers increasing. Aborting..."
+#                break
                 
             c_crossovers_prev = c_crossovers  
             
             c_tries += 1
             if c_tries > MAX_TRIES :
+                print "MAX_TRIES limit. Aborting..."
                 break
-                
+            #print "Crossovers:", self._count_crossovers()
             yield c_crossovers
             
-        print self._count_crossovers()
+        print "Crossovers:", self._count_crossovers()
         yield c_crossovers
         
         
     def _optimize_layer( self, layer, hypernet_layer, 
                                drawing_objects_in_layer, c_crossovers, 
-                               debug=True):
+                               debug=False):
         """ """
                               
         c_objects = len(drawing_objects_in_layer)  
         
         # Bail out early if there's nothing to optimize
-        c_crossovers_now = self._get_new_crossover_count( hypernet_layer ) 
+        c_crossovers_now = self._get_crossover_count( hypernet_layer ) 
         if ( c_objects <= 1 ) or ( c_crossovers_now == 0 ):
             return c_crossovers_now
                        
         # Swap each block with its neighbour in turn to see if it reduces crossovers
-        for i in xrange( c_objects-1 ):            
+        for i in xrange( c_objects-1 ): # -1 because ...           
 
-            c_crossovers_before = self._get_new_crossover_count( hypernet_layer )
-
-            self._swap_drawing_object(layer, i)
+            c_crossovers_before = self._get_crossover_count( hypernet_layer )
+            c_crossovers -= c_crossovers_before
             
-            c_crossovers_after = self._get_new_crossover_count( hypernet_layer )
+            self._swap_drawing_object(layer, i) # ... this swaps i with i+1, 
+            self._update_block_y_positions(layer)
+            
+            c_crossovers_after = self._get_crossover_count( hypernet_layer )
             
             if c_crossovers_after <= c_crossovers_before:
                 c_crossovers += c_crossovers_after
@@ -675,7 +698,7 @@ class Layout_Engine:
             else: # return list to original condition by swapping again
                 self._swap_drawing_object(layer, i) 
                 self._update_block_y_positions(layer)
-                c_crossovers_before = self._get_new_crossover_count( hypernet_layer )
+                c_crossovers_before = self._get_crossover_count( hypernet_layer )
                 c_crossovers += c_crossovers_before                    
                 
             if debug:
