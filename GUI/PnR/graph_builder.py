@@ -3,7 +3,7 @@
 
 Take a circuit module and build its Layered Directed Acyclic Graph.
 """
-import lib_pnr_debug as libdb
+import lib_pnr_debug as libdb # debug prints only...
 
 class Graph_Builder:
     """ """

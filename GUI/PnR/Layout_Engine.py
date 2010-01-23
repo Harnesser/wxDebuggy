@@ -222,7 +222,7 @@ class Layout_Engine:
             drawobj = Drawing_Object( name='_Nothing_',
                                        parent=self, #hmmm, for flightlines only! FIXME
                                        label='_here',
-                                       obj_type='moddule')
+                                       obj_type='module')
 
             self.drawing_object_dict['_Nothing'] = drawobj
 
@@ -612,9 +612,11 @@ class Layout_Engine:
             inputs_to_outputs = True
                 
         # Now optimize - layers start from [1], not [0]
+        c_crossovers = self._count_crossovers()
+        print "Initial crossover count", c_crossovers
+        
         while True:
-            c_crossovers = 0
-            
+                        
             if inputs_to_outputs:
                 start_ = 2
                 end_   = c_layers + 1
@@ -627,7 +629,7 @@ class Layout_Engine:
 
             # Loop thru all layers except the input pin layer and optimize.
             for layer in xrange( start_, end_, inc_ ):
-                #print "Optimising Layer ", layer
+
                 drawing_objects = self.layered_drawing_object_dict[layer]
                 if drawing_objects == None:
                     continue
@@ -638,31 +640,26 @@ class Layout_Engine:
                     hypernet_layer = layer - 1
                     if hypernet_layer == 0 :
                         hypernet_layer = 1
-                                       
+                                                               
                 c_crossovers = self._optimize_layer( layer,
                                                      hypernet_layer,
                                                      drawing_objects,
                                                      c_crossovers )
-
+                print "Layer %d Xovers %d:" %( layer, c_crossovers )
+                                                              
             # Now do input pin layer
-            #print "Optimising Layer", layer
             c_crossovers = self._optimize_layer( 1,
                                                  1,
                                                  self.layered_drawing_object_dict[1],
                                                  c_crossovers )
-                                                 
-            if debug: print c_crossovers, c_crossovers_prev
-#            if inputs_to_outputs and ( c_crossovers >= c_crossovers_prev ) :
-#                print "Crossovers increasing. Aborting..."
-#                break
-                
-            c_crossovers_prev = c_crossovers  
-            
-            c_tries += 1
-            if c_tries > MAX_TRIES :
-                print "MAX_TRIES limit. Aborting..."
+
+            # Break if no crossovers
+            print c_crossovers, c_crossovers_prev
+            if ( c_crossovers == 0 ) or ( c_crossovers_prev == c_crossovers ):
                 break
-            #print "Crossovers:", self._count_crossovers()
+  
+            print "Crossovers:", c_crossovers
+            c_crossovers_prev = c_crossovers  
             yield c_crossovers
             
         print "Crossovers:", self._count_crossovers()
@@ -671,7 +668,7 @@ class Layout_Engine:
         
     def _optimize_layer( self, layer, hypernet_layer, 
                                drawing_objects_in_layer, c_crossovers, 
-                               debug=False):
+                               debug=True):
         """ """
                               
         c_objects = len(drawing_objects_in_layer)  
