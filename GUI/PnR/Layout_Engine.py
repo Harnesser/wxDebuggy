@@ -629,7 +629,7 @@ class Layout_Engine:
 
             # Loop thru all layers except the input pin layer and optimize.
             for layer in xrange( start_, end_, inc_ ):
-
+                print "[]:", self._count_crossovers()
                 drawing_objects = self.layered_drawing_object_dict[layer]
                 if drawing_objects == None:
                     continue
@@ -641,18 +641,20 @@ class Layout_Engine:
                     if hypernet_layer == 0 :
                         hypernet_layer = 1
                                                                
-                c_crossovers = self._optimize_layer( layer,
-                                                     hypernet_layer,
-                                                     drawing_objects,
-                                                     c_crossovers )
-                print "Layer %d Xovers %d:" %( layer, c_crossovers )
-                                                              
+                c_removed = self._optimize_layer( layer,
+                                                  hypernet_layer,
+                                                  drawing_objects)
+                                                  
+                c_crossovers -= c_removed
+                print "Layer %d: Xovers:%d removed:%d" %( layer, c_crossovers, c_removed )
+                print "<>:", self._count_crossovers()
+                
             # Now do input pin layer
-            c_crossovers = self._optimize_layer( 1,
-                                                 1,
-                                                 self.layered_drawing_object_dict[1],
-                                                 c_crossovers )
-
+            c_removed = self._optimize_layer( 1,
+                                              1,
+                                              self.layered_drawing_object_dict[1])
+            c_crossovers -= c_removed
+            
             # Break if no crossovers
             print c_crossovers, c_crossovers_prev
             if ( c_crossovers == 0 ) or ( c_crossovers_prev == c_crossovers ):
@@ -667,44 +669,41 @@ class Layout_Engine:
         
         
     def _optimize_layer( self, layer, hypernet_layer, 
-                               drawing_objects_in_layer, c_crossovers, 
+                               drawing_objects_in_layer, 
                                debug=True):
-        """ """
+        """ Optimizes the crossvers in the layer.
+        Returns the number of crossovers it removed."""
                               
         c_objects = len(drawing_objects_in_layer)  
+        c_removed = 0
         
         # Bail out early if there's nothing to optimize
         c_crossovers_now = self._get_crossover_count( hypernet_layer ) 
         if ( c_objects <= 1 ) or ( c_crossovers_now == 0 ):
-            return c_crossovers_now
+            return c_removed
                        
         # Swap each block with its neighbour in turn to see if it reduces crossovers
         for i in xrange( c_objects-1 ): # -1 because ...           
-
             c_crossovers_before = self._get_crossover_count( hypernet_layer )
-            c_crossovers -= c_crossovers_before
             
             self._swap_drawing_object(layer, i) # ... this swaps i with i+1, 
             self._update_block_y_positions(layer)
             
             c_crossovers_after = self._get_crossover_count( hypernet_layer )
             
-            if c_crossovers_after <= c_crossovers_before:
-                c_crossovers += c_crossovers_after
-
-            else: # return list to original condition by swapping again
+            if c_crossovers_after > c_crossovers_before:
                 self._swap_drawing_object(layer, i) 
                 self._update_block_y_positions(layer)
-                c_crossovers_before = self._get_crossover_count( hypernet_layer )
-                c_crossovers += c_crossovers_before                    
+            else :
+                c_removed += ( c_crossovers_before - c_crossovers_after ) 
                 
             if debug:
-                print "Layer %d, object %d - before:%d; after:%d; total:%d" % ( layer, i,
-                    c_crossovers_before, c_crossovers_after, c_crossovers )
+                print "Layer %d, object %d - before:%d; after:%d" % ( layer, i,
+                    c_crossovers_before, c_crossovers_after)
     
             #if debug: self._print_debug_info()
 
-        return c_crossovers
+        return c_removed
 
 
     def _print_debug_info(self):
