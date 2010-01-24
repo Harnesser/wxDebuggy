@@ -588,6 +588,7 @@ class Layout_Engine:
                     [1]        [2]         [3]         [4]         
         """
         
+        c_no_improvement = 0
         c_layers = max(self.layered_drawing_object_dict.keys())
         print self.layered_drawing_object_dict.keys()
         c_crossovers_prev = 1000000
@@ -648,13 +649,16 @@ class Layout_Engine:
                 
             # Break if no crossovers
             print c_crossovers, c_crossovers_prev
-            if ( c_crossovers == 0 ) or ( c_crossovers_prev == c_crossovers ):
+            if( c_crossovers_prev == c_crossovers ):
+                c_no_improvement += 1
+            else:
+                c_no_improvement = 0
+                
+            if ( c_crossovers == 0 ) or ( c_no_improvement == 2):
                 break
                         
             if change_direction :
-                inputs_to_outputs = False
-            else:
-                inputs_to_outputs = True
+                inputs_to_outputs = not inputs_to_outputs 
                                
             print "Crossovers:", c_crossovers
             c_crossovers_prev = c_crossovers  
@@ -687,7 +691,7 @@ class Layout_Engine:
             
             c_crossovers_after = self._get_crossover_count( hypernet_layer )
             
-            if c_crossovers_after > c_crossovers_before:
+            if c_crossovers_after >= c_crossovers_before:
                 self._swap_drawing_object(layer, i) 
                 self._update_block_y_positions(layer)
             else :
