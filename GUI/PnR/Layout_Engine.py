@@ -80,7 +80,7 @@ class Layout_Engine:
         # Route
         if animate:
             print "Animating"
-            for c_crossovers in self._run_egb_pnr_generator( change_direction = False ):
+            for c_crossovers in self._run_egb_pnr_generator( change_direction = True ):
                 print "pnr yielding..."
                 yield self._flatten_dicts()
         else :       
@@ -605,28 +605,24 @@ class Layout_Engine:
             self._print_debug_info()
             pprint.pprint( self.layered_drawing_object_dict )
 
-                        
-        if change_direction :
-            inputs_to_outputs = False
-        else:
-            inputs_to_outputs = True
-                
+
         # Now optimize - layers start from [1], not [0]
         c_crossovers = self._count_crossovers()
         print "Initial crossover count", c_crossovers
         
         while True:
-                        
+                       
             if inputs_to_outputs:
                 start_ = 2
                 end_   = c_layers + 1
                 inc_   = 1
-
+                if debug : print "---->  Forwards"
             else:
-                start_ = c_layers
+                start_ = c_layers - 1
                 end_   = 0
                 inc_   = -1
-
+                if debug : print "<---- Backwards"
+                
             # Loop thru all layers except the input pin layer and optimize.
             for layer in xrange( start_, end_, inc_ ):
                 print "[]:", self._count_crossovers()
@@ -637,7 +633,7 @@ class Layout_Engine:
                 if inputs_to_outputs:
                     hypernet_layer = layer - 1
                 else :
-                    hypernet_layer = layer - 1
+                    hypernet_layer = layer
                     if hypernet_layer == 0 :
                         hypernet_layer = 1
                                                                
@@ -649,17 +645,17 @@ class Layout_Engine:
                 print "Layer %d: Xovers:%d removed:%d" %( layer, c_crossovers, c_removed )
                 print "<>:", self._count_crossovers()
                 
-            # Now do input pin layer
-            c_removed = self._optimize_layer( 1,
-                                              1,
-                                              self.layered_drawing_object_dict[1])
-            c_crossovers -= c_removed
-            
+                
             # Break if no crossovers
             print c_crossovers, c_crossovers_prev
             if ( c_crossovers == 0 ) or ( c_crossovers_prev == c_crossovers ):
                 break
-  
+                        
+            if change_direction :
+                inputs_to_outputs = False
+            else:
+                inputs_to_outputs = True
+                               
             print "Crossovers:", c_crossovers
             c_crossovers_prev = c_crossovers  
             yield c_crossovers
@@ -922,6 +918,8 @@ class Layout_Engine:
         print 'Pickling: "%s"' % filename
 
         
+        
+    
     ###
     ### Methods for Unit Tests
     ###
@@ -936,6 +934,7 @@ class Layout_Engine:
     def get_hypernets_per_layer(self, layer):
         """ Return the nets in the given layer. """
         return len( self.layered_connection_dict[layer] )
+        
         
 
         
