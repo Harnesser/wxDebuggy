@@ -106,6 +106,25 @@ for i in xrange(levels-1):
 ## -------------------------------------------------------------------------
 ##  E: Barycentres
 ## -------------------------------------------------------------------------
+def vector_barycentre( vector ):
+    barycentre = 0.0
+    total = 0.0
 
-   
-      
+    for j in xrange( len(vector) ):
+        total += vector[j]
+        barycentre += j * vector[j]
+    
+    if total:
+        barycentre /= total 
+    else:
+        barycentre = 0.0
+        
+    return barycentre
+    
+print "Vector Barycentres:"
+for m in M:
+    for v in m:
+        print "%s: %f" % ( v, vector_barycentre(v) )
+
+
+ 
