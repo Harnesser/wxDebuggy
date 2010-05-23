@@ -4,7 +4,7 @@ import pprint
 from numpy import *
 
 ## -------------------------------------------------------------------------
-##  n-Level Hierarchy and Map
+##  A: n-Level Hierarchy and Map
 ## -------------------------------------------------------------------------
 V = [ list('ab') , list('cdef'), list('ghij'), list('klm') ]
 E = [  [('a','c'), ('a','d'), ('a','e'), ('a','f'), ('b','c'), ('b','f') ],
@@ -16,7 +16,7 @@ levels  = len(V)
 
 
 ## -------------------------------------------------------------------------
-##  Matrix Realisation of n-Level Hierarchies
+##  B: Matrix Realisation of n-Level Hierarchies
 ## -------------------------------------------------------------------------
 M = []
 for i in xrange(levels-1):
@@ -37,7 +37,7 @@ for i in xrange(levels-1):
     print 
        
 ## -------------------------------------------------------------------------
-##  The Number of Crossings of n-Level Hierarchies
+##  C: The Number of Crossings of n-Level Hierarchies
 ## -------------------------------------------------------------------------
 def calc_k(i,j,k):
     """ Calculate the crossings between an ordered pair of vertex rows. """
@@ -64,10 +64,48 @@ def calc_crossings():
     crossings = 0
     for i in xrange(levels-1):
         crossings += calc_layer_crossings(i)
-        
+    return crossings
+            
 for i in xrange(levels-1):
     print "Layer", i, calc_layer_crossings(i)
 print "Total Crossings:", calc_crossings()
 
-       
+
+## -------------------------------------------------------------------------
+##  D: Connectivity
+## -------------------------------------------------------------------------
+def calc_upper_connectivity( i, k ):
+    lim = len( V[i-1] )
+    C_U = 0
+    
+    for j in xrange(0, lim ):
+        C_U += M[i-1][j][k]
+        
+    return C_U
+
+
+def calc_lower_connectivity( i, k ):
+    lim = len( V[i+1] )
+    C_L = 0
+    
+    for l in xrange(0, lim ):
+        C_L += M[i][k][l]
+        
+    return C_L
+
+print "Upper connectivities:"
+for i in xrange(1,levels):
+    for k in xrange( len( V[i] ) ): 
+        print "  %s : %d" % ( V[i][k], calc_upper_connectivity(i, k) )
+        
+print "Lower connectivities:"
+for i in xrange(levels-1):
+    for k in xrange( len( V[i] ) ): 
+        print "  %s : %d" % ( V[i][k], calc_lower_connectivity(i, k) )
+        
+## -------------------------------------------------------------------------
+##  E: Barycentres
+## -------------------------------------------------------------------------
+
+   
       
