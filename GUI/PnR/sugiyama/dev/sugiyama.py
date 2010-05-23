@@ -107,13 +107,12 @@ for i in xrange(levels-1):
 ##  E: Barycentres
 ## -------------------------------------------------------------------------
 def vector_barycentre( vector ):
-    barycentre = 0.0
-    total = 0.0
 
+    barycentre = 0.0
     for j in xrange( len(vector) ):
-        total += vector[j]
         barycentre += j * vector[j]
     
+    total = sum(vector)
     if total:
         barycentre /= total 
     else:
@@ -127,4 +126,62 @@ for m in M:
         print "%s: %f" % ( v, vector_barycentre(v) )
 
 
- 
+def row_barycentres( layer ):
+    
+    barycentres = []
+  
+    p = len( V[layer] )
+    q = len( V[layer+1] )
+    m = M[layer]
+    
+    for k in xrange(p):
+        numer = 0.0
+        denom = 0.0
+        
+        for l in xrange(q):
+            numer += l * m[k][l]
+            denom += m[k][l]
+            
+        if denom:
+            barycentre = numer / denom
+        else:
+            barycentre = 0.0
+            
+        barycentres.append(barycentre)
+        
+    return barycentres
+     
+          
+print "\nRow Barycentres:"   
+for i in xrange(levels-1):
+    print row_barycentres(i)
+    
+
+def col_barycentres( layer ):
+
+    barycentres = []
+  
+    p = len( V[layer] )
+    q = len( V[layer+1] )
+    m = M[layer]
+    
+    for l in xrange(q):
+        numer = 0.0
+        denom = 0.0
+        
+        for k in xrange(p):
+            numer += k * m[k][l]
+            denom += m[k][l]
+            
+        if denom:
+            barycentre = numer / denom
+        else:
+            barycentre = 0.0
+            
+        barycentres.append(barycentre)
+        
+    return barycentres
+
+print "\nColumn Barycentres:"
+for i in xrange(levels-1):
+    print col_barycentres(i)
