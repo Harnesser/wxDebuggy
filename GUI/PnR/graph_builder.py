@@ -266,7 +266,7 @@ class Graph_Builder:
    
     def _break_up_long_edges(self, debug=False):
         """ Insert dummy nodes for long edges.
-        Produces a 'proper graph'.    
+        Produces a 'proper graph'.  Also known as normalisation, I think. 
         """
         
         # turn the layer graph inside out so that layer numbers are the keys.

@@ -49,6 +49,9 @@ class Layout_Engine:
         self.layered_connection_dict = {} # key = layer, value = list of hypernet drawing objects
         self.layered_drawing_object_dict = {} # key = layer, value = list of objects
         
+        self.forward_adjacent_dict = {}
+        self.backward_adjacent_dict = {}
+        
 	    # Hypernet track dictionary
         self.track_dict = {} # key = layer, values = tracks used. 	
     
@@ -76,6 +79,9 @@ class Layout_Engine:
         self._build_layered_drawing_object_dict()
         self._build_layered_connection_dict()
         self._update_block_x_positions()
+        
+        # Adjacency Lookup Tables
+        self._build_adjacency_dicts()
         
         # Route
         if animate:
@@ -637,7 +643,9 @@ class Layout_Engine:
                     hypernet_layer = layer
                     if hypernet_layer == 0 :
                         hypernet_layer = 1
-                                                               
+                                            
+                self._y_pre_placement( layer, inputs_to_outputs )
+                                   
                 c_removed = self._optimize_layer( layer,
                                                   hypernet_layer,
                                                   drawing_objects)
@@ -666,6 +674,40 @@ class Layout_Engine:
             
         print "Crossovers:", self._count_crossovers()
         yield c_crossovers
+        
+        
+    def _y_pre_placement(self, layer, input_to_output, debug=True ):
+        """ Initial Y-Placement of the column that varies.
+        Barycentre placement based on the average position measure.
+        Calculate the relative placement of each movable block and call 
+        the update task to update it's geometric y position."""
+        
+        if debug: print "Y Pre-Placement"
+        
+        # Get y centre positions of adjacent vertices
+        if input_to_output:
+            y_lookup_dict = self.backward_adjacent_dict
+        else:
+            y_lookup_dict = self.forward_adjacent_dict
+            
+        y_positions = {}
+        for draw_obj in self.layered_drawing_object_dict[layer]:
+            for adj_block in y_lookup_dict[draw_obj.label]:
+                y = adj_block.get_y_centre()
+                y_positions.setdefault( draw_obj.label, []).append( y )
+        
+        # Rank movable vertices
+        ranking = {}
+        for obj in y_positions.keys():
+            y_avg = sum( y_positions[obj] ) / len( y_positions[obj] )
+            draw_obj = self.drawing_object_dict[obj]
+            #draw_ob
+            
+            
+        # Update the ordered layer list based on this ranking
+        
+        # Update the geometric position
+        
         
         
     def _optimize_layer( self, layer, hypernet_layer, 
@@ -880,6 +922,38 @@ class Layout_Engine:
         
         return False
 
+
+
+    def _build_adjacency_dicts(self, debug=False):
+        """ Build forward and backwards adjacency dictionaries.
+        These are used to get at the y-positions of the adjacent
+        vertices of a given node.
+        """
+        
+        if debug:
+            print "Building adjacency dicts"
+            
+        self.forward_adjacent_dict = {}
+        self.backward_adjacent_dict = {}
+        for source in self.graph_edges.keys():
+            if source == '_iport':
+                continue
+            source_drawobj = self.drawing_object_dict[source]
+            sinks = self.graph_edges[source]
+            for sink in sinks:
+                if debug: print "  source %s, sink %s" % (source, sink)
+                self.backward_adjacent_dict.setdefault(source, []).append(source_drawobj)
+                if sink != '_oport':
+                    sink_drawobj = self.drawing_object_dict[sink]                
+                    self.forward_adjacent_dict.setdefault(source, [] ).append(sink_drawobj)
+
+                
+        if debug:
+            libdb.show_dictionary( "Forward Adjacency Dictionary",
+                self.forward_adjacent_dict )
+            libdb.show_dictionary( "Backward Adjacency Dictionary",
+                self.backward_adjacent_dict )
+                
 
     def _build_layered_drawing_object_dict(self, debug=False):
         """ Layered Drawing Object Dictionary.

@@ -517,6 +517,8 @@ class Drawing_Object:
         dc.DrawTextPoint( inst_name, (xpos,ypos) )
 
 
+    def get_y_centre(self):
+        return self.position.y + self.bbox.height/2
 
     def drawPinLabel( self, dc, pin_label, position, rj = False ):
 
