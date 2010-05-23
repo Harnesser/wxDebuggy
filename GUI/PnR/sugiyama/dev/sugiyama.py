@@ -60,8 +60,14 @@ def calc_layer_crossings(i):
     
     return K_M
     
+def calc_crossings():
+    crossings = 0
+    for i in xrange(levels-1):
+        crossings += calc_layer_crossings(i)
+        
 for i in xrange(levels-1):
     print "Layer", i, calc_layer_crossings(i)
-    
+print "Total Crossings:", calc_crossings()
+
        
       
