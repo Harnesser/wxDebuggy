@@ -3,6 +3,14 @@
 import pprint
 from numpy import *
 
+print """
+### ========================================================================
+###
+###  Section II: BASIC DEFINITIONS
+###
+### ========================================================================
+"""
+
 ## -------------------------------------------------------------------------
 ##  A: n-Level Hierarchy and Map
 ## -------------------------------------------------------------------------
@@ -14,10 +22,11 @@ E = [  [('a','c'), ('a','d'), ('a','e'), ('a','f'), ('b','c'), ('b','f') ],
     
 levels  = len(V)
 
-
+print """
 ## -------------------------------------------------------------------------
 ##  B: Matrix Realisation of n-Level Hierarchies
 ## -------------------------------------------------------------------------
+"""
 M = []
 for i in xrange(levels-1):
     m_shape = ( len( V[i] ), len( V[i+1] ) )
@@ -36,11 +45,14 @@ for i in xrange(levels-1):
     print M[i]
     print 
        
+print """
 ## -------------------------------------------------------------------------
 ##  C: The Number of Crossings of n-Level Hierarchies
 ## -------------------------------------------------------------------------
+"""
 def calc_k(i,j,k):
-    """ Calculate the crossings between an ordered pair of vertex rows. """
+    """ Calculate the crossings between an ordered pair of vertex rows.
+    Calculates k( r(u,v), r(v,u) ) """
     q = len( V[i+1] )
     k_jk = 0
     
@@ -60,20 +72,22 @@ def calc_layer_crossings(i):
     
     return K_M
     
-def calc_crossings():
+def calc_crossings(M):
     crossings = 0
     for i in xrange(levels-1):
         crossings += calc_layer_crossings(i)
     return crossings
             
 for i in xrange(levels-1):
-    print "Layer", i, calc_layer_crossings(i)
-print "Total Crossings:", calc_crossings()
+    print "Layer", i, calc_layer_crossings(M,i)
+print "Total Crossings:", calc_crossings(M)
 
 
+print """
 ## -------------------------------------------------------------------------
 ##  D: Connectivity
 ## -------------------------------------------------------------------------
+"""
 def calc_upper_connectivity( i, k ):
     lim = len( V[i-1] )
     C_U = 0
@@ -103,9 +117,12 @@ for i in xrange(levels-1):
     for k in xrange( len( V[i] ) ): 
         print "  %s : %d" % ( V[i][k], calc_lower_connectivity(i, k) )
         
+        
+print """
 ## -------------------------------------------------------------------------
 ##  E: Barycentres
 ## -------------------------------------------------------------------------
+"""
 def vector_barycentre( vector ):
 
     barycentre = 0.0
@@ -185,3 +202,190 @@ def col_barycentres( layer ):
 print "\nColumn Barycentres:"
 for i in xrange(levels-1):
     print col_barycentres(i)
+    
+
+def get_x_pos(i, j):
+    return 0.0
+    
+def upper_barycentres(i):
+    
+    barycentres = []
+    
+    p = len( V[layer-1] )
+    m1 = M[layer-1]
+    
+    for k in xrange( len( V[i] ) ):
+    
+        numer = 0.0        
+        for j in xrange(p):
+            numer += get_x_pos(i-1,j) * m1[j][k]
+            
+        denom = calc_upper_connectivity(i,k)
+        if denom:
+            barycentre = numer / denom
+        else:
+            barycentre = 0.0
+            
+        barycentres.append(barycentre)
+        
+    return barycentres   
+    
+    
+def lower_barycentres(i):
+    
+    barycentres = []
+
+    q = len( V[layer+1] )
+    m = M[layer]
+    
+    for k in xrange( len( V[i] ) ):
+    
+        numer = 0.0        
+        for l in xrange(q):
+            numer += get_x_pos(i-1,j) * m[k][l]
+            
+        denom = calc_upper_connectivity(i,k)
+        if denom:
+            barycentre = numer / denom
+        else:
+            barycentre = 0.0
+            
+        barycentres.append(barycentre)
+        
+    return barycentres   
+         
+print """
+### ========================================================================
+###
+###  Section III: REDUCTION OF THE NUMBER OF CROSSINGS
+###
+### ========================================================================
+"""
+
+V = [ list('12345678'), list('abcdefgh') ]
+edges = '1c:1d:1e:1h:2c:2e:3a:3e:3f:3h:4e:5c:5g:6f:7b:7d:8b:8f:8g'
+E1 = []
+for edge in edges.split(':'):
+    E1.append( tuple(edge) )
+E = [ E1 ]
+
+levels = len(V)
+
+M = []
+for i in xrange(levels-1):
+    m_shape = ( len( V[i] ), len( V[i+1] ) )
+    m = zeros( m_shape )
+   
+    for e in E[i]:
+        row = V[i].index( e[0] )
+        col = V[i+1].index( e[1] )
+        m[row][col] = 1
+    
+    M.append(m)
+ 
+    
+for i in xrange(levels-1):
+    print "M(%0d)" % (i)
+    print M[i]
+    print "Crossings:",calc_crossings()
+            
+            
+print """
+## -------------------------------------------------------------------------
+##  A: Algorithms for Two-Level Hierarchies
+## -------------------------------------------------------------------------
+"""            
+
+def penalty_digraph( M ):
+    """ Calculate the penalty digraph for a 2-layer graph
+    ... NOT COMPLETE ... """
+    
+    for i in xrange( len(M) ) :
+        print "Layer",i
+        m = M[i]
+        p = len( V[i] )
+        q = len( V[i+1] )
+        
+        F = []
+        for j in xrange(0,p-1):
+            for k in xrange(j+1,p):
+                k_uv = calc_k(i, j, k )  
+                k_vu = calc_k(i, k, j )  
+                
+                if k_uv < k_vu:
+                    edge = ( V[i][j], V[i][k] )
+                else:
+                    edge = ( V[i][k], V[i][j] )
+                F.append( edge )
+                
+                print "  (%s,%s) vs (%s,%s) : %d vs %d : %s" % (
+                    V[i][j], V[i][k], V[i][k], V[i][j],
+                    k_uv, k_vu, edge )
+            
+        print "F:", F
+            
+print "## Penalty Minimization Method (PM method)"
+penalty_digraph(M)           
+
+V = [ list('abcd'), list('efghi') ]
+edges = 'ae:af:be:bh:bi:cf:ch:ci:de:dg:di'
+E1 = []
+for edge in edges.split(':'):
+    E1.append( tuple(edge) )
+E = [ E1 ]
+
+levels = len(V)
+
+M = []
+for i in xrange(levels-1):
+    m_shape = ( len( V[i] ), len( V[i+1] ) )
+    m = zeros( m_shape )
+   
+    for e in E[i]:
+        row = V[i].index( e[0] )
+        col = V[i+1].index( e[1] )
+        m[row][col] = 1
+    
+    M.append(m)
+ 
+   
+for i in xrange(levels-1):
+    print "M(%0d)" % (i)
+    print M[i]
+    print "Crossings:",calc_crossings()
+            
+print "## Barycentric method"
+
+
+
+def barycentre_row_reorder(M):
+    """ Reorder the rows of matrix M on the barycentres. """
+    
+    barycentres = row_barycentres(M)
+    
+    
+    
+    return M_
+    
+    
+
+
+def phase1(M0):
+    
+    M_star = list(M0)
+    K_star = calc_crossings(M0)
+    
+    M1 = barycentre_row_reorder(M0)
+    
+    
+def phase2():
+    pass
+    
+def barycentric_method_2(M):
+    """ Two-Layer Barycentric thingy."""
+    
+    M0 = list(M)
+    
+    
+    
+
