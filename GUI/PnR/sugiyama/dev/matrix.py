@@ -13,32 +13,39 @@ class Matrix(object):
         
         self.c_rows = len(self.row_vertices)
         self.c_cols = len(self.col_vertices)
-        
-        print self.row_vertices
-        print self.col_vertices
+
         self.M = self._build_connection_matrix()
 
 
+    def get_size(self):
+        return (self.c_rows, self.c_cols)
+        
 
     def _build_connection_matrix(self):
         """ Initialise the connection matrix for this layer. """
         
-        print self.c_rows, self.c_cols
         M = []
+
+        # Size matrix and initialise to zero
         for i in xrange( self.c_rows ):
             row = [0] * self.c_cols
-            print row
             M.append(row)
+
+        # Fill in the connections
+        for source, sink in self.edges:
+            row_index = self.row_vertices.index( source )
+            col_index = self.col_vertices.index( sink )
+            M[row_index][col_index] = 1
             
-        print M
         return M
 
                      
     def __str__(self):
-        """ Printout """
-        
+        """ Printout
+        Print the connection matrix with row and col headers.
+        """
+  
         repr_str_list = []
-        print "Matrix:"
         
         first_line = '%5s' % (' ')
         for vertice in self.col_vertices:
