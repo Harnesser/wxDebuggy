@@ -156,7 +156,6 @@ class Matrix(object):
             new_bc.append( bc_dict[vertice] )
         self.row_barycentres = new_bc
                 
-        # Update the row order
         self.row_vertices = new_vertice_order
         
         # Recalculate the column barycentre numbers
@@ -181,18 +180,9 @@ class Matrix(object):
             column.append( row[i] )
         return column
 
-        
-    def _barycentre_col_reorder(self):
-        """ Reorder the columns based on their barycentres. """
-        
-        # Find the new vertice order
-        dec = [ ( bc, v ) for (v, bc)  in zip( self.col_vertices, self.col_barycentres ) ]
-        dec.sort()
-        new_vertice_order = [ v for (bc, v) in dec ]
-        new_col_barycentres = [ bc for (bc, v) in dec ]
-        
-        print self.col_barycentres
-        print new_col_barycentres
+
+    def _new_col_order(self, new_vertice_order):
+        """ Reorder the connection matrix based on a new ordering. """
         
         # Rejigg the connection matrix for the new order
         col_dict = {}
@@ -207,41 +197,64 @@ class Matrix(object):
             new_M.append( new_row )
         self.M = new_M
         
-        # Rejigg the column barycentre numbers and vertices
-        self.col_vertices = new_vertice_order
-        self.col_barycentres = new_col_barycentres
-        
-        # Recalculate the column barycentre numbers
-        self.row_barycentres = self._calc_row_barycentres()
-
-                     
-    def row_reversion(self):
-        """ Reverse rows sequences that have equal barycentres."""
-        
-        # First, pick out a group with equal barycenters
-        new_vertice_order = []
-        vertice_group = [ self.row_vertices[0] ]
+        # Rejigg the row barycentre numbers and vertices
+        bc_dict = {}
+        for key,value in zip( self.col_vertices, self.col_barycentres ):
+            bc_dict[key] = value
+            
+        new_bc = []
+        for vertice in new_vertice_order:
+            new_bc.append( bc_dict[vertice] )
+        self.col_barycentres = new_bc
        
-        for i in xrange(1, len(self.row_barycentres) ):
-            if self.row_barycentres[i] == self.row_barycentres[i-1]:
-                vertice_group.append( self.row_vertices[i] )
+        self.col_vertices = new_vertice_order
+        
+        # Recalculate the row barycentre numbers
+        self.row_barycentres = self._calc_row_barycentres()
+        
+                
+    def _barycentre_col_reorder(self):
+        """ Reorder the columns based on their barycentres. """
+        
+        # Find the new vertice order
+        dec = [ ( bc, v ) for (v, bc)  in zip( self.col_vertices, self.col_barycentres ) ]
+        dec.sort()
+        new_vertice_order = [ v for (bc, v) in dec ]
+        
+        self._new_col_order(new_vertice_order)
+        
+        
+    def _reversion(self, vertices, barycentres ):
+        """ Vertice Reversion"""
+        
+        new_vertice_order = []
+        vertice_group = [ vertices[0] ]
+       
+        for i in xrange(1, len(barycentres) ):
+            if barycentres[i] == barycentres[i-1]:
+                vertice_group.append( vertices[i] )
             else:
                 vertice_group.reverse()
                 new_vertice_order.extend(vertice_group)
-                vertice_group = [ self.row_vertices[i] ]
+                vertice_group = [ vertices[i] ]
 
         vertice_group.reverse()
         new_vertice_order.extend(vertice_group)
-        vertice_group = [ self.row_vertices[i] ]                   
+        
+        return new_vertice_order
+          
+          
+    def row_reversion(self):
+        """ Reverse rows sequences that have equal barycentres."""
+        new_order = self._reversion( self.row_vertices, self.row_barycentres )
+        self._new_row_order( new_order )
 
-        # Update row vertices and refresh the calculations
-        self._new_row_order( new_vertice_order )
-
-       
-
+     
     def col_reversion(self):
         """ Reverse columns with equal barycentre numbers."""
-        pass    
+        new_order = self._reversion( self.col_vertices, self.col_barycentres )
+        self._new_col_order( new_order )
+                     
                                                 
     def __str__(self):
         """ Printout
