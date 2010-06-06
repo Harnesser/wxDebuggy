@@ -356,14 +356,28 @@ for i in xrange(levels-1):
             
 print "## Barycentric method"
 
-
+print """## Barycentric method
+Method:
+ 0.M* := M0, C* := C(M0), j := 0;
+ 1.Carry out PHASE 1;
+ 2.Carry out the following until j = J; {[PHASE 2]}
+ 1.M1 := ROR(M0), M0 := M1;
+ 2.If the column barycenters are not in monotonous increase order for M0, carry out PHASE 1;
+ 3.M1 := ROC(M0), M0 := M1;
+ 4.If the row barycenters are not in monotonous increase order for M0, carry out PHASE 1;
+ 5.j := j + 1;
+[PHASE 1]
+ 0.i := 0;
+ 1.Carry out the following until i = I;
+ 1.M1 := BOR(M0),  M0 := BOC(M1);
+ 2.If C(M0)<C*, then M* := M0 and C* := C(M0);
+ 3. := i + 1;
+"""
 
 def barycentre_row_reorder(M):
     """ Reorder the rows of matrix M on the barycentres. """
     
     barycentres = row_barycentres(M)
-    
-    
     
     return M_
     
