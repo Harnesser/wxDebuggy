@@ -133,6 +133,36 @@ class Matrix(object):
         return K_M
         
         
+    def _new_row_order(self, new_vertice_order):
+        """ Reorder the connection matrix based on a new ordering. """
+
+        # Rejigg the connection matrix for the new order
+        row_dict = {}
+        for key,value in zip( self.row_vertices, self.M ):
+            row_dict[key] = value
+    
+        new_M = []
+        for vertice in new_vertice_order:
+            new_M.append( row_dict[vertice] )
+        self.M = new_M
+        
+        # Rejigg the row barycentre numbers and vertices
+        bc_dict = {}
+        for key,value in zip( self.row_vertices, self.row_barycentres ):
+            bc_dict[key] = value
+            
+        new_bc = []
+        for vertice in new_vertice_order:
+            new_bc.append( bc_dict[vertice] )
+        self.row_barycentres = new_bc
+                
+        # Update the row order
+        self.row_vertices = new_vertice_order
+        
+        # Recalculate the column barycentre numbers
+        self.col_barycentres = self._calc_col_barycentres()         
+        
+        
     def _barycentre_row_reorder(self):
         """ Reorder the rows based on their barycentres. """
         
@@ -140,28 +170,9 @@ class Matrix(object):
         dec = [ ( bc, v ) for (v, bc)  in zip( self.row_vertices, self.row_barycentres ) ]
         dec.sort()
         new_vertice_order = [ v for (bc, v) in dec ]
-        new_row_barycentres = [ bc for (bc, v) in dec ]
-        
-        print self.row_barycentres
-        print new_row_barycentres
-        
-        # Rejigg the connection matrix for the new order
-        row_dict = {}
-        for key,value in zip( self.row_vertices, self.M ):
-            row_dict[key] = value
-  
-        new_M = []
-        for vertice in new_vertice_order:
-            new_M.append( row_dict[vertice] )
-        self.M = new_M
-        
-        # Rejigg the row barycentre numbers and vertices
-        self.row_vertices = new_vertice_order
-        self.row_barycentres = new_row_barycentres
-        
-        # Recalculate the column barycentre numbers
-        self.col_barycentres = self._calc_col_barycentres()
-      
+         
+        self._new_row_order( new_vertice_order )
+
         
     def _get_column(self, i):
         """ Return the specified column as a list. """
@@ -202,8 +213,36 @@ class Matrix(object):
         
         # Recalculate the column barycentre numbers
         self.row_barycentres = self._calc_row_barycentres()
+
                      
-                                        
+    def row_reversion(self):
+        """ Reverse rows sequences that have equal barycentres."""
+        
+        # First, pick out a group with equal barycenters
+        new_vertice_order = []
+        vertice_group = [ self.row_vertices[0] ]
+       
+        for i in xrange(1, len(self.row_barycentres) ):
+            if self.row_barycentres[i] == self.row_barycentres[i-1]:
+                vertice_group.append( self.row_vertices[i] )
+            else:
+                vertice_group.reverse()
+                new_vertice_order.extend(vertice_group)
+                vertice_group = [ self.row_vertices[i] ]
+
+        vertice_group.reverse()
+        new_vertice_order.extend(vertice_group)
+        vertice_group = [ self.row_vertices[i] ]                   
+
+        # Update row vertices and refresh the calculations
+        self._new_row_order( new_vertice_order )
+
+       
+
+    def col_reversion(self):
+        """ Reverse columns with equal barycentre numbers."""
+        pass    
+                                                
     def __str__(self):
         """ Printout
         Print the connection matrix with row and col headers, and with
