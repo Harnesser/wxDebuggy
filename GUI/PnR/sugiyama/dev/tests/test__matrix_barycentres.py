@@ -41,8 +41,6 @@ class MatrixBarycentreOperations( unittest.TestCase ):
         self.assertAlmostEqual( M.row_barycentres[3], 2.0 )        
         
 
-        
-        
     def test_row_barycentre_calcs(self):
         
         M = sugiyama.Matrix( self.vertices_top, self.vertices_bot, self.edges )
@@ -53,7 +51,32 @@ class MatrixBarycentreOperations( unittest.TestCase ):
         self.assertAlmostEqual( M.col_barycentres[2], 3.0 )        
         self.assertAlmostEqual( M.col_barycentres[3], 1.5 )        
         self.assertAlmostEqual( M.col_barycentres[4], 2.0 )  
-              
+        
+        
+    def test_row_barycentre_calcs_2(self):
+
+        self.vertices_top = list('adbc')
+        M = sugiyama.Matrix( self.vertices_top, self.vertices_bot, self.edges )
+        print M
+        
+        self.assertAlmostEqual( M.row_barycentres[0], 0.5 )
+        self.assertAlmostEqual( M.row_barycentres[1], 2.0 )
+        self.assertAlmostEqual( M.row_barycentres[2], 2.3333333 )        
+        self.assertAlmostEqual( M.row_barycentres[3], 2.7777777 )        
+        
+
+    def test_row_barycentre_calcs_2(self):
+        
+        self.vertices_top = list('adbc')
+        M = sugiyama.Matrix( self.vertices_top, self.vertices_bot, self.edges )
+        print M
+        
+        self.assertAlmostEqual( M.col_barycentres[0], 1.0 )
+        self.assertAlmostEqual( M.col_barycentres[1], 1.5 )
+        self.assertAlmostEqual( M.col_barycentres[2], 1.0 )        
+        self.assertAlmostEqual( M.col_barycentres[3], 2.5 )        
+        self.assertAlmostEqual( M.col_barycentres[4], 2.0 )  
+                    
 
         
         
