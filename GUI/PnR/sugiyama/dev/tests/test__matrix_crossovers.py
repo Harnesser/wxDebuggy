@@ -33,7 +33,6 @@ class MatrixCrossoverCounting( unittest.TestCase ):
     def test_crossover_counts(self):
 
         M = sugiyama.Matrix( self.vertices_top, self.vertices_bot, self.edges )
-        print M
         
         self.assertEqual( M.get_crossover_count(), 14 )
     
@@ -42,7 +41,6 @@ class MatrixCrossoverCounting( unittest.TestCase ):
         
         self.vertices_top = list('adbc')
         M = sugiyama.Matrix( self.vertices_top, self.vertices_bot, self.edges )
-        print M
         
         self.assertEqual( M.get_crossover_count(), 11 )
     
@@ -52,7 +50,6 @@ class MatrixCrossoverCounting( unittest.TestCase ):
         self.vertices_top = list('dabc')
         self.vertices_bot = list('geifh')
         M = sugiyama.Matrix( self.vertices_top, self.vertices_bot, self.edges )
-        print M
         
         self.assertEqual( M.get_crossover_count(), 7 )
     

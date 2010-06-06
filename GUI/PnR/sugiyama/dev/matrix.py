@@ -117,6 +117,35 @@ class Matrix(object):
         
         return K_M
         
+        
+    def _barycentre_row_reorder(self):
+        """ Reorder the rows based on their barycentres. """
+        
+        # Find the new vertice order
+        dec = [ ( bc, v ) for (v, bc)  in zip( self.row_vertices, self.row_barycentres ) ]
+        dec.sort()
+        new_vertice_order = [ v for (bc, v) in dec ]
+        new_row_barycentres = [ bc for (bc, v) in dec ]
+        
+        print self.row_barycentres
+        print new_row_barycentres
+        
+        # Rejigg the connection matrix for the new order
+        row_dict = {}
+        for key,value in zip( self.row_vertices, self.M ):
+            row_dict[key] = value
+  
+        new_M = []
+        for vertice in new_vertice_order:
+            new_M.append( row_dict[vertice] )
+        self.M = new_M
+        
+        # Rejigg the row barycentre numbers
+        self.row_barycentres = new_row_barycentres
+        
+        # Recalculate the column barycentre numbers
+        self.col_barycentres = self._calc_col_barycentres()
+        
                                  
     def __str__(self):
         """ Printout
