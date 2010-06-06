@@ -140,16 +140,59 @@ class Matrix(object):
             new_M.append( row_dict[vertice] )
         self.M = new_M
         
-        # Rejigg the row barycentre numbers
+        # Rejigg the row barycentre numbers and vertices
+        self.row_vertices = new_vertice_order
         self.row_barycentres = new_row_barycentres
         
         # Recalculate the column barycentre numbers
         self.col_barycentres = self._calc_col_barycentres()
+      
         
-                                 
+    def _get_column(self, i):
+        """ Return the specified column as a list. """
+        column = []
+        for row in self.M:
+            column.append( row[i] )
+        return column
+
+        
+    def _barycentre_col_reorder(self):
+        """ Reorder the columns based on their barycentres. """
+        
+        # Find the new vertice order
+        dec = [ ( bc, v ) for (v, bc)  in zip( self.col_vertices, self.col_barycentres ) ]
+        dec.sort()
+        new_vertice_order = [ v for (bc, v) in dec ]
+        new_col_barycentres = [ bc for (bc, v) in dec ]
+        
+        print self.col_barycentres
+        print new_col_barycentres
+        
+        # Rejigg the connection matrix for the new order
+        col_dict = {}
+        for i in xrange( len(self.col_vertices) ):
+           col_dict[self.col_vertices[i]] = self._get_column(i)
+
+        new_M = []
+        for j in xrange( len(self.row_vertices) ):
+            new_row = []
+            for new_vertice in new_vertice_order:
+                new_row.append( col_dict[new_vertice][j] )
+            new_M.append( new_row )
+        self.M = new_M
+        
+        # Rejigg the column barycentre numbers and vertices
+        self.col_vertices = new_vertice_order
+        self.col_barycentres = new_col_barycentres
+        
+        # Recalculate the column barycentre numbers
+        self.row_barycentres = self._calc_row_barycentres()
+                     
+                                        
     def __str__(self):
         """ Printout
-        Print the connection matrix with row and col headers.
+        Print the connection matrix with row and col headers, and with
+        row and column barycentre numbers just like in Sugiyama's paper.
         """
   
         repr_str_list = []
