@@ -25,3 +25,6 @@ class MatrixBasicOperations( unittest.TestCase ):
         self.assertEquals( M.M[2], [ 1, 0, 0, 0] )    
         
         print M
+        
+        
+        
