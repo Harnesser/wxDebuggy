@@ -11,6 +11,16 @@ class Matrix(object):
         self.col_vertices = col_vertices
         self.edges = edges
         
+        self.update()
+        
+        
+    def get_size(self):
+        """ Return the size of the connectivity matrix."""
+        return (self.c_rows, self.c_cols)
+        
+        
+    def update(self):
+        """ Recalculate the recalculable."""
         self.c_rows = len(self.row_vertices)
         self.c_cols = len(self.col_vertices)
 
@@ -20,14 +30,19 @@ class Matrix(object):
         self.col_barycentres = self._calc_col_barycentres()
         
         
-    def get_size(self):
-        """ Return the size of the connectivity matrix."""
-        return (self.c_rows, self.c_cols)
-        
-        
     def get_crossover_count(self):
         """ Return the crossover count of the connectivity matrix. """
         return self._calc_crossover_count()
+        
+        
+    def copy(self):
+        """ Return a deepish copy of the instance."""
+        
+        M_copy = Matrix( list(self.row_vertices),
+            list(self.col_vertices), list(self.edges) )
+
+        return M_copy   
+            
         
     def _build_connection_matrix(self):
         """ Initialise the connection matrix for this layer. """

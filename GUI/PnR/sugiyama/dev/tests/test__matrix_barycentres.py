@@ -62,6 +62,7 @@ class MatrixBarycentreOperations( unittest.TestCase ):
         self.check_M1_row_barycentres(M)
         self.check_M1_col_barycentres(M)      
         
+
     def test_col_reorder_1(self):
         self.vertices_top = list('adbc')
         M = sugiyama.Matrix( self.vertices_top, self.vertices_bot, self.edges )
@@ -72,6 +73,11 @@ class MatrixBarycentreOperations( unittest.TestCase ):
         self.assertEquals( M.col_vertices, list('egfih') )
         self.check_M2_row_barycentres(M)
         self.check_M2_col_barycentres(M)              
+        
+        
+    #  These functions below check the barycentres for both rows and
+    # columns based on the first 3 matrices in Sugiyama's worked example
+    # of the two-layer crossing barycentre algorithm.
         
     def check_M0_row_barycentres(self, M):
         self.assertAlmostEqual( M.row_barycentres[0], 0.5 )

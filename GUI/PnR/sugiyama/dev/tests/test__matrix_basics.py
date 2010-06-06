@@ -11,7 +11,6 @@ import unittest
 class MatrixBasicOperations( unittest.TestCase ):
 
     def test_initialiser(self):
-        """ Gradient checks """
         M = sugiyama.Matrix( list('abc'), list('defg'), 
             [('a','g'), ('b','f'), ('b','e'), ('c','d')] )
         
@@ -27,4 +26,17 @@ class MatrixBasicOperations( unittest.TestCase ):
         print M
         
         
+    def test_copy(self):
+        M = sugiyama.Matrix( list('abc'), list('defg'), 
+            [('a','g'), ('b','f'), ('b','e'), ('c','d')] )
+        
+        M1 = M.copy()
+        M1.row_vertices = list('bac')
+        M1.update()
+        
+        self.assertEquals( M.row_vertices, list('abc') )
+        self.assertEquals( M1.row_vertices, list('bac') )
+         
+        self.assertEquals( M.M[0],  [ 0, 0, 0, 1] )
+        self.assertEquals( M1.M[0],  [ 0, 1, 1, 0 ] )
         
