@@ -162,7 +162,7 @@ class Matrix(object):
         self.col_barycentres = self._calc_col_barycentres()         
         
         
-    def _barycentre_row_reorder(self):
+    def barycentre_row_reorder(self):
         """ Reorder the rows based on their barycentres. """
         
         # Find the new vertice order
@@ -213,7 +213,7 @@ class Matrix(object):
         self.row_barycentres = self._calc_row_barycentres()
         
                 
-    def _barycentre_col_reorder(self):
+    def barycentre_col_reorder(self):
         """ Reorder the columns based on their barycentres. """
         
         # Find the new vertice order
@@ -255,7 +255,28 @@ class Matrix(object):
         new_order = self._reversion( self.col_vertices, self.col_barycentres )
         self._new_col_order( new_order )
                      
-                                                
+    
+    def _barycentres_are_monotonic(self, barycentres):
+        """ Barycentre list is always on the increase?"""
+        
+        if len(barycentres) == 1:
+            return True
+            
+        for i in xrange(1, len(barycentres) ):
+            if barycentres[i] < barycentres[i-1]:
+                return False
+                
+        return True
+        
+        
+    def row_barycenters_are_monotonic(self):
+        return self._barycentres_are_monotonic(self.row_barycentres)
+        
+        
+    def col_barycenters_are_monotonic(self):
+        return self._barycentres_are_monotonic(self.col_barycentres)
+                      
+                      
     def __str__(self):
         """ Printout
         Print the connection matrix with row and col headers, and with

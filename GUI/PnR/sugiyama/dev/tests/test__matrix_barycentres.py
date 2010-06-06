@@ -55,7 +55,7 @@ class MatrixBarycentreOperations( unittest.TestCase ):
     def test_row_reorder_1(self):
         M = sugiyama.Matrix( self.vertices_top, self.vertices_bot, self.edges )
         print M
-        M._barycentre_row_reorder()
+        M.barycentre_row_reorder()
         print M
         
         self.assertEquals( M.row_vertices, list('adbc') )
@@ -67,7 +67,7 @@ class MatrixBarycentreOperations( unittest.TestCase ):
         self.vertices_top = list('adbc')
         M = sugiyama.Matrix( self.vertices_top, self.vertices_bot, self.edges )
         print M
-        M._barycentre_col_reorder()
+        M.barycentre_col_reorder()
         print M
         
         self.assertEquals( M.col_vertices, list('egfih') )
