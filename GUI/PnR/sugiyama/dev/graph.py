@@ -20,7 +20,17 @@ class Graph(object):
     def update(self):
         self.c_levels = len(self.vertices)
         assert( len(self.vertices) -1 == len(self.edges) )
-        
-        
+            
+            
     def __str__(self):
-        return 'V:%s\nE:%s' % ( self.vertices, self.edges )
+        repr_str_list = ["Graph:\n"]
+        
+        repr_str_list.append(" Vertices:")
+        for i in xrange(self.c_levels):
+            repr_str_list.append( "%10d %s" % (i, self.vertices[i] ) )
+                    
+        repr_str_list.append("\n    Edges:")
+        for i in xrange(self.c_levels-1):
+            repr_str_list.append( "%10d %s" % (i, self.edges[i] ) )
+            
+        return '\n'.join(repr_str_list)

@@ -283,7 +283,7 @@ class Matrix(object):
         row and column barycentre numbers just like in Sugiyama's paper.
         """
   
-        repr_str_list = []
+        repr_str_list = ['\nConnection Matrix:']
         
         first_line = '%5s' % (' ')
         for vertice in self.col_vertices:
@@ -303,6 +303,8 @@ class Matrix(object):
             last_line += '%5s' % (trunc) 
         repr_str_list.append(last_line)
            
+        # Add crossover count:
+        repr_str_list[3] += "    K = %d" % ( self.get_crossover_count() )
         return '\n'.join(repr_str_list)
         
         
