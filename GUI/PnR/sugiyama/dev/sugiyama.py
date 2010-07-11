@@ -84,6 +84,29 @@ def multilayer_bc_method(G):
 #  Horizontal Placement
 # =================================================================
 
+def initial_layout(G):
+    k0 = 0
+    layout = []
+    for layer in G.vertices:
+         i = 1
+         layer_positions = []
+         for vertex in layer:
+            layer_positions.append(k0+i)
+            i += 1
+         layout.append(layer_positions)
+         
+    print G.vertices
+    print layout
+    return layout
+    
+def priority_layout(G):
+    """ Horizontal Coordinate Assignment using Priorty Layout Method. 
+    Section IV:B of Sugiyama's paper.
+    """
+    
+    # Initial placement
+    layout = initial_layout(G)
+    
 if __name__ == '__main__':
     
     G1 = Graph(V, E)
