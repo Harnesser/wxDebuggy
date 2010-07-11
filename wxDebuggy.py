@@ -13,7 +13,7 @@
 #  * Doubleclicking the Right mouse button will move up the hierarchy -DONE
 #  * Scrolling the mousewheel will zoom in on the cursor.
 #
-#
+# tmp
 # $Id: wxDebuggy.py,v 1.1 2007-08-25 04:14:32 marty Exp $
 #
 # Resizing can act a bit funny...
