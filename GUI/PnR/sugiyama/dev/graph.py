@@ -14,6 +14,9 @@ class Graph(object):
         
         self.c_levels = 0
         
+        self.lower_connectivities = []
+        self.upper_connectivities = []
+        
         self.update()
         
         
@@ -22,6 +25,39 @@ class Graph(object):
         assert( len(self.vertices) -1 == len(self.edges) )
             
             
+    def build_connection_matrices(self):
+        """ Construct connection matrices for the graph. """
+        print self.vertices
+        for i in xrange(self.c_levels-1):
+            M = Matrix( self.vertices[i], self.vertices[i+1], self.edges[i] )
+            self.matrices.append(M)
+            print i, M
+   
+            
+    def calc_lower_connectivities(self):
+        """ Calculate the Upper Connectivites for each layer. 
+        Equation (7) in Sugiyama."""
+
+        self.lower_connectivities = []
+        for M in self.matrices:
+            connectivities = [ sum(x) for x in M.M ]
+            self.lower_connectivities.append(connectivities)
+            
+                            
+    def calc_upper_connectivities(self):
+        """ Calculate the Lower Connectivites for each layer.
+        Equation (6) in Sugiyama's Paper.
+        See here for adding columns:
+        http://stackoverflow.com/questions/3223043
+        """
+
+        self.upper_connectivities = []
+        for M in self.matrices:
+            connectivities = [ sum(x) for x in zip(*M.M) ]
+            self.upper_connectivities.append(connectivities)
+            
+        
+        
     def __str__(self):
         repr_str_list = ["Graph:\n"]
         
