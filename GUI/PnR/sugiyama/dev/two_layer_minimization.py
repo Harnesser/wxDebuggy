@@ -61,11 +61,12 @@ def phase_1():
         
         M1 = M0.copy()
         M1.barycentre_row_reorder()
+        print M1
         
         M0 = M1.copy()
         M0.barycentre_col_reorder()
-
-
+        print M0
+        
         C_M0 = M0.get_crossover_count()
         print prev_C, C_M0
         if C_M0 == prev_C:
@@ -76,7 +77,6 @@ def phase_1():
             C_star = C_M0
             
         prev_C = C_M0
-        print M_star 
         i += 1
 
 # 1
@@ -96,19 +96,18 @@ while j < J:
     # 2.2
     if not M0.col_barycenters_are_monotonic():
         phase_1()
-        
+            
     # 2.3
     M1 = M0.copy()
     M1.col_reversion()
     M0 = M1.copy()
-    
+
     # 2.4
     if not M0.row_barycenters_are_monotonic():
         phase_1()
     else:
         break
             
-    print M_star 
     j += 1
     
 print "="*50

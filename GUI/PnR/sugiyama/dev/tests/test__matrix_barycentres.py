@@ -80,43 +80,43 @@ class MatrixBarycentreOperations( unittest.TestCase ):
     # of the two-layer crossing barycentre algorithm.
         
     def check_M0_row_barycentres(self, M):
-        self.assertAlmostEqual( M.row_barycentres[0], 0.5 )
-        self.assertAlmostEqual( M.row_barycentres[1], 2.3333333 )
-        self.assertAlmostEqual( M.row_barycentres[2], 2.6666667 )        
-        self.assertAlmostEqual( M.row_barycentres[3], 2.0 )      
+        self.assertAlmostEqual( M.row_barycentres[0], 1.5 )
+        self.assertAlmostEqual( M.row_barycentres[1], 3.3333333 )
+        self.assertAlmostEqual( M.row_barycentres[2], 3.6666667 )        
+        self.assertAlmostEqual( M.row_barycentres[3], 3.0 )      
     
     def check_M0_col_barycentres(self, M):
-        self.assertAlmostEqual( M.col_barycentres[0], 1.3333333 )
-        self.assertAlmostEqual( M.col_barycentres[1], 1.0 )
-        self.assertAlmostEqual( M.col_barycentres[2], 3.0 )        
-        self.assertAlmostEqual( M.col_barycentres[3], 1.5 )        
-        self.assertAlmostEqual( M.col_barycentres[4], 2.0 )  
+        self.assertAlmostEqual( M.col_barycentres[0], 2.3333333 )
+        self.assertAlmostEqual( M.col_barycentres[1], 2.0 )
+        self.assertAlmostEqual( M.col_barycentres[2], 4.0 )        
+        self.assertAlmostEqual( M.col_barycentres[3], 2.5 )        
+        self.assertAlmostEqual( M.col_barycentres[4], 3.0 )  
       
     def check_M1_row_barycentres(self, M):
-        self.assertAlmostEqual( M.row_barycentres[0], 0.5 )
-        self.assertAlmostEqual( M.row_barycentres[1], 2.0 )
-        self.assertAlmostEqual( M.row_barycentres[2], 2.3333333 )        
-        self.assertAlmostEqual( M.row_barycentres[3], 2.6666667 )  
+        self.assertAlmostEqual( M.row_barycentres[0], 1.5 )
+        self.assertAlmostEqual( M.row_barycentres[1], 3.0 )
+        self.assertAlmostEqual( M.row_barycentres[2], 3.3333333 )        
+        self.assertAlmostEqual( M.row_barycentres[3], 3.6666667 )  
                 
     def check_M1_col_barycentres(self, M):    
-        self.assertAlmostEqual( M.col_barycentres[0], 1.0 )
-        self.assertAlmostEqual( M.col_barycentres[1], 1.5 )
-        self.assertAlmostEqual( M.col_barycentres[2], 1.0 )        
-        self.assertAlmostEqual( M.col_barycentres[3], 2.5 )        
-        self.assertAlmostEqual( M.col_barycentres[4], 2.0 )             
+        self.assertAlmostEqual( M.col_barycentres[0], 2.0 )
+        self.assertAlmostEqual( M.col_barycentres[1], 2.5 )
+        self.assertAlmostEqual( M.col_barycentres[2], 2.0 )        
+        self.assertAlmostEqual( M.col_barycentres[3], 3.5 )        
+        self.assertAlmostEqual( M.col_barycentres[4], 3.0 )             
         
     def check_M2_row_barycentres(self, M):
-        self.assertAlmostEqual( M.row_barycentres[0], 1.0 )
-        self.assertAlmostEqual( M.row_barycentres[1], 1.3333333 )
-        self.assertAlmostEqual( M.row_barycentres[2], 2.3333333 )        
-        self.assertAlmostEqual( M.row_barycentres[3], 3.0 )  
+        self.assertAlmostEqual( M.row_barycentres[0], 2.0 )
+        self.assertAlmostEqual( M.row_barycentres[1], 2.3333333 )
+        self.assertAlmostEqual( M.row_barycentres[2], 3.3333333 )        
+        self.assertAlmostEqual( M.row_barycentres[3], 4.0 )  
                 
     def check_M2_col_barycentres(self, M):    
-        self.assertAlmostEqual( M.col_barycentres[0], 1.0 )
-        self.assertAlmostEqual( M.col_barycentres[1], 1.0 )        
-        self.assertAlmostEqual( M.col_barycentres[2], 1.5 )
-        self.assertAlmostEqual( M.col_barycentres[3], 2.0 )             
-        self.assertAlmostEqual( M.col_barycentres[4], 2.5 )        
+        self.assertAlmostEqual( M.col_barycentres[0], 2.0 )
+        self.assertAlmostEqual( M.col_barycentres[1], 2.0 )        
+        self.assertAlmostEqual( M.col_barycentres[2], 2.5 )
+        self.assertAlmostEqual( M.col_barycentres[3], 3.0 )             
+        self.assertAlmostEqual( M.col_barycentres[4], 3.5 )        
 
                 
         

@@ -73,7 +73,7 @@ class Matrix(object):
             denom = 0.0
             
             for l in xrange(self.c_cols):
-                numer += l * self.M[k][l]
+                numer += (l+1) * self.M[k][l]
                 denom += self.M[k][l]
                 
             if denom:
@@ -96,7 +96,7 @@ class Matrix(object):
             denom = 0.0
             
             for k in xrange(self.c_rows):
-                numer += k * self.M[k][l]
+                numer += (k+1) * self.M[k][l]
                 denom += self.M[k][l]
                 
             if denom:
