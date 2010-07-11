@@ -44,7 +44,7 @@ class Graph(object):
             self.lower_connectivities.append(connectivities)
             
                             
-    def calc_upper_connectivities(self):
+    def calc_upper_connectivities(self):    
         """ Calculate the Lower Connectivites for each layer.
         Equation (6) in Sugiyama's Paper.
         See here for adding columns:

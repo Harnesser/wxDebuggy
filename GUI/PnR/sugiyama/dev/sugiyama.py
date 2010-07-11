@@ -6,6 +6,9 @@
 from matrix import Matrix
 from graph import Graph
 
+dbg_reorder = True
+dbg_coords = True
+
 if True:
     V = [ list('ab') , list('cdef'), list('ghij'), list('klm') ]
     E = [  [('a','c'), ('a','d'), ('a','e'), ('a','f'), ('b','c'), ('b','f') ],
@@ -18,49 +21,55 @@ else:
           [ ('d','g'), ('e','g'), ('e','h'), ('e','i'), ('f','h') ],
           [ ('g','l'), ('h','j'), ('h','k') ],
         ]
+    
+    
+# =================================================================
+#  Layer Ordering
+# =================================================================
         
 def reorder_down(G, i):
     """ """
-    print '(Reorder Down)'
+    if dbg_reorder: print '(Reorder Down)'
     M = Matrix( G.vertices[i], G.vertices[i+1], G.edges[i] )
-    print "Before", M
+    if dbg_reorder: print "Before", M
     M.barycentre_col_reorder()
     G.vertices[i+1] = M.col_vertices
-    print "After", M
+    if dbg_reorder: print "After", M
   
 def reorder_up(G, i):
     """ """
-    print '(Reorder Up)'
-    print '  ', G.vertices[i] 
-    print '  ', G.vertices[i-1]
-    print '  ', G.edges[i-1]
+    if dbg_reorder: 
+        print '(Reorder Up)'
+        print '  ', G.vertices[i] 
+        print '  ', G.vertices[i-1]
+        print '  ', G.edges[i-1]
     M = Matrix( G.vertices[i-1], G.vertices[i], G.edges[i-1] )
-    print "Before", M
+    if dbg_reorder: print "Before", M
     M.barycentre_row_reorder()
     G.vertices[i-1] = M.row_vertices
-    print "After", M
+    if dbg_reorder: print "After", M
         
 def phase_1_down(G):
     """ """
-    print '(Phase 1 Down)'
+    if dbg_reorder: print '(Phase 1 Down)'
     for i in xrange(0, G.c_levels-1):
-        print " Layer", i
+        if dbg_reorder: print " Layer", i
         reorder_down(G, i )
         
                
 def phase_1_up(G):
     """ """
-    print '(Phase 1 Up)'
+    if dbg_reorder: print '(Phase 1 Up)'
     for i in xrange(G.c_levels-1, 0, -1):
-        print " Layer", i
+        if dbg_reorder: print " Layer", i
         reorder_up(G, i)
 
 def phase_1_down_up(G):
     """ """
-    print '(Phase 1 Down/Up)'
+    if dbg_reorder: print '(Phase 1 Down/Up)'
     K = 10
     for i in xrange(1, K):
-        print " Iteration", i
+        if dbg_reorder: print " Iteration", i
         phase_1_down(G)
         phase_1_up(G)
     
@@ -70,6 +79,10 @@ def multilayer_bc_method(G):
     
     phase_1_down_up(G)
     
+    
+# =================================================================
+#  Horizontal Placement
+# =================================================================
 
 if __name__ == '__main__':
     
@@ -77,4 +90,8 @@ if __name__ == '__main__':
     print G1
     multilayer_bc_method(G1)
     print G1
+    
+    horz_pos = priority_layout(G1)
+    
+    
     
