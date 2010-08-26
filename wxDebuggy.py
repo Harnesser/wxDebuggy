@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
 This is for git. Probably will abandon this branch.
+More changes, hopefully gitg will draw a nice picture.
 """
 #  * Reads in verilog files and displays schematics and hierarchy -DONE
 #  * A splitter window, left = hier tree, right = autogen schematics -DONE
