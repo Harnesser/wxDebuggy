@@ -107,6 +107,32 @@ def priority_layout(G):
     # Initial placement
     layout = initial_layout(G)
     
+    # Gather the connectivity measures
+    # Dummy nodes aren't taken into account yet
+    G.calc_lower_connectivities()
+    G.calc_upper_connectivities()
+    
+    print "number of layers:", G.c_levels
+
+    print "DOWN"
+    for i in xrange(1, G.c_levels):
+        print i, G.vertices[i]
+
+        priorities = G.upper_priorites[i-1]
+        barycentres =         
+        
+    print "UP"
+    for i in xrange(G.c_levels-2,-1,-1 ):
+        print i, G.vertices[i]
+        
+
+    print "DOWN"
+    for i in xrange(1, G.c_levels ):
+        print i, G.vertices[i]
+        
+    
+    
+    
 if __name__ == '__main__':
     
     G1 = Graph(V, E)
