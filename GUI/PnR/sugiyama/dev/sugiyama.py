@@ -99,6 +99,7 @@ def initial_layout(G):
     print layout
     return layout
     
+    
 def priority_layout(G):
     """ Horizontal Coordinate Assignment using Priorty Layout Method. 
     Section IV:B of Sugiyama's paper.
@@ -110,16 +111,17 @@ def priority_layout(G):
     # Gather the connectivity measures
     # Dummy nodes aren't taken into account yet
     G.calc_lower_connectivities()
-    G.calc_upper_connectivities()
+    G.calc_upper_connectivities() 
     
     print "number of layers:", G.c_levels
 
     print "DOWN"
+    
     for i in xrange(1, G.c_levels):
         print i, G.vertices[i]
-
-        priorities = G.upper_priorites[i-1]
-        barycentres =         
+        
+        priorities = G.upper_connectivities[i-1]
+        #barycentres =         
         
     print "UP"
     for i in xrange(G.c_levels-2,-1,-1 ):
@@ -139,7 +141,8 @@ if __name__ == '__main__':
     print G1
     multilayer_bc_method(G1)
     print G1
-    
+    print "ASDFADF", G1.matrices
+    G1.build_connection_matrices()
     horz_pos = priority_layout(G1)
     
     

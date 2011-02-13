@@ -34,7 +34,6 @@ class Graph(object):
         for i in xrange(self.c_levels-1):
             M = Matrix( self.vertices[i], self.vertices[i+1], self.edges[i] )
             self.matrices.append(M)
-            print i, M
    
             
     def calc_lower_connectivities(self):
@@ -45,7 +44,7 @@ class Graph(object):
         for M in self.matrices:
             connectivities = [ sum(x) for x in M.M ]
             self.lower_connectivities.append(connectivities)
-            
+
                             
     def calc_upper_connectivities(self):    
         """ Calculate the Lower Connectivites for each layer.
@@ -54,7 +53,7 @@ class Graph(object):
         http://stackoverflow.com/questions/3223043
         """
 
-        self.upper_connectivities = []
+        self.upper_connectivities = [ [] ] # extra level to keep indices consistent
         for M in self.matrices:
             connectivities = [ sum(x) for x in zip(*M.M) ]
             self.upper_connectivities.append(connectivities)
