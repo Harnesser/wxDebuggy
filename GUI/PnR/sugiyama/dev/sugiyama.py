@@ -84,7 +84,7 @@ def multilayer_bc_method(G):
 #  Horizontal Placement
 # =================================================================
 
-def initial_layout(G):
+def initial_layout(G, debug=True):
     k0 = 0
     layout = []
     for layer in G.vertices:
@@ -95,8 +95,9 @@ def initial_layout(G):
             i += 1
          layout.append(layer_positions)
          
-    print G.vertices
-    print layout
+    if debug:
+        print G.vertices
+        print layout
     return layout
     
 def order_by_priority( priorities_by_position ):
@@ -108,10 +109,7 @@ def order_by_priority( priorities_by_position ):
         l.append( [priorities_by_position[i], i ] )
     l.sort(reverse=True)
     ordered = [ p_i[1] for p_i in l ] 
-    
-    print "In:", priorities_by_position
-    print "Out:", ordered
-    
+
     return ordered
 
 
@@ -154,7 +152,7 @@ def shift_close_to_ideal_pos(j, k, x_ideal, x_pos ):
     return x_pos
     
 
-def priority_layout(G):
+def _priority_layout(G, debug=False):
     """ Horizontal Coordinate Assignment using Priorty Layout Method. 
     Section IV:B of Sugiyama's paper.
     """
@@ -171,8 +169,9 @@ def priority_layout(G):
     
     # List layers we're going to cycle thru
     L = range(1, c_layers ) + range(c_layers-2,-1,-1) + range(t, c_layers)
-    print "Layers:", c_layers
-    print "L:", L
+    if debug:
+        print "Layers:", c_layers
+        print "L:", L
     
     for a in range( len(L) ):
         i = L[a]    
@@ -187,10 +186,11 @@ def priority_layout(G):
             x_ideal = G.calc_upper_barycentres(i, layout[i-1])
 
         j_by_priority = order_by_priority( priorities )                    
-            
-        print "a = %d, i = %d, DOWN? = %s" % (a, i, up)
-        print "X Positions:" 
-        print layout
+    
+        if debug:        
+            print "a = %d, i = %d, DOWN? = %s" % (a, i, up)
+            print "X Positions:" 
+            print layout
         
         #  Go thru the vertices in this layer in order and if they can be
         # moved to their ideal position, move them.
@@ -227,13 +227,31 @@ def priority_layout(G):
 
             elif x_offset > 0:
                 # Vertex is to left of where we want it
-                print "NO left shift yet!"
+                if debug:
+                    print "NO left shift yet!"
                 pass
                 
             else:
                 # It's exactly where we want it            
                 pass
+
+        yield layout
+
+
+def priority_layout(G):
+    x = _priority_layout(G)
+    for layout in x:
+        print "__---____---___---__----______---_--_"
+        for layer in layout:
+            print "  ", layer
+            
+            for x in layer:
+                if x <= 0:
+                    print "ERROR: position <= 0"
                 
+            for i in range(1, len(layer) ):
+                if layer[i] - layer[i-1] <= 0:
+                    print "ERROR: not monotonic"       
                     
                 
 if __name__ == '__main__':
