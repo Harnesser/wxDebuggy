@@ -63,7 +63,7 @@ class Graph(object):
     #  Barycentres
     # ===========================================================
                   
-    def calc_upper_barycentres(self, i, upper_x_positions, debug=True):
+    def calc_upper_barycentres(self, i, upper_x_positions, debug=False):
         """ Calculate the upper connectivity of layer i.
         Equation (11) in Sugiyama's Paper.
         """        
@@ -88,7 +88,7 @@ class Graph(object):
         return upper_barycentres
         
         
-    def calc_lower_barycentres(self, i, lower_x_positions, debug = True ):
+    def calc_lower_barycentres(self, i, lower_x_positions, debug=False ):
         """ Calculate the lower connectivities of each vertex in layer i.
         Equation (12) in Sugiyama's paper.
         """
