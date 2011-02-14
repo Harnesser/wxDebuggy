@@ -66,14 +66,12 @@ class Graph(object):
     def calc_upper_barycentres(self, i, upper_x_positions, debug=True):
         """ Calculate the upper connectivity of layer i.
         Equation (11) in Sugiyama's Paper.
-        """
-        
+        """        
         p = len(self.vertices[i-1])
         M = self.matrices[i-1].M       
         upper_barycentres = []
-        
+
         for k in xrange(len(self.vertices[i])): # sweep vertices in layer i
-        
             barycentre = 0.0
            
             for j in xrange(p): # sweep vertices in layer i-1
@@ -94,7 +92,6 @@ class Graph(object):
         """ Calculate the lower connectivities of each vertex in layer i.
         Equation (12) in Sugiyama's paper.
         """
-        
         q = len(self.vertices[i+1])
         M = self.matrices[i].M
         lower_barycentres = []
