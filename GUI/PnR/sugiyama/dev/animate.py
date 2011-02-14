@@ -53,8 +53,12 @@ class MainWindow(wx.Frame):
         self.vertices = []
         
         # Get next graph layout
-        layout = self.layout_iter.next()
-        
+        try:
+            layout = self.layout_iter.next()
+        except StopIteration:
+            self.timer.Stop()
+            return
+            
         for i in range(self.G1.c_levels):
             y_pos = 20 + ( i * 100 )
             for j in range( len(self.G1.vertices[i]) ):
