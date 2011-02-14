@@ -6,7 +6,7 @@ sys.path.append('../../')
 import dev as sugiyama
 import unittest
 
-class MatrixBasicOperations( unittest.TestCase ):
+class GraphConnectivityOperations( unittest.TestCase ):
 
     def setUp(self):
     
@@ -23,7 +23,8 @@ class MatrixBasicOperations( unittest.TestCase ):
         G.build_connection_matrices()
         G.calc_upper_connectivities()
         
-        expected = [ [2, 1, 1, 2],
+        expected = [ [],            # this is to keep indexing sweet
+                     [2, 1, 1, 2],
                      [2, 1, 1, 2],
                      [3, 1, 1] ]
                      

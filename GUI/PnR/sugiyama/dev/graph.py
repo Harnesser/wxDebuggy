@@ -63,12 +63,13 @@ class Graph(object):
     #  Barycentres
     # ===========================================================
                   
-    def calc_upper_barycenters(self, i, upper_x_positions, debug=True):
+    def calc_upper_barycentres(self, i, upper_x_positions, debug=True):
         """ Calculate the upper connectivity of layer i.
         Equation (11) in Sugiyama's Paper.
         """
         
         p = len(self.vertices[i-1])
+        M = self.matrices[i-1].M       
         upper_barycentres = []
         
         for k in xrange(len(self.vertices[i])): # sweep vertices in layer i
@@ -76,10 +77,11 @@ class Graph(object):
             barycentre = 0.0
            
             for j in xrange(p): # sweep vertices in layer i-1
-                barycentre += self.matrices[i-1][j][k] * upper_x_positions[j]
-            
-            barycentre /= self.upper_connectivities[i][k]
-            upper_barycentres.append(barycentre)    
+                barycentre += M[j][k] * upper_x_positions[j]
+
+            if barycentre:            
+                barycentre /= self.upper_connectivities[i][k]
+            upper_barycentres.append( int(barycentre) )    
         
         if debug:
             print "Upper barycenters for layer", i
@@ -87,6 +89,31 @@ class Graph(object):
             
         return upper_barycentres
         
+        
+    def calc_lower_barycentres(self, i, lower_x_positions, debug = True ):
+        """ Calculate the lower connectivities of each vertex in layer i.
+        Equation (12) in Sugiyama's paper.
+        """
+        
+        q = len(self.vertices[i+1])
+        M = self.matrices[i].M
+        lower_barycentres = []
+        
+        for k in xrange(len(self.vertices[i])):
+            barycentre = 0.0
+            
+            for l in xrange(q):
+                barycentre += M[k][l] * lower_x_positions[l]
+                
+            if barycentre:
+                barycentre /= self.lower_connectivities[i][k]
+            lower_barycentres.append( int(barycentre) )
+            
+        if debug:
+            print "Lower barycentres for layer i", i
+            print "  ", lower_barycentres
+            
+        return lower_barycentres
         
         
     def __str__(self):
