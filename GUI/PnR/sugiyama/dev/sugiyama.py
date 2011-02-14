@@ -74,12 +74,6 @@ def phase_1_down_up(G):
         phase_1_up(G)
     
     
-def multilayer_bc_method(G):
-    """ Implementation of the Multilayer Barycentre Method. """
-    
-    phase_1_down_up(G)
-    
-    
 # =================================================================
 #  Horizontal Placement
 # =================================================================
@@ -252,15 +246,13 @@ def priority_layout(G):
             for i in range(1, len(layer) ):
                 if layer[i] - layer[i-1] <= 0:
                     print "ERROR: not monotonic"       
-                    
+    return layout     
+            
                 
 if __name__ == '__main__':
     
     G1 = Graph(V, E)
     print G1
-    multilayer_bc_method(G1)
-    print G1
-    print "ASDFADF", G1.matrices
     G1.build_connection_matrices()
     horz_pos = priority_layout(G1)
     
