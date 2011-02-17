@@ -123,13 +123,14 @@ def get_indices_with_higher_priorities( j, priorities, direction ):
     return S
     
     
-def shift_over_to_ideal_pos(j, x_ideal, x_pos ):
+def shift_left_to_ideal(j, x_ideal, x_pos ):
     """ """
     x_pos[j] = x_ideal
     l = 1
     while x_pos[j-l] > x_ideal-l:
+        print "Shifting ideal"
         x_pos[j-l] = x_ideal-l
-        if l < j-1:
+        if l <= j-1:
             l += 1
         else:
             break
@@ -137,16 +138,42 @@ def shift_over_to_ideal_pos(j, x_ideal, x_pos ):
     return x_pos
 
 
-def shift_close_to_ideal_pos(j, k, x_ideal, x_pos ):
+def shift_left_to_near_ideal(j, k, x_ideal, x_pos ):
     """ """
     l = 1
-    while j-k < l:
+    while l <= j-k:
+        print "Shifting close"
         x_pos[k+l] = x_pos[k] + l
         l += 1
     return x_pos
     
+    
+def shift_right_to_ideal(j, x_ideal, x_pos ):
+    """ """
+    x_pos[j] = x_ideal
+    l = 1
+    while x_pos[j+l] < x_ideal+l:
+        print "Shifting right ideal"
+        x_pos[j+l] = x_ideal+l
+        if l < len(x_pos)-j-1:
+            l += 1
+        else:
+            break
+    
+    return x_pos
 
-def _priority_layout(G, debug=False):
+
+def shift_right_to_near_ideal(j, k, x_ideal, x_pos ):
+    """ """
+    l = 1
+    while l <= k-j:
+        print "Shifting right close"
+        x_pos[k-l] = x_pos[k] - l
+        l += 1
+    return x_pos
+    
+    
+def _priority_layout(G, debug=True):
     """ Horizontal Coordinate Assignment using Priorty Layout Method. 
     Section IV:B of Sugiyama's paper.
     """
@@ -170,6 +197,7 @@ def _priority_layout(G, debug=False):
     for a in range( len(L) ):
         i = L[a]    
         x_pos = layout[i]
+        c_nodes = len(x_pos)
         
         up = ( c_layers-1 <= a <= (2*(c_layers-1) - 1) )
         priorities = G.lower_connectivities[i] if up else G.upper_connectivities[i]
@@ -182,10 +210,10 @@ def _priority_layout(G, debug=False):
         j_by_priority = order_by_priority( priorities )                    
     
         if debug:        
-            print "a = %d, i = %d, DOWN? = %s" % (a, i, up)
-            print "X Positions:" 
-            print layout
-        
+            print "a = %d, i = %d, UP? = %s" % (a, i, up)
+            print "  X Positions:", x_pos
+            print "  Priorities :", priorities 
+            print "  Ideal Pos  :", x_ideal
         #  Go thru the vertices in this layer in order and if they can be
         # moved to their ideal position, move them.
         for j in j_by_priority:
@@ -197,6 +225,7 @@ def _priority_layout(G, debug=False):
             
                 # If the vertex is the leftmost, we're free to move it to wherever
                 if j == 1:
+                    print "Moving to ideal"
                     x_pos[j] = x_ideal[j]
                     
                 else:    
@@ -210,20 +239,41 @@ def _priority_layout(G, debug=False):
                         # Is this higher priority vertex in the way?
                         can_move_to_ideal = ( x_pos[k] < x_ideal[j] + k - j - 1 )
                         if can_move_to_ideal:
-                            layout[i] = shift_over_to_ideal_pos(j, x_ideal[j], x_pos[:])
+                            layout[i] = shift_left_to_ideal(j, x_ideal[j], x_pos[:])
                         else:
-                            layout[i] = shift_close_to_ideal_pos(j, k, x_ideal[j], x_pos[:])
+                            layout[i] = shift_left_to_near_ideal(j, k, x_ideal[j], x_pos[:])
                     else:
                         #  No higher priority vertices to the left - we're free 
                         # to shift things
-                        layout[i] = shift_over_to_ideal_pos(j, x_ideal[j], x_pos[:])
+                        layout[i] = shift_left_to_ideal(j, x_ideal[j], x_pos[:])
 
 
             elif x_offset > 0:
                 # Vertex is to left of where we want it
-                if debug:
-                    print "NO left shift yet!"
-                pass
+            
+                # If the vertex is the rightmost, we're free to move it to wherever
+                if j == c_nodes-1:
+                    print "Moving to ideal"
+                    x_pos[j] = x_ideal[j]
+                    
+                else:    
+                    # Figure out how far right we can shift the vertex
+                    S = get_indices_with_higher_priorities(j, priorities, 'right')
+                    if S :
+                        #  There are higher priority vertices to the right, find 
+                        # the leftmost - this one can't be moved.
+                        k = max(S)
+                        
+                        # Is this higher priority vertex in the way?
+                        can_move_to_ideal = ( x_pos[k] > x_ideal[j] + k - j - 1 )
+                        if can_move_to_ideal:
+                            layout[i] = shift_right_to_ideal(j, x_ideal[j], x_pos[:])
+                        else:
+                            layout[i] = shift_right_to_near_ideal(j, k, x_ideal[j], x_pos[:])
+                    else:
+                        #  No higher priority vertices to the left - we're free 
+                        # to shift things
+                        layout[i] = shift_right_to_ideal(j, x_ideal[j], x_pos[:])
                 
             else:
                 # It's exactly where we want it            
