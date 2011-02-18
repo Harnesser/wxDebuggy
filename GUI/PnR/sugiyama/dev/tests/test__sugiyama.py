@@ -57,3 +57,53 @@ class SugiyamaOperations( unittest.TestCase ):
         shifted = sugiyama.shift_right_to_near_ideal(j=1, k=3, x_ideal=14, x_pos=x_pos)
         self.assertEquals( shifted, expected )
     
+    ##
+    ## Priority searching
+    ##
+    
+    # To the left
+    def test__priorities_left_none(self):
+        pri = [ 1, 1, 2, 3, 2, 1, 1 ]
+        p = sugiyama.get_indices_with_higher_priorities( 
+            j=3, priorities=pri, direction='left')
+        self.assertEquals( p, [] )
+    
+    def test__priorities_left_some(self):
+        pri = [ 1, 1, 2, 3, 2, 1, 1 ]
+        p = sugiyama.get_indices_with_higher_priorities( 
+            j=4, priorities=pri, direction='left')
+        self.assertEquals( p, [2,3] )
+    
+    def test__priorities_left_same(self):
+        pri = [ 1, 1, 2, 3, 2, 1, 1 ]
+        p = sugiyama.get_indices_with_higher_priorities( 
+            j=1, priorities=pri, direction='left')
+        self.assertEquals( p, [0] )    
+    
+    
+    # To the right
+    def test__priorities_right_none(self):
+        pri = [ 1, 1, 2, 3, 2, 1, 1 ]
+        p = sugiyama.get_indices_with_higher_priorities( 
+            j=3, priorities=pri, direction='right')
+        self.assertEquals( p, [] )
+    
+    def test__priorities_right_some(self):
+        pri = [ 1, 1, 2, 3, 2, 1, 1 ]
+        p = sugiyama.get_indices_with_higher_priorities( 
+            j=2, priorities=pri, direction='right')
+        self.assertEquals( p, [3,4] )
+    
+    def test__priorities_right_same(self):
+        pri = [ 1, 1, 2, 3, 2, 1, 1 ]
+        p = sugiyama.get_indices_with_higher_priorities( 
+            j=5, priorities=pri, direction='right')
+        self.assertEquals( p, [6] )        
+    
+    
+    
+    
+    
+    
+    
+    

@@ -118,7 +118,7 @@ def get_indices_with_higher_priorities( j, priorities, direction ):
     else:
         s_to_check = []
         
-    S = [ s for s in s_to_check if priorities[s] > priorities[j] ]
+    S = [ s for s in s_to_check if priorities[s] >= priorities[j] ]
     
     return S
     
