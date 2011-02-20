@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-""" Sugiyama Stuff """
+""" Sugiyama Trials with some graphs """
 
 import sys
 sys.path.append('../../')
@@ -7,103 +7,154 @@ sys.path.append('../../')
 import dev.sugiyama as sugiyama
 import unittest
 
-class SugiyamaOperations( unittest.TestCase ):
+class SugiyamaGraphs( unittest.TestCase ):
 
-    ##
-    ## Left Shifts
-    ##
-    def test__shift_left_to_ideal_all(self):
-        x_pos    = [ 1, 2, 3, 4, 5, 6 ]
-        expected = [ -4, -3, -2, -1, 0, 1 ]
-        shifted = sugiyama.shift_left_to_ideal(j=5, x_ideal=1, x_pos=x_pos)
-        self.assertEquals( shifted, expected )
+    def setup_graph(self, V, E):
+        G = sugiyama.Graph( V, E )
+        G.build_connection_matrices()
+        G.calc_upper_connectivities()
+        G.calc_lower_connectivities()
+        print "#" * 80
+        return G
         
-    def test__shift_left_to_ideal(self):
-        x_pos    = [ -7, -6,  5,  6,  7, 8 ]
-        expected = [ -7, -6, -2, -1, 0, 1]
-        shifted = sugiyama.shift_left_to_ideal(j=5, x_ideal=1, x_pos=x_pos)
-        self.assertEquals( shifted, expected )
+    def test__2_layer_2_vertices(self):
+        """ Layout of 2-layer, 2-vertice Graph.
+        Should get something like:
+           
+            A
+            |
+            B
+        """
+        V = [ list('a') , 
+              list('b') ]
+        E = [  [('a','b')],
+            ]
+            
+        G = self.setup_graph(V, E)
+        layout = sugiyama.priority_layout(G)
+        self.assertEquals(layout, [[1], [1]])
         
-#    def test__shift_left_to_ideal_leftmost(self):
-#        x_pos    = [ 2, 3, 4, 5, 6, 7 ]
-#        expected = [ 1, 3, 4, 5, 6, 7 ]
-#        shifted = sugiyama.shift_left_to_ideal(j=0, x_ideal=1, x_pos=x_pos)
-#        self.assertEquals( shifted, expected )    
-    
-    def test__shift_left_near_all(self):
-        x_pos    = [ 3, 4, 5, 10, 11, 12, 13]
-        expected = [ 3, 4, 5, 6,  7,  8,  9]
-        shifted = sugiyama.shift_left_to_near_ideal(j=6, k=2, x_ideal=1, x_pos=x_pos)
-        self.assertEquals( shifted, expected )
+
+    def test__3_layer_3_vertices(self):
+        """ Layout of 3-layer, 3-vertice Graph.
+        Should get something like:
+           
+            A
+            |
+            B
+            |
+            C
+        """
+        V = [ list('a') , 
+              list('b'),
+              list('c') ]
+        E = [  [('a','b')],
+               [('b','c')],
+            ]
+            
+        G = self.setup_graph(V, E)
+        layout = sugiyama.priority_layout(G)
+        self.assertEquals(layout, [[1], [1], [1]])    
+
         
-    ##
-    ## Right Shifts
-    ##
-    def test__shift_right_to_ideal_all(self):
-        x_pos    = [ 1, 2, 3, 4, 5, 6, 7]
-        expected = [ 4, 5, 6, 7, 8, 9, 10]
-        shifted = sugiyama.shift_right_to_ideal(j=0, x_ideal=4, x_pos=x_pos )
-        self.assertEquals( shifted, expected )
+    def test__2_layer_triangle(self):
+        """ Layout of 2-layer, 4-vertice Graph.
+        Should get something like:
+           
+            A
+           /|\
+          B C D
+        """
         
-    def test__shift_right_to_ideal(self):
-        x_pos    = [ 1, 2, 3, 4,  5,  6,  7,  8]
-        expected = [ 1, 2, 3, 9, 10, 11, 12, 13]
-        shifted = sugiyama.shift_right_to_ideal(j=3, x_ideal=9, x_pos=x_pos)
-        self.assertEquals( shifted, expected )
+        V = [ list('a'), 
+              list('bcd')
+            ]
+        E = [  [('a','b'), ('a','c'), ('a','d')]
+            ]
+                
+        G = self.setup_graph(V, E)
+        layout = sugiyama.priority_layout(G)
+        self.assertEquals(layout, [[2], [1,2,3]] )    
+
+    
+    def test__3_layer_ponzi(self):
+        """ Layout of a 3 layer ponzi scheme, two suckers per sucker
         
-    def test__shift_right_near_ideal(self):
-        x_pos    = [ 1,  2,  3, 12, 13, 14, 15, 16 ]
-        expected = [ 1, 10, 11, 12, 13 ,14 ,15 ,16 ]
-        shifted = sugiyama.shift_right_to_near_ideal(j=1, k=3, x_ideal=14, x_pos=x_pos)
-        self.assertEquals( shifted, expected )
+                    A
+                   / \
+                  B   C
+                 / \ / \
+                D  E F  G
+        """
+                
+        V = [ list('a'), 
+              list('bc'),
+              list('defg')
+            ]
+        E = [  [('a','b'), ('a','c')],
+               [('b','d'), ('b','e'), ('c','f'), ('c','g')]
+            ]
+                
+        G = self.setup_graph(V, E)
+        layout = sugiyama.priority_layout(G)
+        self.assertEquals(layout, [ [2], [2,3], [1,2,3,4] ] )            
+        
     
-    ##
-    ## Priority searching
-    ##
-    
-    # To the left
-    def test__priorities_left_none(self):
-        pri = [ 1, 1, 2, 3, 2, 1, 1 ]
-        p = sugiyama.get_indices_with_higher_priorities( 
-            j=3, priorities=pri, direction='left')
-        self.assertEquals( p, [] )
-    
-    def test__priorities_left_some(self):
-        pri = [ 1, 1, 2, 3, 2, 1, 1 ]
-        p = sugiyama.get_indices_with_higher_priorities( 
-            j=4, priorities=pri, direction='left')
-        self.assertEquals( p, [2,3] )
-    
-    def test__priorities_left_same(self):
-        pri = [ 1, 1, 2, 3, 2, 1, 1 ]
-        p = sugiyama.get_indices_with_higher_priorities( 
-            j=1, priorities=pri, direction='left')
-        self.assertEquals( p, [0] )    
-    
-    
-    # To the right
-    def test__priorities_right_none(self):
-        pri = [ 1, 1, 2, 3, 2, 1, 1 ]
-        p = sugiyama.get_indices_with_higher_priorities( 
-            j=3, priorities=pri, direction='right')
-        self.assertEquals( p, [] )
-    
-    def test__priorities_right_some(self):
-        pri = [ 1, 1, 2, 3, 2, 1, 1 ]
-        p = sugiyama.get_indices_with_higher_priorities( 
-            j=2, priorities=pri, direction='right')
-        self.assertEquals( p, [3,4] )
-    
-    def test__priorities_right_same(self):
-        pri = [ 1, 1, 2, 3, 2, 1, 1 ]
-        p = sugiyama.get_indices_with_higher_priorities( 
-            j=5, priorities=pri, direction='right')
-        self.assertEquals( p, [6] )        
-    
-    
-    
-    
-    
-    
+    def test__3_layer_inverse_ponzi(self):
+        """ Layout of a 3 layer inverted ponzi scheme, two suckers per sucker
+        
+                D  E F  G
+                 \ / \ /
+                  H   I
+                   \ /
+                    J                 
+        """
+                
+        V = [ list('defg'),
+              list('hi'),
+              list('j')
+            ]
+            
+        E = [ [ ('d','h'), ('e','h'), ('f','i'), ('g','i') ],
+              [ ('h','j'), ('i','j') ]
+            ]
+                
+        G = self.setup_graph(V, E)
+        layout = sugiyama.priority_layout(G)
+        self.assertEquals(layout, [ [1,2,3,4], [1,3], [2],] )            
+                
+                
+    def test__5_layer_diamond(self):
+        """ 5 layer Diamond
+        
+                    A
+                   / \
+                  B   C
+                 / \ / \
+                D  E F  G
+                 \ / \ /
+                  H   I
+                   \ /
+                    J          
+        """
+
+        V = [ list('a'), 
+              list('bc'),
+              list('defg'),
+              list('hi'),
+              list('j')
+            ]
+        E = [  [('a','b'), ('a','c')],
+               [('b','d'), ('b','e'), ('c','f'), ('c','g')],
+               [('d','h'), ('e','h'), ('f','i'), ('g','i')],
+               [('h','j'), ('i','j')]
+            ]
+                
+        G = self.setup_graph(V, E)
+        layout = sugiyama.priority_layout(G)
+        self.assertEquals(layout, [ [2], [2,3], [1,2,3,4], [1,3], [2] ] )            
+                
+        
+        
     
     

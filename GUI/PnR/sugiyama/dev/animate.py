@@ -5,6 +5,19 @@ import random
 import sugiyama
 import graph
 
+V = [ list('a'), 
+      list('bc'),
+      list('defg'),
+      list('hi'),
+      list('j')
+    ]
+E = [  [('a','b'), ('a','c')],
+       [('b','d'), ('b','e'), ('c','f'), ('c','g')],
+       [('d','h'), ('e','h'), ('f','i'), ('g','i')],
+       [('h','j'), ('i','j')]
+    ]
+                
+                
 class MainWindow(wx.Frame):
     def __init__(self, parent, title, size=wx.DefaultSize):
         wx.Frame.__init__(self, parent, wx.ID_ANY, title, wx.DefaultPosition, size)
@@ -30,6 +43,7 @@ class MainWindow(wx.Frame):
         
     def init_graph(self):
         self.G1 = graph.Graph( sugiyama.V, sugiyama.E)
+        #self.G1 = graph.Graph(V, E)
         print self.G1
         self.G1.build_connection_matrices()
         self.layout_iter = sugiyama._priority_layout(self.G1)
@@ -57,12 +71,13 @@ class MainWindow(wx.Frame):
             layout = self.layout_iter.next()
         except StopIteration:
             self.timer.Stop()
+            print "Done"
             return
             
         for i in range(self.G1.c_levels):
             y_pos = 20 + ( i * 100 )
             for j in range( len(self.G1.vertices[i]) ):
-                x_pos = layout[i][j] * 150 
+                x_pos = 200 + ( layout[i][j] * 150 )
                 self.vertices.append( [x_pos, y_pos, self.G1.vertices[i][j] ])
                 
         self.Refresh()

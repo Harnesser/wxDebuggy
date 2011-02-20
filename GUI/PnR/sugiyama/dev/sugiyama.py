@@ -218,31 +218,35 @@ def _priority_layout(G, debug=True):
         # moved to their ideal position, move them.
         for j in j_by_priority:
 
+            print "Moving j=%d (%s)" % (j, G.vertices[i][j] )
             x_offset = x_ideal[j] - x_pos[j]
             
             if x_offset < 0:
                 # Vertex is right of where we want it
-            
+                print "-Trying to move left (ideal = %d, actual=%d)" % (x_ideal[j], x_pos[j])
                 # If the vertex is the leftmost, we're free to move it to wherever
-                if j == 1:
-                    print "Moving to ideal"
+                if j == 0:
+                    print " - Moving to ideal"
                     x_pos[j] = x_ideal[j]
                     
                 else:    
                     # Figure out how far left we can shift the vertex
                     S = get_indices_with_higher_priorities(j, priorities, 'left')
+
                     if S :
+                        print " - Higher priorities to left", S
                         #  There are higher priority vertices to the left, find 
                         # the rightmost - this one can't be moved.
                         k = max(S)
                         
                         # Is this higher priority vertex in the way?
-                        can_move_to_ideal = ( x_pos[k] < x_ideal[j] + k - j - 1 )
+                        can_move_to_ideal = ( x_pos[k] <= x_ideal[j] + k - j )
                         if can_move_to_ideal:
                             layout[i] = shift_left_to_ideal(j, x_ideal[j], x_pos[:])
                         else:
                             layout[i] = shift_left_to_near_ideal(j, k, x_ideal[j], x_pos[:])
                     else:
+                        print " - Nothing blocking..."
                         #  No higher priority vertices to the left - we're free 
                         # to shift things
                         layout[i] = shift_left_to_ideal(j, x_ideal[j], x_pos[:])
@@ -250,33 +254,38 @@ def _priority_layout(G, debug=True):
 
             elif x_offset > 0:
                 # Vertex is to left of where we want it
-            
+                print "-Trying to move right (ideal = %d, actual=%d)" % (x_ideal[j], x_pos[j])
+                
                 # If the vertex is the rightmost, we're free to move it to wherever
                 if j == c_nodes-1:
-                    print "Moving to ideal"
+                    print " - Moving to ideal"
                     x_pos[j] = x_ideal[j]
                     
                 else:    
                     # Figure out how far right we can shift the vertex
                     S = get_indices_with_higher_priorities(j, priorities, 'right')
+                    
                     if S :
+                        print " - Higher priorities to left", S
                         #  There are higher priority vertices to the right, find 
                         # the leftmost - this one can't be moved.
-                        k = max(S)
+                        k = min(S)
                         
                         # Is this higher priority vertex in the way?
-                        can_move_to_ideal = ( x_pos[k] > x_ideal[j] + k - j - 1 )
+                        can_move_to_ideal = ( x_pos[k] >= x_ideal[j] + k - j )
                         if can_move_to_ideal:
                             layout[i] = shift_right_to_ideal(j, x_ideal[j], x_pos[:])
                         else:
                             layout[i] = shift_right_to_near_ideal(j, k, x_ideal[j], x_pos[:])
                     else:
+                        print " - Nothing blocking..."
                         #  No higher priority vertices to the left - we're free 
                         # to shift things
                         layout[i] = shift_right_to_ideal(j, x_ideal[j], x_pos[:])
                 
             else:
-                # It's exactly where we want it            
+                # It's exactly where we want it          
+                print " - is grand where it is."  
                 pass
 
         yield layout
@@ -289,10 +298,6 @@ def priority_layout(G):
         for layer in layout:
             print "  ", layer
             
-            for x in layer:
-                if x <= 0:
-                    print "ERROR: position <= 0"
-                
             for i in range(1, len(layer) ):
                 if layer[i] - layer[i-1] <= 0:
                     print "ERROR: not monotonic"       
