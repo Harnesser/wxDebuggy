@@ -155,6 +155,29 @@ class SugiyamaGraphs( unittest.TestCase ):
         self.assertEquals(layout, [ [2], [2,3], [1,2,3,4], [1,3], [2] ] )            
                 
         
+    def test__something(self):
+        """ Something."""
         
+        V = [ list('ab'), list('cdefg'), list('hij'), list('klm'), list('no'), list('p') ]
+        
+        Es = [ 'ac:ad:ae:be:bf:bg', 'ch:ei:gj', 'hk:il:jl:jm', 'ln:mo', 'np:op' ]
+        E = []
+        for e in Es:
+            i_edges = []
+            for edge in e.split(':'):
+                i_edges.append( tuple(edge) )
+            E.append(i_edges)
+            
+        G = self.setup_graph(V, E)
+        layout = sugiyama.priority_layout(G)
+        self.assertEquals(layout, [ [    2,    4    ],
+                                    [ 1, 2, 3, 4, 5 ],
+                                    [ 1,    3,    5 ],
+                                    [ 1,       4, 5 ],
+                                    [          4, 5 ],
+                                    [          4    ]
+                                  ])            
+                
+                
     
     
