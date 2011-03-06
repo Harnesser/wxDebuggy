@@ -49,6 +49,7 @@ def reorder_up(G, i):
     G.vertices[i-1] = M.row_vertices
     if dbg_reorder: print "After", M
         
+        
 def phase_1_down(G):
     """ """
     if dbg_reorder: print '(Phase 1 Down)'
@@ -64,6 +65,7 @@ def phase_1_up(G):
         if dbg_reorder: print " Layer", i
         reorder_up(G, i)
 
+
 def phase_1_down_up(G):
     """ """
     if dbg_reorder: print '(Phase 1 Down/Up)'
@@ -72,6 +74,11 @@ def phase_1_down_up(G):
         if dbg_reorder: print " Iteration", i
         phase_1_down(G)
         phase_1_up(G)
+    
+        
+def multilayer_bc_method(G):
+    """ Implementation of the Multilayer Barycentre Method. """
+    phase_1_down_up(G)
     
     
 # =================================================================
