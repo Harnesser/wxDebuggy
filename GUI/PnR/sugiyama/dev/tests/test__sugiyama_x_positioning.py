@@ -7,7 +7,7 @@ sys.path.append('../../')
 import dev.sugiyama as sugiyama
 import unittest
 
-class SugiyamaGraphs( unittest.TestCase ):
+class SugiyamaXPositioning( unittest.TestCase ):
 
     def setup_graph(self, V, E):
         G = sugiyama.Graph( V, E )

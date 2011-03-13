@@ -6,4 +6,5 @@ from test__matrix_crossovers import *
 from test__matrix_barycentres import *
 from test__matrix_basics import *
 from test__sugiyama_basics import *
-from test__sugiyama import *
+from test__sugiyama_x_positioning import *
+from test__sugiyama_layer_reordering import *
