@@ -23,7 +23,13 @@ class Graph(object):
     def update(self):
         self.c_levels = len(self.vertices)
         assert( len(self.vertices) -1 == len(self.edges) )
-            
+           
+    def get_crossover_count(self):
+        c_crossovers = 0
+        for m in self.matrices:
+            c_crossovers += m.get_crossover_count()
+        return c_crossovers
+         
     # ===========================================================
     #  Connectivities
     # ===========================================================       
