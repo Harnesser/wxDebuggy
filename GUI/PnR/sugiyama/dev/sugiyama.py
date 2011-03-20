@@ -27,15 +27,26 @@ else:
 #  Layer Ordering
 # =================================================================
         
+# Down
 def reorder_down(G, i):
-    """ """
-    if dbg_reorder: print '(Reorder Down)'
-    M = Matrix( G.vertices[i], G.vertices[i+1], G.edges[i] )
-    if dbg_reorder: print "Before", M
-    M.barycentre_col_reorder()
-    G.vertices[i+1] = M.col_vertices
-    if dbg_reorder: print "After", M
+    """ Reorder a Graph Layer. """
+    M_star = G.matrices[i]
+    M1 = M_star.copy()
+    M1.barycentre_col_reorder()
+    if M1.get_crossover_count() < M_star.get_crossover_count():
+        G.matrices[i] = M1    
+        G.vertices[i+1] = M1.col_vertices
   
+
+def phase_1_down(G):
+    """ """
+    if dbg_reorder: print '(Phase 1 Down)'
+    for i in xrange(0, G.c_levels-1):
+        if dbg_reorder: print " Layer", i
+        reorder_down(G, i )
+        
+        
+# Up     
 def reorder_up(G, i):
     """ """
     if dbg_reorder: 
@@ -50,13 +61,7 @@ def reorder_up(G, i):
     if dbg_reorder: print "After", M
         
         
-def phase_1_down(G):
-    """ """
-    if dbg_reorder: print '(Phase 1 Down)'
-    for i in xrange(0, G.c_levels-1):
-        if dbg_reorder: print " Layer", i
-        reorder_down(G, i )
-        
+
                
 def phase_1_up(G):
     """ """
@@ -66,20 +71,26 @@ def phase_1_up(G):
         reorder_up(G, i)
 
 
-def phase_1_down_up(G):
-    """ """
-    if dbg_reorder: print '(Phase 1 Down/Up)'
-    K = 10
+        
+def multilayer_bc_method(G, K=10):
+    """ Implementation of Sugiyama's n-Level Barycentre Method. 
+    
+    The input to this algorithm is a layered graph, where the vertices in each 
+    layer are ordered, but likely not in an order which minimises the edge 
+    crossover count of the graph.
+    
+    The n-Level BC method is a heuristic algorithm that attempts to reorder the
+    vertices within each layer to minimise edge crossovers in the graph. It 
+    operates by sweeping down and up the graph, reordering one layer at a time
+    - fixing the position of one layer and using a heuristic to reorder the other
+    layer to minimize crossings.
+    """
+
     for i in xrange(1, K):
         if dbg_reorder: print " Iteration", i
         phase_1_down(G)
         phase_1_up(G)
-    
-        
-def multilayer_bc_method(G):
-    """ Implementation of the Multilayer Barycentre Method. """
-    phase_1_down_up(G)
-    
+
     
 # =================================================================
 #  Horizontal Placement
