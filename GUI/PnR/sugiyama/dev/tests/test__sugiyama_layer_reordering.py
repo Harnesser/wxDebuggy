@@ -30,7 +30,7 @@ class SugiyamaLayerReordering( unittest.TestCase ):
             print G.matrices[i]
         print "Crossover Count: ", G.get_crossover_count()
         
-        
+
     def test__reorder_down_easy(self):
         """ Reorder downwards one layer of a graph. """
         
@@ -70,7 +70,7 @@ class SugiyamaLayerReordering( unittest.TestCase ):
     def test__down_procedure_xover_count(self):
         """ Check out a full down procedure. """
         
-        print "=== DOWN Procedure ==="
+        print "=== Phase 1 DOWN Procedure ==="
         G = self.setup_graph(self.V, self.E)
         self.assertEquals( G.get_crossover_count(), 8 )
         
@@ -83,13 +83,39 @@ class SugiyamaLayerReordering( unittest.TestCase ):
     def test__down_procedure_conn_matrix_consistency(self):
         """ Check out a full down procedure - Matrix consistency. """
         
-        print "=== DOWN Procedure ==="
+        print "=== Phase 1 DOWN Procedure  (Consistency) ==="
         G = self.setup_graph(self.V, self.E)
         self.assertEquals( G.get_crossover_count(), 8 )
         
         sugiyama.phase_1_down(G)
         self.assertTrue( G.check_consistency() )
 
+
+
+    def test__up_procedure_xover_count(self):
+        """ Check out a full up procedure. """
+        
+        print "=== Phase 1 UP Procedure ==="
+        G = self.setup_graph(self.V, self.E)
+        self.assertEquals( G.get_crossover_count(), 8 )
+        
+        sugiyama.phase_1_up(G)
+        self.show_conn_matrices(G)
+        
+        self.assertEquals( G.get_crossover_count(), 5)
+        
+        
+    def test__up_procedure_conn_matrix_consistency(self):
+        """ Check out a full up procedure - Matrix consistency. """
+        
+        print "=== Phase 1 UP Procedure (Consistency)==="
+        G = self.setup_graph(self.V, self.E)
+        self.assertEquals( G.get_crossover_count(), 8 )
+        
+        sugiyama.phase_1_up(G)
+        self.assertTrue( G.check_consistency() )
+        
+        
                 
     def test__2_layer_1(self):
         """ Untangle a simple graph #1:

@@ -44,7 +44,6 @@ def reorder_down(G, i):
 def phase_1_down(G):
     """ Phase 1 Down Procedure"""
     for i in xrange(0, G.c_levels-1):
-        if dbg_reorder: print " Layer", i
         reorder_down(G, i )
         
         
@@ -52,7 +51,6 @@ def phase_1_down(G):
 def reorder_up(G, i):
     """ """
     M_star = Matrix( G.vertices[i-1], G.vertices[i], G.edges[i-1] )
-    M_star = G.matrices[i-1]
     M1 = M_star.copy()
     M1.barycentre_row_reorder()
     if M1.get_crossover_count() < M_star.get_crossover_count():
@@ -65,10 +63,8 @@ def reorder_up(G, i):
 
                
 def phase_1_up(G):
-    """ """
-    if dbg_reorder: print '(Phase 1 Up)'
+    """  Phase 1 Up Procedure"""
     for i in xrange(G.c_levels-1, 0, -1):
-        if dbg_reorder: print " Layer", i
         reorder_up(G, i)
 
 
