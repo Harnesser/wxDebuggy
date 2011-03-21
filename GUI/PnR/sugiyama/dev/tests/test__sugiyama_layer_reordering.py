@@ -20,15 +20,15 @@ class SugiyamaLayerReordering( unittest.TestCase ):
     def setup_graph(self, V, E):
         G = sugiyama.Graph( V, E )
         G.build_connection_matrices()
-        #G.calc_upper_connectivities()
-        #G.calc_lower_connectivities()
-        print G.get_crossover_count()
+        self.show_conn_matrices(G)
+        return G
+        
+
+    def show_conn_matrices(self, G):
         print "#" * 80
         for i in xrange(G.c_levels-1):
             print G.matrices[i]
-        for v in V:
-            print "Vertices: ", v
-        return G
+        print "Crossover Count: ", G.get_crossover_count()
         
         
     def test__reorder_down_easy(self):
@@ -67,7 +67,30 @@ class SugiyamaLayerReordering( unittest.TestCase ):
         self.assertEquals( G.vertices[i_layer-1], list('fced') )
         
                 
+    def test__down_procedure_xover_count(self):
+        """ Check out a full down procedure. """
         
+        print "=== DOWN Procedure ==="
+        G = self.setup_graph(self.V, self.E)
+        self.assertEquals( G.get_crossover_count(), 8 )
+        
+        sugiyama.phase_1_down(G)
+        self.show_conn_matrices(G)
+        
+        self.assertEquals( G.get_crossover_count(), 2)
+        
+        
+    def test__down_procedure_conn_matrix_consistency(self):
+        """ Check out a full down procedure - Matrix consistency. """
+        
+        print "=== DOWN Procedure ==="
+        G = self.setup_graph(self.V, self.E)
+        self.assertEquals( G.get_crossover_count(), 8 )
+        
+        sugiyama.phase_1_down(G)
+        self.assertTrue( G.check_consistency() )
+
+                
     def test__2_layer_1(self):
         """ Untangle a simple graph #1:
 

@@ -64,7 +64,20 @@ class Graph(object):
             connectivities = [ sum(x) for x in zip(*M.M) ]
             self.upper_connectivities.append(connectivities)
             
-            
+    def check_consistency(self):
+        """ Check consistency of row and column orders of connection matrices.
+        For example, if the cols of matrices[0] == ['a','b,'c'], return False
+        if the rows of matrice[1] not the same.
+        """
+        for i in xrange(1,self.c_levels-1):
+            if self.matrices[i-1].col_vertices != self.matrices[i].row_vertices:
+                print "Row vs Col order mismatch between matrices %d & %d" % (i-1, i)
+                return False
+            if self.matrices[i].row_vertices != self.vertices[i]:
+                print "Row %d vertices in matrix mismatch between Graph version" % (d)
+                return False
+        return True
+        
     # ===========================================================
     #  Barycentres
     # ===========================================================
