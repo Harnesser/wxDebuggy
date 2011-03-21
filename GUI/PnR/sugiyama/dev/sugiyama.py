@@ -49,17 +49,12 @@ def phase_1_down(G):
 # Up     
 def reorder_up(G, i):
     """ """
-    if dbg_reorder: 
-        print '(Reorder Up)'
-        print '  ', G.vertices[i] 
-        print '  ', G.vertices[i-1]
-        print '  ', G.edges[i-1]
-    M = Matrix( G.vertices[i-1], G.vertices[i], G.edges[i-1] )
-    if dbg_reorder: print "Before", M
-    M.barycentre_row_reorder()
-    G.vertices[i-1] = M.row_vertices
-    if dbg_reorder: print "After", M
-        
+    M_star = G.matrices[i-1]
+    M1 = M_star.copy()
+    M1.barycentre_row_reorder()
+    if M1.get_crossover_count() < M_star.get_crossover_count():
+        G.matrices[i-1] = M1
+        G.vertices[i-1] = M1.row_vertices
         
 
                
