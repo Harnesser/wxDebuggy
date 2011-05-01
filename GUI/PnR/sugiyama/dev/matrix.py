@@ -246,14 +246,16 @@ class Matrix(object):
           
     def row_reversion(self):
         """ Reverse rows sequences that have equal barycentres."""
-        new_order = self._reversion( self.row_vertices, self.row_barycentres )
-        self._new_row_order( new_order )
+        if not self._barycentres_are_monotonic(self.row_barycentres):
+            new_order = self._reversion( self.row_vertices, self.row_barycentres )
+            self._new_row_order( new_order )
 
      
     def col_reversion(self):
         """ Reverse columns with equal barycentre numbers."""
-        new_order = self._reversion( self.col_vertices, self.col_barycentres )
-        self._new_col_order( new_order )
+        if not self._barycentres_are_monotonic(self.col_barycentres):
+            new_order = self._reversion( self.col_vertices, self.col_barycentres )
+            self._new_col_order( new_order )
                      
     
     def _barycentres_are_monotonic(self, barycentres):
@@ -263,7 +265,7 @@ class Matrix(object):
             return True
             
         for i in xrange(1, len(barycentres) ):
-            if barycentres[i] < barycentres[i-1]:
+            if barycentres[i] <= barycentres[i-1]:
                 return False
                 
         return True
