@@ -6,7 +6,6 @@
 from matrix import Matrix
 from graph import Graph
 
-dbg_reorder = True
 dbg_coords = True
 
 if True:
@@ -28,8 +27,7 @@ else:
 # =================================================================
         
 # Down
-def reorder_down(G, i):
-    """ Reorder a Graph Layer. """
+def down_phase1(G, i):
     M_star = Matrix(G.vertices[i], G.vertices[i+1], G.edges[i] )
     M1 = M_star.copy()
     M1.barycentre_col_reorder()
@@ -39,17 +37,20 @@ def reorder_down(G, i):
     else:
         G.matrices[i] = M_star
         G.vertices[i+1] = M_star.col_vertices
-  
-
-def phase_1_down(G):
-    """ Phase 1 Down Procedure"""
-    for i in xrange(0, G.c_levels-1):
-        reorder_down(G, i )
-        
-        
-# Up     
-def reorder_up(G, i):
-    """ """
+    
+def down_phase2(G, i):
+    # Try column reversion
+    M_star = Matrix(G.vertices[i], G.vertices[i+1], G.edges[i] )
+    M2 = M_star.copy()
+    M2.col_reversion()
+    if( M2.get_crossover_count() < M_star.get_crossover_count() ):
+        G.matrices[i] = M2
+        G.vertices[i+1] = M2.col_vertices
+    print "Down:\n", G.matrices[0]
+    
+    
+# Up 
+def up_phase1(G, i):
     M_star = Matrix( G.vertices[i-1], G.vertices[i], G.edges[i-1] )
     M1 = M_star.copy()
     M1.barycentre_row_reorder()
@@ -59,16 +60,25 @@ def reorder_up(G, i):
     else:
         G.matrices[i-1] = M_star
         G.vertices[i-1] = M_star.row_vertices        
-        
+    print "Up:\n", G.matrices[0]
+    
+def up_phase2(G, i):
+    pass
 
-               
-def phase_1_up(G):
-    """  Phase 1 Up Procedure"""
+
+def down_procedure(G):
+    """ DOWN Procedure """
+    for i in xrange(0, G.c_levels-1):
+        down_phase1(G, i)
+        down_phase2(G, i)
+
+def up_procedure(G):
+    """ UP Procedure """
     for i in xrange(G.c_levels-1, 0, -1):
-        reorder_up(G, i)
-
-
-        
+        up_phase1(G, i)
+        up_phase2(G, i)
+    
+    
 def multilayer_bc_method(G, K=10):
     """ Implementation of Sugiyama's n-Level Barycentre Method. 
     
@@ -81,12 +91,12 @@ def multilayer_bc_method(G, K=10):
     operates by sweeping down and up the graph, reordering one layer at a time
     - fixing the position of one layer and using a heuristic to reorder the other
     layer to minimize crossings.
+         
     """
 
     for i in xrange(1, K):
-        if dbg_reorder: print " Iteration", i
-        phase_1_down(G)
-        phase_1_up(G)
+        down_procedure(G)
+        up_procedure(G)
 
     
 # =================================================================

@@ -31,7 +31,7 @@ class SugiyamaLayerReordering( unittest.TestCase ):
         print "Crossover Count: ", G.get_crossover_count()
         
 
-    def test__reorder_down_easy(self):
+    def test__down_phase1_easy(self):
         """ Reorder downwards one layer of a graph. """
         
         print "=== Reorder Down ==="
@@ -40,7 +40,7 @@ class SugiyamaLayerReordering( unittest.TestCase ):
         
         print "Before", G.matrices[i_layer]
         print "Layer[i+1]:", G.vertices[i_layer+1]
-        sugiyama.reorder_down(G, i_layer)
+        sugiyama.down_phase1(G, i_layer)
         print "After", G.matrices[i_layer]
         print "Layer[i+1]:", G.vertices[i_layer+1]
         
@@ -49,7 +49,7 @@ class SugiyamaLayerReordering( unittest.TestCase ):
         self.assertEquals( G.vertices[i_layer+1], list('decf') )
         
         
-    def test__reorder_up_easy(self):
+    def test__up_phase1_easy(self):
         """ Reorder upwards one layer of a graph. """
         
         print "=== Reorder Up ==="
@@ -58,7 +58,7 @@ class SugiyamaLayerReordering( unittest.TestCase ):
         
         print "Before", G.matrices[i_layer-1]
         print "Layer[i-1]:", G.vertices[i_layer-1]
-        sugiyama.reorder_up(G, i_layer)
+        sugiyama.up_phase1(G, i_layer)
         print "After", G.matrices[i_layer-1]
         print "Layer[i-1]:", G.vertices[i_layer-1]
         
@@ -74,7 +74,7 @@ class SugiyamaLayerReordering( unittest.TestCase ):
         G = self.setup_graph(self.V, self.E)
         self.assertEquals( G.get_crossover_count(), 8 )
         
-        sugiyama.phase_1_down(G)
+        sugiyama.down_procedure(G)
         self.show_conn_matrices(G)
         
         self.assertEquals( G.get_crossover_count(), 2)
@@ -87,7 +87,7 @@ class SugiyamaLayerReordering( unittest.TestCase ):
         G = self.setup_graph(self.V, self.E)
         self.assertEquals( G.get_crossover_count(), 8 )
         
-        sugiyama.phase_1_down(G)
+        sugiyama.down_procedure(G)
         self.assertTrue( G.check_consistency() )
 
 
@@ -99,7 +99,7 @@ class SugiyamaLayerReordering( unittest.TestCase ):
         G = self.setup_graph(self.V, self.E)
         self.assertEquals( G.get_crossover_count(), 8 )
         
-        sugiyama.phase_1_up(G)
+        sugiyama.up_procedure(G)
         self.show_conn_matrices(G)
         
         self.assertEquals( G.get_crossover_count(), 5)
@@ -112,11 +112,10 @@ class SugiyamaLayerReordering( unittest.TestCase ):
         G = self.setup_graph(self.V, self.E)
         self.assertEquals( G.get_crossover_count(), 8 )
         
-        sugiyama.phase_1_up(G)
+        sugiyama.up_procedure(G)
         self.assertTrue( G.check_consistency() )
         
-        
-                
+                   
     def test__2_layer_1(self):
         """ Untangle a simple graph #1:
 
@@ -133,12 +132,26 @@ class SugiyamaLayerReordering( unittest.TestCase ):
         sugiyama.multilayer_bc_method(G)
 
         self.assertEquals(G.vertices, [ list('AB'), list('DC') ] )      
-        #self.assertEquals(G.get_crossover_count(), 0) #why does this fail?
-    
+        self.assertEquals(G.get_crossover_count(), 0) 
+        
+        
     def test__2_layer_2(self):
         """ Untangle a simple graph #2:
-        
-        
+        Example on page 117
         """
-    
+        E = "ae:af:be:bh:bi:cf:ch:ci:de:dg:di"
+        E = [ tuple(a) for a in E.split(':') ]
+        E = [E]
+        G = self.setup_graph( V = [ list('abcd'), list('efghi') ], E=E )
+        
+        # Pre-checks
+        self.assertEquals(G.get_crossover_count(), 14 )
+        
+        # Run and check
+        sugiyama.multilayer_bc_method(G)
+        
+        self.assertEquals(G.get_crossover_count(), 7 )
+        
+           
+                
     
