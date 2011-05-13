@@ -130,8 +130,8 @@ class Graph(object):
             print "  ", lower_barycentres
             
         return lower_barycentres
-        
-        
+
+
     def __str__(self):
         repr_str_list = ["Graph:\n"]
         

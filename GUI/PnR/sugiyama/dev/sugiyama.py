@@ -25,9 +25,40 @@ else:
 # =================================================================
 #  Layer Ordering
 # =================================================================
-        
+# Layers 0 -> n-1 
+#  Layer i=1 is 'top'          (Python array index [0] )
+#        i='n-1' the bottom    (Python array index [n-2] )
+#
+
+
+def phase_1_down(G):
+    for i in xrange(0, G.c_levels-1):
+        M_star = Matrix(G.vertices[i], G.vertices[i+1], G.edges[i] )
+        M1 = M_star.copy()
+        M1.barycentre_col_reorder()
+        if M1.get_crossover_count() < M_star.get_crossover_count():
+            G.matrices[i] = M1    
+            G.vertices[i+1] = M1.col_vertices
+        else:
+            G.matrices[i] = M_star
+            G.vertices[i+1] = M_star.col_vertices
+            
+def phase_1_up(G):
+    for i in xrange(G.c_levels-1, 0, -1):
+        M_star = Matrix(G.vertices[i], G.vertices[i+1], G.edges[i] )
+        M1 = M_star.copy()
+        M1.barycentre_col_reorder()
+        if M1.get_crossover_count() < M_star.get_crossover_count():
+            G.matrices[i] = M1    
+            G.vertices[i+1] = M1.col_vertices
+        else:
+            G.matrices[i] = M_star
+            G.vertices[i+1] = M_star.col_vertices    
+    
+
 # Down
 def down_phase1(G, i):
+    print "DOWN Phase 1"
     M_star = Matrix(G.vertices[i], G.vertices[i+1], G.edges[i] )
     M1 = M_star.copy()
     M1.barycentre_col_reorder()
@@ -39,18 +70,19 @@ def down_phase1(G, i):
         G.vertices[i+1] = M_star.col_vertices
     
 def down_phase2(G, i):
+    print "DOWN Phase 2"
     # Try column reversion
-    M_star = Matrix(G.vertices[i], G.vertices[i+1], G.edges[i] )
-    M2 = M_star.copy()
-    M2.col_reversion()
-    if( M2.get_crossover_count() < M_star.get_crossover_count() ):
-        G.matrices[i] = M2
-        G.vertices[i+1] = M2.col_vertices
-    print "Down:\n", G.matrices[0]
-    
+    print G.matrices[i]
+    M_star = G.matrices[i]
+    M_star.col_reversion()
+    G.vertices[i+1] = M_star.col_vertices
+    print G.matrices[i]
+    down_phase1(G,i)
+        
     
 # Up 
 def up_phase1(G, i):
+    print "UP Phase 1"
     M_star = Matrix( G.vertices[i-1], G.vertices[i], G.edges[i-1] )
     M1 = M_star.copy()
     M1.barycentre_row_reorder()
@@ -60,24 +92,32 @@ def up_phase1(G, i):
     else:
         G.matrices[i-1] = M_star
         G.vertices[i-1] = M_star.row_vertices        
-    print "Up:\n", G.matrices[0]
     
 def up_phase2(G, i):
-    pass
+    # Try row reversion
+    print "UP Phase 2"
+    M_star = G.matrices[i-1]
+    M_star.row_reversion()
+    G.vertices[i-1] = M_star.row_vertices
+    up_phase1(G,i)
+        
 
 
 def down_procedure(G):
     """ DOWN Procedure """
     for i in xrange(0, G.c_levels-1):
         down_phase1(G, i)
+        print G.matrices[0]
         down_phase2(G, i)
-
+        print G.matrices[0]
+        
 def up_procedure(G):
     """ UP Procedure """
     for i in xrange(G.c_levels-1, 0, -1):
         up_phase1(G, i)
+        print G.matrices[0]
         up_phase2(G, i)
-    
+        print G.matrices[0]
     
 def multilayer_bc_method(G, K=10):
     """ Implementation of Sugiyama's n-Level Barycentre Method. 

@@ -148,10 +148,24 @@ class SugiyamaLayerReordering( unittest.TestCase ):
         self.assertEquals(G.get_crossover_count(), 14 )
         
         # Run and check
-        sugiyama.multilayer_bc_method(G)
+        sugiyama.up_procedure(G)
+        sugiyama.down_procedure(G)
         
         self.assertEquals(G.get_crossover_count(), 7 )
         
            
-                
+    def test__119_explicit(self):
+        """ The example on page 119 in explicit steps. """
+        
+        V = [ list('abc'), list('def'), list('ghi'), list('jkl') ]
+        e = [ "ae:bd:cd", "dg:eg:eh:ei:fh", "gl:hj:hk" ]
+        E = []
+        for el in e:
+            E.append( [ tuple(a) for a in el.split(':') ] )
+        G = self.setup_graph(V, E)
+        
+        print "Page 119 Example - Explicit Lyrics Version"
+        for i in xrange(0, G.c_levels-1):
+            sugiyama.down_phase1(G, i)
+            print G.matrices[i]
     
