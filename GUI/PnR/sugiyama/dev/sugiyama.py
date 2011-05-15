@@ -31,95 +31,60 @@ else:
 #
 
 
-def phase_1_down(G):
+def phase1_down(G):
     for i in xrange(0, G.c_levels-1):
-        M_star = Matrix(G.vertices[i], G.vertices[i+1], G.edges[i] )
-        M1 = M_star.copy()
-        M1.barycentre_col_reorder()
-        if M1.get_crossover_count() < M_star.get_crossover_count():
-            G.matrices[i] = M1    
-            G.vertices[i+1] = M1.col_vertices
-        else:
-            G.matrices[i] = M_star
-            G.vertices[i+1] = M_star.col_vertices
-            
-def phase_1_up(G):
+        m = Matrix(G.vertices[i], G.vertices[i+1], G.edges[i] )
+        m.barycentre_col_reorder()
+        G.matrices[i] = m
+        G.vertices[i+1] = m.col_vertices
+        
+def phase1_up(G):
     for i in xrange(G.c_levels-1, 0, -1):
-        M_star = Matrix(G.vertices[i], G.vertices[i+1], G.edges[i] )
-        M1 = M_star.copy()
-        M1.barycentre_col_reorder()
-        if M1.get_crossover_count() < M_star.get_crossover_count():
-            G.matrices[i] = M1    
-            G.vertices[i+1] = M1.col_vertices
-        else:
-            G.matrices[i] = M_star
-            G.vertices[i+1] = M_star.col_vertices    
-    
-
-# Down
-def down_phase1(G, i):
-    print "DOWN Phase 1"
-    M_star = Matrix(G.vertices[i], G.vertices[i+1], G.edges[i] )
-    M1 = M_star.copy()
-    M1.barycentre_col_reorder()
-    if M1.get_crossover_count() < M_star.get_crossover_count():
-        G.matrices[i] = M1    
-        G.vertices[i+1] = M1.col_vertices
-    else:
-        G.matrices[i] = M_star
-        G.vertices[i+1] = M_star.col_vertices
-    
-def down_phase2(G, i):
-    print "DOWN Phase 2"
-    # Try column reversion
-    print G.matrices[i]
-    M_star = G.matrices[i]
-    M_star.col_reversion()
-    G.vertices[i+1] = M_star.col_vertices
-    print G.matrices[i]
-    down_phase1(G,i)
+        m = Matrix( G.vertices[i-1], G.vertices[i], G.edges[i-1] )
+        m.barycentre_row_reorder()
+        G.matrices[i-1] = m
+        G.vertices[i-1] = m.row_vertices
         
+def phase1_down_up(G):
+    phase1_down(G)
+    phase1_up(G)
     
-# Up 
-def up_phase1(G, i):
-    print "UP Phase 1"
-    M_star = Matrix( G.vertices[i-1], G.vertices[i], G.edges[i-1] )
-    M1 = M_star.copy()
-    M1.barycentre_row_reorder()
-    if M1.get_crossover_count() < M_star.get_crossover_count():
-        G.matrices[i-1] = M1
-        G.vertices[i-1] = M1.row_vertices
-    else:
-        G.matrices[i-1] = M_star
-        G.vertices[i-1] = M_star.row_vertices        
+def phase1_up_down(G):
+    phase1_up(G)
+    phase1_down(G)                
     
-def up_phase2(G, i):
-    # Try row reversion
-    print "UP Phase 2"
-    M_star = G.matrices[i-1]
-    M_star.row_reversion()
-    G.vertices[i-1] = M_star.row_vertices
-    up_phase1(G,i)
         
-
-
-def down_procedure(G):
-    """ DOWN Procedure """
+def phase2_down(G):
     for i in xrange(0, G.c_levels-1):
-        down_phase1(G, i)
-        print G.matrices[0]
-        down_phase2(G, i)
-        print G.matrices[0]
+        m = G.matrices[i]
+        m.col_reversion()
+        G.vertices[i+1] = m.col_vertices
+        phase1_down_up(G);
         
-def up_procedure(G):
-    """ UP Procedure """
+def phase2_up(G):
     for i in xrange(G.c_levels-1, 0, -1):
-        up_phase1(G, i)
-        print G.matrices[0]
-        up_phase2(G, i)
-        print G.matrices[0]
-    
-def multilayer_bc_method(G, K=10):
+        m = G.matrices[i-1]
+        m.row_reversion()
+        G.vertices[i-1] = m.row_vertices
+        phase1_up_down(G);
+
+
+def phase2_up_down(G):
+    for i in xrange(G.c_levels-1, 0, -1):
+        m = G.matrices[i-1]
+        m.row_reversion()
+        G.vertices[i-1] = m.row_vertices
+        phase1_up_down(G);
+        
+def phase2_up_down(G):
+    for i in xrange(0, G.c_levels-1):
+        m = G.matrices[i]
+        m.col_reversion()
+        G.vertices[i+1] = m.col_vertices
+        phase1_down_up(G);
+
+
+def multilayer_bc_method(G, K=3):
     """ Implementation of Sugiyama's n-Level Barycentre Method. 
     
     The input to this algorithm is a layered graph, where the vertices in each 
@@ -135,8 +100,8 @@ def multilayer_bc_method(G, K=10):
     """
 
     for i in xrange(1, K):
-        down_procedure(G)
-        up_procedure(G)
+        phase1_down_up(G)
+        
 
     
 # =================================================================
