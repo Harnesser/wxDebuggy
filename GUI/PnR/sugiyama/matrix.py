@@ -6,11 +6,11 @@ class Matrix(object):
 
     
     def __init__(self, row_vertices, col_vertices, edges):
-        
-        self.row_vertices = row_vertices
-        self.col_vertices = col_vertices
+        self.row_blocks = row_vertices
+        self.col_blocks = col_vertices
+        self.row_vertices = []
+        self.col_vertices = []
         self.edges = edges
-        
         self.update()
         
         
@@ -21,6 +21,18 @@ class Matrix(object):
         
     def update(self):
         """ Recalculate the recalculable."""
+
+        self.row_vertices = []
+        self.col_vertices = []
+        
+        # Flatten the connections        
+        for block in self.row_blocks:
+            for out_pin in block.outputs:
+                self.row_vertices.append( '.'.join([block.name, out_pin]) )
+        for block in self.col_blocks:
+            for in_pin in block.inputs:
+                self.col_vertices.append( '.'.join([block.name, in_pin]) )
+            
         self.c_rows = len(self.row_vertices)
         self.c_cols = len(self.col_vertices)
 
@@ -37,9 +49,8 @@ class Matrix(object):
         
     def copy(self):
         """ Return a deepish copy of the instance."""
-        
-        M_copy = Matrix( list(self.row_vertices),
-            list(self.col_vertices), list(self.edges) )
+        M_copy = Matrix( list(self.row_blocks),
+            list(self.col_blocks), list(self.edges) )
 
         return M_copy   
             
@@ -55,9 +66,17 @@ class Matrix(object):
             M.append(row)
 
         # Fill in the connections
-        for source, sink in self.edges:
-            row_index = self.row_vertices.index( source )
-            col_index = self.col_vertices.index( sink )
+        for ( (source, o_pin), (sink, i_pin) ) in self.edges:
+            if source == '_iport':
+                source_name = '.'.join([o_pin, o_pin])
+            else:
+                source_name = '.'.join([source_name, o_pin])
+            if sink == '_oport':
+                sink_name = '.'.join([i_pin, i_pin])
+            else:
+                sink_name = '.'.join([sink, i_pin])
+            row_index = self.row_vertices.index( source_name )
+            col_index = self.col_vertices.index( sink_name )
             M[row_index][col_index] = 1
             
         return M
