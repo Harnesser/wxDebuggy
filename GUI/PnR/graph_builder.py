@@ -4,6 +4,7 @@
 Take a circuit module and build its Layered Directed Acyclic Graph.
 """
 import lib_pnr_debug as libdb # debug prints only...
+from collections import namedtuple
 
 class Graph_Builder:
     """ """
@@ -14,6 +15,49 @@ class Graph_Builder:
         self.graph_edges = {}
         self.layer_dict = {}
 
+
+    def get_graph_for_sugiyama(self, module):
+        """ """
+        
+        edges = self.extract_graph(module)
+        block_dict = self._build_special_vertices(module)
+       
+        # flip layer dict so it's indexed by the layer
+        layers = {}
+        for key in self.layer_dict.keys():
+            layers.setdefault(self.layer_dict[key], []).append(key)
+            
+        # use this layer dict to make the special vertices list of lists
+        l = layers.keys()
+        l.sort()
+        special_vertices = []
+        for i in l:
+            tmp = []
+            for thing in layers[i]:
+                if thing == '_oport':
+                    continue
+                tmp.append( block_dict[thing] )
+            special_vertices.append(tmp)
+
+
+        # Now for the edge list. Again, this has to be layered.
+        edge_dict = {}
+        for conn in self.connection_list:
+            ( (source, port1), (sink, port2) ) = conn
+            if source == '_iport':
+                layer = 1
+            else:
+                layer = self.layer_dict[source]
+            edge_dict.setdefault(layer, []).append(conn)
+        
+        layers = edge_dict.keys()
+        layers.sort()
+        edges = []
+        for layer in layers:
+            edges.append(edge_dict[layer])
+
+        return special_vertices, edges        
+        
 
     def extract_graph(self, module, debug=False):
         """ Get a graph of the circuit to display.
@@ -384,7 +428,32 @@ class Graph_Builder:
 
         return True
              
+             
+    def _build_special_vertices(self, module):
+        """ Build special vertices for layout alg. """
+        Block = namedtuple('Block', 'name inputs outputs')
+        block_dict = {}
+        for inst in module.inst_dict.keys():
+            inputs = []
+            outputs = []
+            submod = module.inst_dict[inst].module_ref
+            for port_name in submod.port_name_list:
+                port = submod.port_dict[ port_name ]
+                if port.direction == 'input':
+                    inputs.append(port.name)
+                else:
+                    outputs.append(port.name)
+            block = Block(inst, tuple(inputs), tuple(outputs))
+            block_dict[inst] = block
+            
+        # Add the ports
+        for port_name in module.port_name_list:
+            block = Block( port_name, (port_name,), (port_name,) )
+            block_dict[port_name] = block
+            
+        return block_dict
         
+            
 if __name__ == '__main__':
 
     import sys
@@ -410,4 +479,7 @@ if __name__ == '__main__':
     module = load_rtl_module_pickle(module_name)
     dag = Graph_Builder()
     dag.extract_graph(module)
-
+    dag.show_connections(debug=True)
+    V,E = dag.get_graph_for_sugiyama(module)
+    pprint.pprint(V)
+    pprint.pprint(E)

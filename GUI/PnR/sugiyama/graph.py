@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 
+from collections import namedtuple
+
 from matrix import Matrix
 
 class Graph(object):
@@ -7,7 +9,7 @@ class Graph(object):
     Calculates connectivity matrices too, I think...
     """
     
-    def __init__(self, vertices, edges):
+    def __init__(self, vertices = [[],[]], edges = [[]]):
         self.edges = edges  
         self.vertices = vertices
         self.matrices = []
@@ -19,7 +21,9 @@ class Graph(object):
         
         self.update()
         
+        self.Block = namedtuple('Block', 'name inputs outputs')
         
+            
     def update(self):
         self.c_levels = len(self.vertices)
         assert( len(self.vertices) -1 == len(self.edges) )
