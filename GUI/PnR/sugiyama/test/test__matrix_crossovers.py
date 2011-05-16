@@ -1,57 +1,58 @@
 #!/usr/bin/env python
 
+from collections import namedtuple
+import unittest
 import sys
-
 sys.path.append('../')
 
 import matrix
-import unittest
+Block = namedtuple('Block', 'name inputs outputs')
 
 class MatrixCrossoverCounting( unittest.TestCase ):
 
     def setUp(self):
-        
-        edges = 'ae:af:be:bh:bi:cf:ch:ci:de:dg:di'
-        E = []
-        V_top = set()
-        V_bot = set()
-        
-        for edge in edges.split(':'):
-            e = tuple(edge)
-            E.append(e)
-            V_top.add(e[0])
-            V_bot.add(e[1])
-            
-        self.vertices_top = list(V_top)
-        self.vertices_bot = list(V_bot)
-        self.edges = E
-        
-        self.vertices_top.sort()
-        self.vertices_bot.sort()
+        self.vertices_top = [Block(name='in4', inputs=('in4',), outputs=('in4',)),
+                             Block(name='in1', inputs=('in1',), outputs=('in1',)),
+                             Block(name='in2', inputs=('in2',), outputs=('in2',)),
+                             Block(name='in3', inputs=('in3',), outputs=('in3',))]
+        self.vertices_bot = [Block(name='U1', inputs=('A', 'B'), outputs=('Y',)),
+                             Block(name='U2', inputs=('A', 'B'), outputs=('Y',))]
+                     
+        self.edges = [(('_iport', 'in4'), ('U2', 'B')),
+                      (('_iport', 'in2'), ('U1', 'B')),
+                      (('_iport', 'in3'), ('U2', 'A')),
+                      (('_iport', 'in1'), ('U1', 'A'))] 
         
         
     def test_crossover_counts(self):
 
         M = matrix.Matrix( self.vertices_top, self.vertices_bot, self.edges )
         
-        self.assertEqual( M.get_crossover_count(), 14 )
+        self.assertEqual( M.get_crossover_count(), 3 )
     
         
     def test_crossover_counts_2(self):
         
-        self.vertices_top = list('adbc')
+        self.vertices_top = [Block(name='in1', inputs=('in1',), outputs=('in1',)),
+                             Block(name='in2', inputs=('in2',), outputs=('in2',)),
+                             Block(name='in3', inputs=('in3',), outputs=('in3',)),
+                             Block(name='in4', inputs=('in4',), outputs=('in4',))]
+                             
         M = matrix.Matrix( self.vertices_top, self.vertices_bot, self.edges )
         
-        self.assertEqual( M.get_crossover_count(), 11 )
+        self.assertEqual( M.get_crossover_count(), 0 )
     
          
     def test_crossover_counts_3(self):
         
-        self.vertices_top = list('dabc')
-        self.vertices_bot = list('geifh')
+        self.vertices_top = [Block(name='in1', inputs=('in1',), outputs=('in1',)),
+                             Block(name='in2', inputs=('in2',), outputs=('in2',)),
+                             Block(name='in3', inputs=('in3',), outputs=('in3',)),
+                             Block(name='in4', inputs=('in4',), outputs=('in4',))]
+        self.vertices_top.reverse()
         M = matrix.Matrix( self.vertices_top, self.vertices_bot, self.edges )
         
-        self.assertEqual( M.get_crossover_count(), 7 )
+        self.assertEqual( M.get_crossover_count(), 6 )
     
         
 

@@ -2,13 +2,18 @@
 class Matrix(object):
     """ A Class to model a matrix for Sugiyama Layouts.
     A collection of these matrices will form the Martix Realisation
-    of a graph. """
-
+    of a graph. 
     
-    def __init__(self, row_vertices, col_vertices, edges):
-        self.row_blocks = row_vertices
-        self.col_blocks = col_vertices
-        self.row_vertices = []
+    Some modifications are made to handle circuits, namely:
+     * Edges are grouped if they belong to the same block
+     * Each block has input and output vertices
+     
+    """
+    
+    def __init__(self, row_blocks, col_blocks, edges):
+        self.row_blocks = row_blocks
+        self.col_blocks = col_blocks
+        self.row_vertices = []  # flattened 
         self.col_vertices = []
         self.edges = edges
         self.update()
@@ -41,6 +46,9 @@ class Matrix(object):
         self.row_barycentres = self._calc_row_barycentres()
         self.col_barycentres = self._calc_col_barycentres()
         
+        self.block_row_barycentres = self._calc_block_row_barycentres()
+        self.block_col_barycentres = self._calc_block_col_barycentres()
+        
         
     def get_crossover_count(self):
         """ Return the crossover count of the connectivity matrix. """
@@ -70,11 +78,12 @@ class Matrix(object):
             if source == '_iport':
                 source_name = '.'.join([o_pin, o_pin])
             else:
-                source_name = '.'.join([source_name, o_pin])
+                source_name = '.'.join([source, o_pin])
             if sink == '_oport':
                 sink_name = '.'.join([i_pin, i_pin])
             else:
                 sink_name = '.'.join([sink, i_pin])
+                
             row_index = self.row_vertices.index( source_name )
             col_index = self.col_vertices.index( sink_name )
             M[row_index][col_index] = 1
@@ -104,7 +113,46 @@ class Matrix(object):
         
         return barycentres
                 
-                
+    
+    def _calc_block_row_barycentres(self):
+        """ Calculate the block row barycentres of the matrix. 
+        
+        These are the average of the barycentres of the output ports 
+        of each row block.
+        """
+        i = 0
+        barycentres = []
+        for block in self.row_blocks:
+            bc_tmp = 0
+            n_output_ports = len(block.inputs)
+            for j in xrange(n_output_ports):
+                bc_tmp += self.row_barycentres[i]
+                i += 1
+            bc_tmp /= n_output_ports
+            barycentres.append(bc_tmp)
+            
+        return barycentres
+        
+    def _calc_block_col_barycentres(self):      
+        """ Calculate the block col barycentres of the matrix. 
+        
+        These are the average of the barycentres of the input ports 
+        of each col block.
+        """
+        i = 0
+        barycentres = []
+        for block in self.col_blocks:
+            bc_tmp = 0
+            n_output_ports = len(block.inputs)
+            for j in xrange(n_output_ports):
+                bc_tmp += self.col_barycentres[i]
+                i += 1
+            bc_tmp /= n_output_ports
+            barycentres.append(bc_tmp)
+            
+        return barycentres
+        
+        
     def _calc_col_barycentres(self):
         """ Calculate the column barycentres of the matrix. """
         
