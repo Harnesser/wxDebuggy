@@ -216,7 +216,7 @@ class Matrix(object):
         row_data = zip( self.row_vertices, self.M, self.row_barycentres )
         row_dict = {}
         for block in self.row_blocks:
-            for port in block.inputs:
+            for port in block.outputs:
                 row_dict[(block.name, port)] = row_data[i]
                 i += 1
     
@@ -224,7 +224,7 @@ class Matrix(object):
         new_vertices = []
         new_bcs = []
         for block in new_block_order:
-            for port in block.inputs:
+            for port in block.outputs:
                 vertex, conns, bcs = row_dict[(block.name, port)]            
                 new_M.append(conns)
                 new_vertices.append(vertex)
@@ -262,51 +262,63 @@ class Matrix(object):
         self._new_row_order( new_vertice_order )
 
         
-    def _get_column(self, i):
-        """ Return the specified column as a list. """
-        column = []
-        for row in self.M:
-            column.append( row[i] )
-        return column
-
-
-    def _new_col_order(self, new_vertice_order):
+    def _new_col_order(self, new_block_order):
         """ Reorder the connection matrix based on a new ordering. """
         
-        # Rejigg the connection matrix for the new order
-        col_dict = {}
-        for i in xrange( len(self.col_vertices) ):
-           col_dict[self.col_vertices[i]] = self._get_column(i)
-
-        new_M = []
-        for j in xrange( len(self.row_vertices) ):
-            new_row = []
-            for new_vertice in new_vertice_order:
-                new_row.append( col_dict[new_vertice][j] )
-            new_M.append( new_row )
-        self.M = new_M
+        # Flip cols into rows to make them easier to work with
+        cols = zip( *self.M )
         
-        # Rejigg the row barycentre numbers and vertices
+        # Rejigg the connection matrix for the new order. Reorder flattened 
+        # vertex names too
+        i = 0
+        col_data = zip( self.col_vertices, cols, self.col_barycentres )
+        col_dict = {}
+        for block in self.col_blocks:
+            for port in block.inputs:
+                col_dict[(block.name, port)] = col_data[i]
+                i += 1
+                
+        import pprint
+        pprint.pprint(col_data)
+        new_M = []
+        new_vertices = []
+        new_bcs = []
+        print "NBO", new_block_order
+        for block in new_block_order:
+            for port in block.inputs:
+                print block.name, port
+                vertex, conns, bcs = col_dict[(block.name, port)]
+                new_M.append(conns)
+                new_vertices.append(vertex)
+                new_bcs.append(bcs)
+        self.col_vertices = new_vertices
+        self.col_barycentres = new_bcs
+        pprint.pprint(new_M)
+        self.M = [ list(a) for a in zip(*new_M) ] # zip() produces tuples, need lists
+        pprint.pprint(self.M)
+        # Rejig the block level barycentre numbers
         bc_dict = {}
-        for key,value in zip( self.col_vertices, self.col_barycentres ):
-            bc_dict[key] = value
+        for block, bcs in zip( self.col_blocks, self.block_col_barycentres):
+            bc_dict[block.name] = bcs
             
         new_bc = []
-        for vertice in new_vertice_order:
-            new_bc.append( bc_dict[vertice] )
-        self.col_barycentres = new_bc
-       
-        self.col_vertices = new_vertice_order
+        for block in new_block_order:
+            new_bc.append( bc_dict[block.name] )
+        self.block_col_barycentres = new_bc
         
-        # Recalculate the row barycentre numbers
+        self.col_blocks = new_block_order
+        
+        # Recalculate the column barycentre numbers
         self.row_barycentres = self._calc_row_barycentres()
+        self.block_row_barycentres = self._calc_block_row_barycentres() 
         
                 
     def barycentre_col_reorder(self):
         """ Reorder the columns based on their barycentres. """
         
         # Find the new vertice order
-        dec = [ ( bc, v ) for (v, bc)  in zip( self.col_vertices, self.col_barycentres ) ]
+        dec = [ ( bc, v ) for (v, bc)  in zip( 
+            self.col_blocks, self.block_col_barycentres ) ]
         dec.sort()
         new_vertice_order = [ v for (bc, v) in dec ]
         

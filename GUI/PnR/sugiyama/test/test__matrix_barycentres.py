@@ -122,18 +122,17 @@ class MatrixBarycentreOperations( unittest.TestCase ):
         self.assertAlmostEqual( M.block_row_barycentres[0], ( 0.0 + 2.0 ) / 2.0  )
         self.assertAlmostEqual( M.block_row_barycentres[1], ( 8.0 ) / 3.0  )
         
-        
+
         
     def test_col_reorder_1(self):
-        self.vertices_top = list('adbc')
         M = matrix.Matrix( self.vertices_top, self.vertices_bot, self.edges )
         print M
         M.barycentre_col_reorder()
         print M
         
-        self.assertEquals( M.col_vertices, list('egfih') )
-        self.check_M2_row_barycentres(M)
-        self.check_M2_col_barycentres(M)              
+        self.assertEquals( M.col_blocks, [ self.vertices_bot[1],
+                                           self.vertices_bot[0] ] )
+
         
  
     #  These functions below check the barycentres for both rows and
