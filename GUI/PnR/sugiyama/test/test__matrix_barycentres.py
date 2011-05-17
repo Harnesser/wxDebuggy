@@ -83,20 +83,47 @@ class MatrixBarycentreOperations( unittest.TestCase ):
         self.assertEquals( len(M.block_col_barycentres), 2 )
         self.assertAlmostEqual( M.block_col_barycentres[0], ( 2.0 + 3.0 + 3.0 ) / 3.0 )
         self.assertAlmostEqual( M.block_col_barycentres[1], ( 4.0 + 1.0 ) / 2.0 )        
+
+
     #
     # Reordering Checks
     #
     def test_row_reorder_1(self):
         M = matrix.Matrix( self.vertices_top, self.vertices_bot, self.edges )
-        print M
         M.barycentre_row_reorder()
-        print M
         
-        self.assertEquals( M.row_vertices, list('adbc') )
+        self.assertEquals( M.row_blocks, self.vertices_top_ordered )
         self.check_M1_row_barycentres(M)
         self.check_M1_col_barycentres(M)      
         
+        
+    def test_row_reorder_2(self):
+        M = matrix.Matrix( self.vertices_top_2, self.vertices_top, self.edges_2 )
+        print M
+        M.barycentre_row_reorder()
+        print M
+        self.assertEquals( M.row_blocks, [ self.vertices_top_2[1],
+                                           self.vertices_top_2[0] ] )
 
+        # Flattened barycentres
+        self.assertAlmostEqual( M.row_barycentres[0], 0.0 )
+        self.assertAlmostEqual( M.row_barycentres[1], 2.0 )
+        self.assertAlmostEqual( M.row_barycentres[2], 3.0 )        
+        self.assertAlmostEqual( M.row_barycentres[3], 1.0 ) 
+        self.assertAlmostEqual( M.row_barycentres[4], 4.0 ) 
+        
+        self.assertAlmostEqual( M.col_barycentres[0], 4.0 )
+        self.assertAlmostEqual( M.col_barycentres[1], 2.0 )
+        self.assertAlmostEqual( M.col_barycentres[2], 3.0 )
+        self.assertAlmostEqual( M.col_barycentres[3], 5.0 )
+        
+        # Block Barycentres
+        self.assertEquals( len( M.block_row_barycentres), 2 )
+        self.assertAlmostEqual( M.block_row_barycentres[0], ( 0.0 + 2.0 ) / 2.0  )
+        self.assertAlmostEqual( M.block_row_barycentres[1], ( 8.0 ) / 3.0  )
+        
+        
+        
     def test_col_reorder_1(self):
         self.vertices_top = list('adbc')
         M = matrix.Matrix( self.vertices_top, self.vertices_bot, self.edges )
@@ -108,7 +135,7 @@ class MatrixBarycentreOperations( unittest.TestCase ):
         self.check_M2_row_barycentres(M)
         self.check_M2_col_barycentres(M)              
         
-        
+ 
     #  These functions below check the barycentres for both rows and
     # columns based on the first 3 matrices in Sugiyama's worked example
     # of the two-layer crossing barycentre algorithm.

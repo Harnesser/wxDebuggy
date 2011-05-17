@@ -200,40 +200,62 @@ class Matrix(object):
         return K_M
         
         
-    def _new_row_order(self, new_vertice_order):
-        """ Reorder the connection matrix based on a new ordering. """
+    def _new_row_order(self, new_block_order):
+        """ Reorder the connection matrix based on a new ordering. 
+        There are 4 stages to this:
+        #1: reorder the connection matrix rows
+        #2: reorder the barycentre numbers to match te new row order
+        #3: reorder the block barycentre numbers
+        #4: recalculate the flattened column barycentres
+        #5: recalculate the block column barycentres
+        """
 
-        # Rejigg the connection matrix for the new order
+        # Rejigg the connection matrix for the new order. Reorder flattened 
+        # vertex names too
+        i = 0
+        row_data = zip( self.row_vertices, self.M, self.row_barycentres )
         row_dict = {}
-        for key,value in zip( self.row_vertices, self.M ):
-            row_dict[key] = value
+        for block in self.row_blocks:
+            for port in block.inputs:
+                row_dict[(block.name, port)] = row_data[i]
+                i += 1
     
         new_M = []
-        for vertice in new_vertice_order:
-            new_M.append( row_dict[vertice] )
+        new_vertices = []
+        new_bcs = []
+        for block in new_block_order:
+            for port in block.inputs:
+                vertex, conns, bcs = row_dict[(block.name, port)]            
+                new_M.append(conns)
+                new_vertices.append(vertex)
+                new_bcs.append(bcs)
         self.M = new_M
-        
-        # Rejigg the row barycentre numbers and vertices
+        self.row_vertices = new_vertices
+        self.row_barycentres = new_bcs
+                
+        # Rejig the block level barycentre numbers
         bc_dict = {}
-        for key,value in zip( self.row_vertices, self.row_barycentres ):
-            bc_dict[key] = value
+        for block, bcs in zip( self.row_blocks, self.block_row_barycentres):
+            bc_dict[block.name] = bcs
             
         new_bc = []
-        for vertice in new_vertice_order:
-            new_bc.append( bc_dict[vertice] )
-        self.row_barycentres = new_bc
-                
-        self.row_vertices = new_vertice_order
+        for block in new_block_order:
+            new_bc.append( bc_dict[block.name] )
+        self.block_row_barycentres = new_bc
+        
+        self.row_blocks = new_block_order
         
         # Recalculate the column barycentre numbers
-        self.col_barycentres = self._calc_col_barycentres()         
+        self.col_barycentres = self._calc_col_barycentres()
+        self.block_col_barycentres = self._calc_block_col_barycentres()        
         
         
     def barycentre_row_reorder(self):
         """ Reorder the rows based on their barycentres. """
         
         # Find the new vertice order
-        dec = [ ( bc, v ) for (v, bc)  in zip( self.row_vertices, self.row_barycentres ) ]
+        dec = [ ( bc, v ) for (v, bc)  in zip (
+             self.row_blocks, self.block_row_barycentres ) ]
         dec.sort()
         new_vertice_order = [ v for (bc, v) in dec ]
          
@@ -354,22 +376,22 @@ class Matrix(object):
   
         repr_str_list = ['\nConnection Matrix:']
         
-        first_line = '%5s' % (' ')
+        first_line = '%10s' % (' ')
         for vertice in self.col_vertices:
-            first_line += '%5s' % (vertice )
+            first_line += '%10s' % (vertice )
         repr_str_list.append(first_line)
  
         for j in xrange(self.c_rows):
-            line = '%5s' %(self.row_vertices[j])
+            line = '%10s' %(self.row_vertices[j])
             for conn in self.M[j]:
-                line += '%5s' % (conn)
+                line += '%10s' % (conn)
             line += ' : %.1f' % (self.row_barycentres[j])
             repr_str_list.append(line)
         
-        last_line = '%5s' %('')
+        last_line = '%10s' %('')
         for bc in self.col_barycentres:
             trunc = '%0.1f' % (bc)
-            last_line += '%5s' % (trunc) 
+            last_line += '%10s' % (trunc) 
         repr_str_list.append(last_line)
            
         # Add crossover count:
@@ -377,11 +399,3 @@ class Matrix(object):
         return '\n'.join(repr_str_list)
         
         
-        
-              
-        
-        
-        
-     
-    
-    
