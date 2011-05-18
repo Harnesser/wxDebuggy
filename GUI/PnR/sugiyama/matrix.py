@@ -124,14 +124,15 @@ class Matrix(object):
         barycentres = []
         for block in self.row_blocks:
             bc_tmp = 0
-            n_output_ports = len(block.inputs)
-            for j in xrange(n_output_ports):
+            n_ports = len(block.outputs)
+            for j in xrange(n_ports):
                 bc_tmp += self.row_barycentres[i]
                 i += 1
-            bc_tmp /= n_output_ports
+            bc_tmp /= n_ports
             barycentres.append(bc_tmp)
             
         return barycentres
+        
         
     def _calc_block_col_barycentres(self):      
         """ Calculate the block col barycentres of the matrix. 
@@ -143,11 +144,11 @@ class Matrix(object):
         barycentres = []
         for block in self.col_blocks:
             bc_tmp = 0
-            n_output_ports = len(block.inputs)
-            for j in xrange(n_output_ports):
+            n_ports = len(block.inputs)
+            for j in xrange(n_ports):
                 bc_tmp += self.col_barycentres[i]
                 i += 1
-            bc_tmp /= n_output_ports
+            bc_tmp /= n_ports
             barycentres.append(bc_tmp)
             
         return barycentres

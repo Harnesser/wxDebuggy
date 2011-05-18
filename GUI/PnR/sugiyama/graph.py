@@ -18,12 +18,10 @@ class Graph(object):
         
         self.lower_connectivities = []
         self.upper_connectivities = []
-        
-        self.update()
-        
+       
         self.Block = namedtuple('Block', 'name inputs outputs')
-        
-            
+        self.update()
+                    
     def update(self):
         self.c_levels = len(self.vertices)
         assert( len(self.vertices) -1 == len(self.edges) )
