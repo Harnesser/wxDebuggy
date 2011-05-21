@@ -380,7 +380,7 @@ class Matrix(object):
     def col_barycenters_are_monotonic(self):
         return self._barycentres_are_monotonic(self.col_barycentres)
                       
-                      
+
     def __str__(self):
         """ Printout
         Print the connection matrix with row and col headers, and with
@@ -411,4 +411,70 @@ class Matrix(object):
         repr_str_list[3] += "    K = %d" % ( self.get_crossover_count() )
         return '\n'.join(repr_str_list)
         
+        
+    def pretty(self):
+        """ Return a fancy string representation of the matrix 
+        __str__() can't use unicode chars, so this...
+        """
+        
+        str_list = self.__str__().split('\n')
+        str_list[4] = str_list[4].split('    K =')[0]
+        
+        # Add block barycentres
+        self.__str_add_block_row_barycentres(str_list)
+        self.__str_add_block_col_barycentres(str_list)
+
+        str_list[1] = str_list[1].replace('Matrix:',
+            'Matrix (%0d crossovers)' % self.get_crossover_count() )
+        return '\n'.join(str_list)
+      
+                          
+    def __str_add_block_row_barycentres(self, str_list):
+        """ Add the block barycenters to the matrix string representation. """
+        
+        i = 0
+        i_str = 3
+        for block in self.row_blocks:
+            n = len(block.outputs)
+            if n == 1:
+                str_list[i_str] += u' \u2500\u2500 %.3f' % (self.block_row_barycentres[i])
+            else:
+                str_list[i_str] += u' \u252c\u2500 %.3f' % (self.block_row_barycentres[i])
+                for j in xrange(n-2):
+                    i_str += 1
+                    str_list[i_str] += u' \u2502'
+                i_str += 1
+                str_list[i_str] += u' \u2518'
+            i += 1
+            i_str += 1      
+          
+          
+    def __str_add_block_col_barycentres(self, str_list, N=10):
+        """ Add col block barycentres to end of the string representation."""
+        graphics_line = [ (' ' * N) ]
+        barycentre_line = [ (' ' * N ) ]
+        leadin = ' ' * (N-2)
+        
+        i = 0
+        i_str = 3
+        for block in self.col_blocks:
+            n = len(block.inputs)
+            trunc = '%0.1f' % (self.block_col_barycentres[i])
+            if n == 1:
+                graphics_line.append( leadin + u'\u251c ' )
+                barycentre_line.append('%10s' % (trunc))
+            else:
+                graphics_line.append( leadin + u'\u251c\u2500' )
+                barycentre_line.append('%10s' % (trunc) )
+                for j in xrange(n-2):
+                    graphics_line.append( (u'\u2500' * N) )
+                    barycentre_line.append( (' ' * N ) )
+
+                graphics_line.append( ( u'\u2500' * (N-2) ) + u'\u2518 ' )
+                barycentre_line.append( (' ' * N ) )
+            i += 1
+
+        str_list.append( ''.join(graphics_line) )
+        str_list.append( ''.join(barycentre_line) )
+                    
         

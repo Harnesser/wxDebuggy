@@ -39,7 +39,7 @@ class MatrixBasicOperations( unittest.TestCase ):
         self.assertEquals( M.M[3], [ 0, 0, 1, 0] )    
                 
         print M
-        
+        print M.pretty()
         
     def test_copy(self):
         M = matrix.Matrix( self.vertices1, self.vertices2, self.edges )
@@ -54,4 +54,5 @@ class MatrixBasicOperations( unittest.TestCase ):
          
         self.assertEquals( M.M[0],  [ 0, 0, 0, 1] )
         self.assertEquals( M1.M[0],  [ 0, 1, 0, 0 ] )
+        
         
