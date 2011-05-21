@@ -279,24 +279,19 @@ class Matrix(object):
                 col_dict[(block.name, port)] = col_data[i]
                 i += 1
                 
-        import pprint
-        pprint.pprint(col_data)
         new_M = []
         new_vertices = []
         new_bcs = []
-        print "NBO", new_block_order
         for block in new_block_order:
             for port in block.inputs:
-                print block.name, port
                 vertex, conns, bcs = col_dict[(block.name, port)]
                 new_M.append(conns)
                 new_vertices.append(vertex)
                 new_bcs.append(bcs)
         self.col_vertices = new_vertices
         self.col_barycentres = new_bcs
-        pprint.pprint(new_M)
         self.M = [ list(a) for a in zip(*new_M) ] # zip() produces tuples, need lists
-        pprint.pprint(self.M)
+
         # Rejig the block level barycentre numbers
         bc_dict = {}
         for block, bcs in zip( self.col_blocks, self.block_col_barycentres):
@@ -472,7 +467,7 @@ class Matrix(object):
             n = len(block.inputs)
             trunc = '%0.1f' % (self.block_col_barycentres[i])
             if n == 1:
-                graphics_line.append( leadin + u'\u251c ' )
+                graphics_line.append( leadin + u'\u2502 ' )
                 barycentre_line.append('%10s' % (trunc))
             else:
                 graphics_line.append( leadin + u'\u251c\u2500' )
