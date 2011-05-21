@@ -20,11 +20,20 @@ class MatrixReversion( unittest.TestCase ):
             ]
         V_top, V_bot, E = helpers.parse_shorthand(';'.join(edges))
         M = matrix.Matrix( V_top, V_bot, E )
-        print M.pretty()
+        print "BEFORE:", M.pretty()
         
+        # Check setup
+        expected_block_order = [ 'A', 'C', 'B', 'D' ]
+        for expected, actual in zip( expected_block_order, M.row_blocks ):
+            self.assertEquals( expected, actual.name )
+         
+        # Reverse and check   
         M.row_reversion()
-        #self.assertEquals( M.row_vertices, list('abdc') )
-        print M
+        print "AFTER:", M.pretty()
+        expected_block_order = [ 'A', 'C', 'D', 'B' ]
+        for expected, actual in zip( expected_block_order, M.row_blocks ):
+            self.assertEquals( expected, actual.name )        
+
 
         
     def test_col_reversion_1(self):

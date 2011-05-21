@@ -348,8 +348,8 @@ class Matrix(object):
           
     def row_reversion(self):
         """ Reverse rows sequences that have equal barycentres."""
-        if not self._barycentres_are_monotonic(self.row_barycentres):
-            new_order = self._reversion( self.row_vertices, self.row_barycentres )
+        if not self._barycentres_are_monotonic(self.block_row_barycentres):
+            new_order = self._reversion( self.row_blocks, self.block_row_barycentres )
             self._new_row_order( new_order )
 
      
@@ -393,14 +393,16 @@ class Matrix(object):
         for vertice in self.col_vertices:
             first_line += '%10s' % (vertice )
         repr_str_list.append(first_line)
- 
+        repr_str_list.append('  ')
+        
         for j in xrange(self.c_rows):
             line = '%10s' %(self.row_vertices[j])
             for conn in self.M[j]:
                 line += '%10s' % (conn)
-            line += ' : %.1f' % (self.row_barycentres[j])
+            line += '    : %.1f' % (self.row_barycentres[j])
             repr_str_list.append(line)
         
+        repr_str_list.append('  ')
         last_line = '%10s' %('')
         for bc in self.col_barycentres:
             trunc = '%0.1f' % (bc)
@@ -442,7 +444,7 @@ class Matrix(object):
         """ Add the block barycenters to the matrix string representation. """
         
         i = 0
-        i_str = 3
+        i_str = 4
         for block in self.row_blocks:
             n = len(block.outputs)
             if n == 1:
