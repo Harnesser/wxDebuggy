@@ -75,6 +75,8 @@ class Matrix(object):
 
         # Fill in the connections
         for ( (source, o_pin), (sink, i_pin) ) in self.edges:
+            #print "SOURCE:", source, o_pin
+            #print "  SINK:", sink, i_pin
             if source == '_iport':
                 source_name = '.'.join([o_pin, o_pin])
             else:

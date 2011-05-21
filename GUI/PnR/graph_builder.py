@@ -15,6 +15,7 @@ class Graph_Builder:
         self.graph_edges = {}
         self.layer_dict = {}
 
+        self.Block = namedtuple('Block', 'name inputs outputs')
 
     def get_graph_for_sugiyama(self, module):
         """ """
@@ -339,7 +340,7 @@ class Graph_Builder:
 
             start_vertice = u
             for i in range( min(start_layer,end_layer) + 1, max(start_layer,end_layer) ):
-                new_vertice_name = '_%s__to__%s_%d' % ( u, v, i ) 
+                new_vertice_name = '_dummy_%s__to__%s_%d' % ( u, v, i ) 
                 graph_layers[i].append(new_vertice_name)
                 self.graph_edges.setdefault(start_vertice,set()).add(new_vertice_name)
                 self.layer_dict[new_vertice_name] = i
@@ -403,7 +404,7 @@ class Graph_Builder:
             print "End place:", end_place
 
             for i in range( min(start_layer,end_layer) + 1, max(start_layer,end_layer) ):
-                new_vertice_name = '_' + start_place + '__to__' + end_place + '_' + str(i)
+                new_vertice_name = '_dummy_' + start_place + '__to__' + end_place + '_' + str(i)
                 new_connection = ( ( start_vertice, start_edge ), 
                                    ( new_vertice_name, '_in' ) )
 
@@ -431,7 +432,7 @@ class Graph_Builder:
              
     def _build_special_vertices(self, module):
         """ Build special vertices for layout alg. """
-        Block = namedtuple('Block', 'name inputs outputs')
+
         block_dict = {}
         for inst in module.inst_dict.keys():
             inputs = []
@@ -443,14 +444,21 @@ class Graph_Builder:
                     inputs.append(port.name)
                 else:
                     outputs.append(port.name)
-            block = Block(inst, tuple(inputs), tuple(outputs))
+            block = self.Block(inst, tuple(inputs), tuple(outputs))
             block_dict[inst] = block
             
         # Add the ports
         for port_name in module.port_name_list:
-            block = Block( port_name, (port_name,), (port_name,) )
+            block = self.Block( port_name, (port_name,), (port_name,) )
             block_dict[port_name] = block
             
+        # Add the dummy_edges
+        for vertex in self.layer_dict:
+            if vertex.startswith('_dummy_'):
+                if vertex not in block_dict:
+                    dummy = self.Block(vertex, ('_in',), ('_out',) )
+                    block_dict[vertex] = dummy
+                                            
         return block_dict
         
             

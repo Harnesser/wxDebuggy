@@ -32,7 +32,41 @@ class SugiyamaLayerReordering( unittest.TestCase ):
    
         return V, E      
         
+    def get_graph_snake1(self):
 
+        V = [[Block(name='in1', inputs=('in1',), outputs=('in1',))],
+             [Block(name='U1', inputs=('in1',), outputs=('out1', 'out2', 'out3', 'out4'))],
+             [Block(name='U3', inputs=('in1', 'in2'), outputs=('out1', 'out2')),
+              Block(name='U2', inputs=('in1', 'in2'), outputs=('out1', 'out2', 'out3'))],
+             [Block(name='U5', inputs=('in1', 'in2'), outputs=('out1', 'out2')),
+              Block(name='U4', inputs=('in1', 'in2'), outputs=('out1', 'out2', 'out3')),
+              Block(name='_dummy_U2__to__U7_4', inputs=('_in',), outputs=('_out',))],
+             [Block(name='U7', inputs=('in1', 'in2', 'in3'), outputs=('out1',)),
+              Block(name='U6', inputs=('in1', 'in2', 'in3'), outputs=('out1',))],
+             [Block(name='U8', inputs=('in1', 'in2'), outputs=('out',))],
+             [Block(name='out1', inputs=('out1',), outputs=('out1',))],
+             ]
+        E = [[(('_iport', 'in1'), ('U1', 'in1'))],
+             [(('U1', 'out2'), ('U2', 'in2')),
+              (('U1', 'out3'), ('U3', 'in1')),
+              (('U1', 'out4'), ('U3', 'in2')),
+              (('U1', 'out1'), ('U2', 'in1'))],
+             [(('U2', 'out2'), ('U4', 'in1')),
+              (('U3', 'out1'), ('U5', 'in1')),
+              (('U2', 'out3'), ('U4', 'in2')),
+              (('U3', 'out2'), ('U5', 'in2')),
+              (('U2', 'out1'), ('_dummy_U2__to__U7_4', '_in'))],
+             [(('U5', 'out1'), ('U7', 'in1')),
+              (('U5', 'out2'), ('U7', 'in3')),
+              (('U4', 'out3'), ('U6', 'in3')),
+              (('U4', 'out2'), ('U6', 'in2')),
+              (('U4', 'out1'), ('U6', 'in1')),
+              (('_dummy_U2__to__U7_4', '_out'), ('U7', 'in2'))],
+             [(('U6', 'out1'), ('U8', 'in1')), (('U7', 'out1'), ('U8', 'in2'))],
+             [(('U8', 'out'), ('_oport', 'out1'))]]
+
+        return V, E      
+        
     def setup_graph(self, V, E):
         G = graph.Graph( V, E )
         G.build_connection_matrices()
@@ -60,4 +94,18 @@ class SugiyamaLayerReordering( unittest.TestCase ):
         self.show_conn_matrices(eng.G)
         
         
+    def test__reorder_snake1(self):
+        V, E = self.get_graph_snake1()
+        G = self.setup_graph(V, E)
+        eng = reordering.Reordering_Engine()
+        eng.set_graph(G)
+        self.show_conn_matrices(eng.G)
+        
+        self.assertEquals( eng.G.get_crossover_count(), 11) 
+        eng.run()
+        self.assertEquals( eng.G.get_crossover_count(), 2)
+
+        self.show_conn_matrices(eng.G)
+        
+               
         
