@@ -18,15 +18,11 @@ class MatrixReversion( unittest.TestCase ):
             'C.1:X.1', 
             'D.1:Y.1', 'D.2:Y.2', 'D.3:Z.1'
             ]
-        V_top, V_bot, E = helpers.parse_shorthand(';'.join(edges))
-        M = matrix.Matrix( V_top, V_bot, E )
+        V_top, V_bot, E = helpers.parse_shorthand(';'.join(edges),
+            [ list('ACBD'), list('YXZ') ] )
+        M = matrix.Matrix( V_top, V_bot, E)
         print "BEFORE:", M.pretty()
         
-        # Check setup
-        expected_block_order = [ 'A', 'C', 'B', 'D' ]
-        for expected, actual in zip( expected_block_order, M.row_blocks ):
-            self.assertEquals( expected, actual.name )
-         
         # Reverse and check   
         M.row_reversion()
         print "AFTER:", M.pretty()
@@ -37,20 +33,19 @@ class MatrixReversion( unittest.TestCase ):
 
         
     def test_col_reversion_1(self):
-        M = matrix.Matrix( self.vertices_top, self.vertices_bot, self.edges )
-        print M
+        edges = [
+            'A.1:V.1', 'A.2:W.1', 'A.3:W.2', 'A.4:V.2'
+            ]
+        V_top, V_bot, E = helpers.parse_shorthand(';'.join(edges),
+             [ list('A'), list('VW') ] )
+        M = matrix.Matrix( V_top, V_bot, E )
+        print "BEFORE:", M.pretty()
         
         M.col_reversion()
-        self.assertEquals( M.col_vertices, list('efgih') )
-        print M
-
-        
-
-               
-
-
-        
-        
+        print "AFTER:", M.pretty()
+        expected_block_order = [ 'W', 'V' ]
+        for expected, actual in zip( expected_block_order, M.col_blocks ):
+            self.assertEquals( expected, actual.name )        
         
         
         

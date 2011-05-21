@@ -3,7 +3,7 @@ from collections import namedtuple
 
 Block = namedtuple('Block', 'name inputs outputs')
    
-def parse_shorthand( graph_string, debug=True ):
+def parse_shorthand( graph_string, set_order=None, debug=True ):
     """Take a string representing a graph and build a suitable datastructure
     2-layer graphs only.
     
@@ -63,6 +63,24 @@ def parse_shorthand( graph_string, debug=True ):
         pprint.pprint(V_bot)
         pprint.pprint(E)
         
+        
+    if set_order:
+        top_order, bot_order = set_order
+        V_top = reorder_vertices( V_top, top_order )
+        V_bot = reorder_vertices( V_bot, bot_order )
+        
     return V_top, V_bot, E
 
+def reorder_vertices( vertex_list, vertex_order ):
+    vertex_dict = make_dict( vertex_list )
+    new_vertex_list = []
+    for vertex_name in vertex_order:
+        new_vertex_list.append( vertex_dict[vertex_name] )
+    return new_vertex_list
+    
+def make_dict( vertex_list ):
+    vertex_dict = {}
+    for vertex in vertex_list:
+        vertex_dict[vertex.name] = vertex
+    return vertex_dict
         

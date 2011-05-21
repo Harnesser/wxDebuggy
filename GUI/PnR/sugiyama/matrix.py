@@ -355,8 +355,8 @@ class Matrix(object):
      
     def col_reversion(self):
         """ Reverse columns with equal barycentre numbers."""
-        if not self._barycentres_are_monotonic(self.col_barycentres):
-            new_order = self._reversion( self.col_vertices, self.col_barycentres )
+        if not self._barycentres_are_monotonic(self.block_col_barycentres):
+            new_order = self._reversion( self.col_blocks, self.block_col_barycentres )
             self._new_col_order( new_order )
                      
     
