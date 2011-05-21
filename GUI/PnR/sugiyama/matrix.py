@@ -424,6 +424,15 @@ class Matrix(object):
         self.__str_add_block_row_barycentres(str_list)
         self.__str_add_block_col_barycentres(str_list)
 
+        # Nicer hit graphic
+        new_str_list = []
+        for line in str_list:
+            line = line.replace('    0 ', '    - ')
+            line = line.replace('    1 ', u'    \u2b1b ')
+            new_str_list.append(line)
+            
+        str_list = new_str_list
+        
         str_list[1] = str_list[1].replace('Matrix:',
             'Matrix (%0d crossovers)' % self.get_crossover_count() )
         return '\n'.join(str_list)
