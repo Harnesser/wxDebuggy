@@ -18,7 +18,8 @@ class Matrix(object):
         self.edges = edges
         self.update()
         
-        
+        self.N = 10
+                
     def get_size(self):
         """ Return the size of the connectivity matrix."""
         return (self.c_rows, self.c_cols)
@@ -376,34 +377,38 @@ class Matrix(object):
         
     def col_barycenters_are_monotonic(self):
         return self._barycentres_are_monotonic(self.col_barycentres)
-                      
+                  
+    def _truncate_name(self, name):
+        if len(name) >= self.N-1:
+            name = name[0:3] + '~' + name[-(self.N-5):]
+        return name
 
     def __str__(self):
         """ Printout
         Print the connection matrix with row and col headers, and with
         row and column barycentre numbers just like in Sugiyama's paper.
         """
-  
+        fmt_str = '%%%ds' % (self.N)
         repr_str_list = ['\nConnection Matrix:']
         
-        first_line = '%10s' % (' ')
+        first_line = fmt_str % (' ')
         for vertice in self.col_vertices:
-            first_line += '%10s' % (vertice )
+            first_line += fmt_str % ( self._truncate_name(vertice) )
         repr_str_list.append(first_line)
         repr_str_list.append('  ')
         
         for j in xrange(self.c_rows):
-            line = '%10s' %(self.row_vertices[j])
+            line = fmt_str %( self._truncate_name(self.row_vertices[j]) )
             for conn in self.M[j]:
-                line += '%10s' % (conn)
+                line += fmt_str % (conn)
             line += '    : %.1f' % (self.row_barycentres[j])
             repr_str_list.append(line)
         
         repr_str_list.append('  ')
-        last_line = '%10s' %('')
+        last_line = fmt_str %('')
         for bc in self.col_barycentres:
             trunc = '%0.1f' % (bc)
-            last_line += '%10s' % (trunc) 
+            last_line += fmt_str % (trunc) 
         repr_str_list.append(last_line)
            
         # Add crossover count:
@@ -457,11 +462,12 @@ class Matrix(object):
             i_str += 1      
           
           
-    def __str_add_block_col_barycentres(self, str_list, N=10):
+    def __str_add_block_col_barycentres(self, str_list):
         """ Add col block barycentres to end of the string representation."""
-        graphics_line = [ (' ' * N) ]
-        barycentre_line = [ (' ' * N ) ]
-        leadin = ' ' * (N-2)
+        graphics_line = [ (' ' * self.N) ]
+        barycentre_line = [ (' ' * self.N ) ]
+        leadin = ' ' * (self.N-2)
+        fmt_str = '%%%ds' % (self.N)
         
         i = 0
         i_str = 3
@@ -470,16 +476,16 @@ class Matrix(object):
             trunc = '%0.1f' % (self.block_col_barycentres[i])
             if n == 1:
                 graphics_line.append( leadin + u'\u2502 ' )
-                barycentre_line.append('%10s' % (trunc))
+                barycentre_line.append(fmt_str % (trunc))
             else:
                 graphics_line.append( leadin + u'\u251c\u2500' )
-                barycentre_line.append('%10s' % (trunc) )
+                barycentre_line.append(fmt_str % (trunc) )
                 for j in xrange(n-2):
-                    graphics_line.append( (u'\u2500' * N) )
-                    barycentre_line.append( (' ' * N ) )
+                    graphics_line.append( (u'\u2500' * self.N) )
+                    barycentre_line.append( (' ' * self.N ) )
 
-                graphics_line.append( ( u'\u2500' * (N-2) ) + u'\u2518 ' )
-                barycentre_line.append( (' ' * N ) )
+                graphics_line.append( ( u'\u2500' * (self.N-2) ) + u'\u2518 ' )
+                barycentre_line.append( (' ' * self.N ) )
             i += 1
 
         str_list.append( ''.join(graphics_line) )
