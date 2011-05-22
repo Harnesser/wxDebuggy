@@ -33,12 +33,21 @@ class Reordering_Engine(object):
 
     def run(self, max_runs=3):
         """ Run the layer reordering algorithm. """
+        i = 1
+        for x in self.gen():
+            print "<<< Iteration %0d >>>" % (i) + ( '=' * 50 )
+            for m in self.G.matrices:
+                pass
+                print m.pretty()
+            i += 1
+        
+    def gen(self, max_runs=3):
         if self.G == None:
             print "Ooops - you might want to set a graph first..."
-        for i in xrange(1, max_runs):
-            self._phase1_down_up()        
-        
-        
+        for i in xrange(0, max_runs):
+            self._phase1_down_up()
+            yield          
+
     # =================================================================
     #  Phase 1: Barycentre Reordering
     # =================================================================

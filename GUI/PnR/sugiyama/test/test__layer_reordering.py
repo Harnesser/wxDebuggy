@@ -70,12 +70,11 @@ class SugiyamaLayerReordering( unittest.TestCase ):
     def setup_graph(self, V, E):
         G = graph.Graph( V, E )
         G.build_connection_matrices()
-        self.show_conn_matrices(G)
         return G
         
 
-    def show_conn_matrices(self, G):
-        print "#" * 80
+    def show_conn_matrices(self, G, title=''):
+        print ( '#' * 30 ) + ' ' + title + ' ' + ( '#' * 30 )
         for i in xrange(G.c_levels-1):
             print G.matrices[i].pretty()
         print "Crossover Count: ", G.get_crossover_count()
@@ -86,12 +85,13 @@ class SugiyamaLayerReordering( unittest.TestCase ):
         G = self.setup_graph(V, E)
         eng = reordering.Reordering_Engine()
         eng.set_graph(G)
-        
+        self.show_conn_matrices(eng.G, 'I N I T I A L')
+                
         self.assertEquals( eng.G.get_crossover_count(), 3) 
         eng.run()
         self.assertEquals( eng.G.get_crossover_count(), 0)
 
-        self.show_conn_matrices(eng.G)
+        self.show_conn_matrices(eng.G, 'F I N A L   R E S U L T')
         
         
     def test__reorder_snake1(self):
@@ -99,13 +99,13 @@ class SugiyamaLayerReordering( unittest.TestCase ):
         G = self.setup_graph(V, E)
         eng = reordering.Reordering_Engine()
         eng.set_graph(G)
-        self.show_conn_matrices(eng.G)
+        self.show_conn_matrices(eng.G, 'I N I T I A L')
         
         self.assertEquals( eng.G.get_crossover_count(), 11) 
         eng.run()
-        self.assertEquals( eng.G.get_crossover_count(), 2)
-
-        self.show_conn_matrices(eng.G)
+        self.assertEquals( eng.G.get_crossover_count(), 5)
+        
+        self.show_conn_matrices(eng.G, 'F I N A L   R E S U L T')
         
                
         
