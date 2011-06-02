@@ -62,7 +62,7 @@ class Matrix(object):
             list(self.col_blocks), list(self.edges) )
 
         return M_copy   
-            
+
         
     def _build_connection_matrix(self):
         """ Initialise the connection matrix for this layer. """
@@ -347,8 +347,10 @@ class Matrix(object):
     def row_reversion(self):
         """ Reverse rows sequences that have equal barycentres."""
         if not self._barycentres_are_monotonic(self.block_row_barycentres):
+            #print self.pretty()
             new_order = self._reversion( self.row_blocks, self.block_row_barycentres )
             self._new_row_order( new_order )
+            #print self.pretty()
 
      
     def col_reversion(self):
@@ -356,7 +358,7 @@ class Matrix(object):
         if not self._barycentres_are_monotonic(self.block_col_barycentres):
             new_order = self._reversion( self.col_blocks, self.block_col_barycentres )
             self._new_col_order( new_order )
-                     
+
     
     def _barycentres_are_monotonic(self, barycentres):
         """ Barycentre list is always on the increase?"""

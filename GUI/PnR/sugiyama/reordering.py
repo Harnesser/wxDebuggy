@@ -26,28 +26,45 @@ class Reordering_Engine(object):
     
     def __init__(self):
         self.G = None
-
+        self.verbose = True
+        
     def set_graph(self, G):
         """ Set the graph to reorder """
         self.G = G    
 
-    def run(self, max_runs=3):
+    def run(self, max_runs=2):
         """ Run the layer reordering algorithm. """
         i = 1
-        for x in self.gen():
-            print "<<< Iteration %0d >>>" % (i) + ( '=' * 50 )
+        for x in self.gen_phase1(max_runs):
+            print "<<< Iteration %0d >>>" % (i) + ( '=' * 50 ) 
             for m in self.G.matrices:
                 pass
-                print m.pretty()
+                #print m.pretty()
             i += 1
-        
-    def gen(self, max_runs=3):
+
+        for x in self.gen_phase2(max_runs):
+            print "<<< Iteration %0d >>>" % (i) + ( '=' * 50 ) 
+            for m in self.G.matrices:
+                pass
+                #print m.pretty()
+            i += 1
+                        
+                    
+    def gen_phase1(self, max_runs=3):
         if self.G == None:
             print "Ooops - you might want to set a graph first..."
+            
         for i in xrange(0, max_runs):
             self._phase1_down_up()
             yield          
 
+    def gen_phase2(self, max_runs=3):
+
+        for i in xrange(0, max_runs):
+            self._phase2_down_up()
+            yield
+            
+            
     # =================================================================
     #  Phase 1: Barycentre Reordering
     # =================================================================
@@ -56,17 +73,16 @@ class Reordering_Engine(object):
             m = Matrix(self.G.vertices[i], self.G.vertices[i+1], self.G.edges[i] )
             m.barycentre_col_reorder()
             self.G.matrices[i] = m
-            self.G.vertices[i+1] = m.col_blocks
-            
-
+            self.G.set_layer(i+1, m.col_blocks)
+                
     def _phase1_up(self):
         for i in xrange(self.G.c_levels-1, 0, -1):
             m = Matrix( self.G.vertices[i-1], self.G.vertices[i], self.G.edges[i-1] )
             m.barycentre_row_reorder()
             self.G.matrices[i-1] = m
-            self.G.vertices[i-1] = m.row_blocks
+            self.G.set_layer(i-1, m.row_blocks)
             
-
+                            
     def _phase1_down_up(self):
         self._phase1_down()
         self._phase1_up()
@@ -80,33 +96,28 @@ class Reordering_Engine(object):
     def _phase2_down(self):
         for i in xrange(0, self.G.c_levels-1):
             m = self.G.matrices[i]
-            m.col_reversion()
-            self.G.vertices[i+1] = m.col_vertices
+            #m.col_reversion()
+            self.G.matrices[i] = m
+            self.G.set_layer(i+1, m.col_blocks)
             self._phase1_down_up()
-            
+                        
     def _phase2_up(self):
         for i in xrange(self.G.c_levels-1, 0, -1):
             m = self.G.matrices[i-1]
-            m.row_reversion()
-            self.G.vertices[i-1] = m.row_vertices
+            #m.row_reversion()
+            self.G.matrices[i-1] = m
+            self.G.set_layer(i-1, m.row_blocks)
             self._phase1_up_down()
 
-
-    def phase2_up_down(self):
-        for i in xrange(self.G.c_levels-1, 0, -1):
-            m = self.G.matrices[i-1]
-            m.row_reversion()
-            self.G.vertices[i-1] = m.row_vertices
-            self._phase1_up_down()
-            
             
     def _phase2_up_down(self):
-        for i in xrange(0, self.G.c_levels-1):
-            m = self.G.matrices[i]
-            m.col_reversion()
-            self.G.vertices[i+1] = m.col_vertices
-            self._phase1_down_up()
+        self._phase2_up()
+        self._phase2_down()
+            
 
+    def _phase2_down_up(self):
+        self._phase2_down()
+        self._phase2_up()
 
 
             

@@ -32,6 +32,23 @@ class Graph(object):
             c_crossovers += m.get_crossover_count()
         return c_crossovers
          
+         
+    def set_layer(self, i, vertices ):
+        """  """
+        
+        old_order = ( vertex.name for vertex in self.vertices[i] )
+        old_order = " ".join(old_order)
+        
+        new_order = ( vertex.name for vertex in vertices )
+        new_order = " ".join(new_order)
+        
+        if new_order != old_order:
+            print "> .set_layer() update:"
+            print ">  FROM:", old_order
+            print ">    TO:", new_order
+
+        self.vertices[i] = vertices
+        
     # ===========================================================
     #  Connectivities
     # ===========================================================       
@@ -72,10 +89,10 @@ class Graph(object):
         if the rows of matrice[1] not the same.
         """
         for i in xrange(1,self.c_levels-1):
-            if self.matrices[i-1].col_vertices != self.matrices[i].row_vertices:
+            if self.matrices[i-1].col_blocks != self.matrices[i].row_blocks:
                 print "Row vs Col order mismatch between matrices %d & %d" % (i-1, i)
                 return False
-            if self.matrices[i].row_vertices != self.vertices[i]:
+            if self.matrices[i].row_blocks != self.vertices[i]:
                 print "Row %d vertices in matrix mismatch between Graph version" % (d)
                 return False
         return True
@@ -139,7 +156,8 @@ class Graph(object):
         
         repr_str_list.append(" Vertices:")
         for i in xrange(self.c_levels):
-            repr_str_list.append( "%10d %s" % (i, self.vertices[i] ) )
+            blocks = [ vertex.name for vertex in self.vertices[i] ]
+            repr_str_list.append( "%10d %s" % (i, blocks ) )
                     
         repr_str_list.append("\n    Edges:")
         for i in xrange(self.c_levels-1):

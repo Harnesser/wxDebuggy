@@ -48,7 +48,21 @@ class MatrixReversion( unittest.TestCase ):
             self.assertEquals( expected, actual.name )        
         
         
+    def test_row_reversion_snake_1(self):
+        """ Snake_1 Sub-matrix test.
+        This didn't seem to work properly. 
+        """
+        edges = ['U5.out1:U7.in1',
+                 'U5.out2:U7.in3',
+                 'U4.out3:U6.in3',
+                 'U4.out2:U6.in2',
+                 'U4.out1:U6.in1',
+                 '_dummy_U2__to__U7_4._out:U7.in2']       
         
-        
-        
+        V_top, V_bot, E = helpers.parse_shorthand(';'.join(edges),
+             [ ['_dummy_U2__to__U7_4', 'U4', 'U5' ],
+               ['U6', 'U7' ] ] )       
+               
+        M = matrix.Matrix( V_top, V_bot, E )
+        print "BEFORE:", M.pretty()
         

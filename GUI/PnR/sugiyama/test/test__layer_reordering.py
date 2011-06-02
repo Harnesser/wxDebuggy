@@ -3,6 +3,7 @@
 
 import sys
 import unittest
+import codecs
 from collections import namedtuple
 
 sys.path.append('../')
@@ -10,6 +11,8 @@ import graph
 import reordering
             
 Block = namedtuple('Block', 'name inputs outputs')
+
+sys.stdout = codecs.lookup('utf-8')[-1](sys.stdout) # Python Cookbook, 1.22
 
 class SugiyamaLayerReordering( unittest.TestCase ):
 
@@ -76,25 +79,30 @@ class SugiyamaLayerReordering( unittest.TestCase ):
     def show_conn_matrices(self, G, title=''):
         print ( '#' * 30 ) + ' ' + title + ' ' + ( '#' * 30 )
         for i in xrange(G.c_levels-1):
-            print G.matrices[i].pretty()
+            #print G.matrices[i].pretty()
+            pass
         print "Crossover Count: ", G.get_crossover_count()
         
 
-    def test__reorder_gates1(self):
+    def test__reorder_gates1_phase1(self):
         V, E = self.get_graph_gates1()
         G = self.setup_graph(V, E)
         eng = reordering.Reordering_Engine()
         eng.set_graph(G)
         self.show_conn_matrices(eng.G, 'I N I T I A L')
                 
-        self.assertEquals( eng.G.get_crossover_count(), 3) 
-        eng.run()
+        self.assertEquals( eng.G.get_crossover_count(), 3)
+        for x in eng.gen_phase1():
+            print " ))))))))))"
+            for m in eng.G.matrices:
+                print m.pretty()
+                
         self.assertEquals( eng.G.get_crossover_count(), 0)
 
         self.show_conn_matrices(eng.G, 'F I N A L   R E S U L T')
         
         
-    def test__reorder_snake1(self):
+    def test__reorder_snake1_phase1(self):
         V, E = self.get_graph_snake1()
         G = self.setup_graph(V, E)
         eng = reordering.Reordering_Engine()
@@ -102,10 +110,39 @@ class SugiyamaLayerReordering( unittest.TestCase ):
         self.show_conn_matrices(eng.G, 'I N I T I A L')
         
         self.assertEquals( eng.G.get_crossover_count(), 11) 
-        eng.run()
+        for x in eng.gen_phase1():
+            print " ))))))))))"
+            for m in eng.G.matrices:
+                print m.pretty()
+                
+        self.assertTrue( eng.G.check_consistency() )
         self.assertEquals( eng.G.get_crossover_count(), 5)
         
         self.show_conn_matrices(eng.G, 'F I N A L   R E S U L T')
         
-               
+
+
+    def test__reorder_snake1_phase1_phase2(self):
+        V, E = self.get_graph_snake1()
+        G = self.setup_graph(V, E)
+        eng = reordering.Reordering_Engine()
+        eng.set_graph(G)
+        self.show_conn_matrices(eng.G, 'I N I T I A L')
+        
+        self.assertEquals( eng.G.get_crossover_count(), 11) 
+        for x in eng.gen_phase1():
+            print " ))))))))))"
+            for m in eng.G.matrices:
+                print m.pretty()
+                
+        for x in eng.gen_phase2():
+            print " (((((((((((((((((((((((((((((((((((((("
+            for m in eng.G.matrices:
+                print m.pretty()
+                
+        self.assertTrue( eng.G.check_consistency() )
+        self.assertEquals( eng.G.get_crossover_count(), 5)
+        
+        self.show_conn_matrices(eng.G, 'F I N A L   R E S U L T')
+        
         
