@@ -17,11 +17,14 @@ class Graph_Builder:
 
         self.Block = namedtuple('Block', 'name inputs outputs')
 
-    def get_graph_for_sugiyama(self, module):
+    def set_module(self, module):
+        self.module = module
+    
+    def get_graph_for_sugiyama(self):
         """ """
         
-        edges = self.extract_graph(module)
-        block_dict = self._build_special_vertices(module)
+        edges = self.extract_graph(self.module)
+        block_dict = self._build_special_vertices(self.module)
        
         # flip layer dict so it's indexed by the layer
         layers = {}

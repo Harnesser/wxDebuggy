@@ -37,7 +37,10 @@ class PnR:
         self.graph_edges = []          #
         self.layer_dict = {}           # look up which layer an object is in
         self.connection_list = []
-        
+
+        self.sugiyama_edges = []
+        self.sugiyama_vertices = []
+                
     def place_and_route(self, module, animate=False, debug=False ):
         """ Place and Route a Module.
         
@@ -68,5 +71,7 @@ class PnR:
         self.graph_edges     = self.grapher.extract_graph( self.module )
         self.layer_dict      = self.grapher.get_layer_dict()
         self.connection_list = self.grapher.get_conn_list()
+        
+        self.sugiyama_vertices, self.sugiyama_edges = self.grapher.get_graph_for_sugiyama()
         
         
