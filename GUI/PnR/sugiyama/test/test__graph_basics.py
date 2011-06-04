@@ -38,7 +38,19 @@ class GraphBasicOperations( unittest.TestCase ):
         # Check size of connection matrix
         self.assertEquals(G.c_levels, 4)
 
+
+    def test_graph_copy(self):
+        G1 = self.get_circuit()
+        G2 = G1.copy()
+        G1.vertices[0].reverse()
         
+        G1_names_0 = [ block.name for block in G1.vertices[0] ]
+        G2_names_0 = [ block.name for block in G2.vertices[0] ]
+        
+        self.assertEquals( G2_names_0, [ 'in4', 'in1', 'in2', 'in3' ] )        
+        self.assertEquals( G1_names_0, [ 'in3', 'in2', 'in1', 'in4' ] )
+
+            
     def test_matrices_ckt_M0(self):
         G = self.get_circuit()
         G.build_connection_matrices()
@@ -70,4 +82,7 @@ class GraphBasicOperations( unittest.TestCase ):
         G = self.get_circuit()
         G.build_connection_matrices()
         self.assertEquals( G.get_crossover_count(), 3)
+        
+
+        
         

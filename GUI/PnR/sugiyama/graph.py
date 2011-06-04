@@ -151,6 +151,19 @@ class Graph(object):
         return lower_barycentres
 
 
+    #
+    # Misc housekeeping methods
+    #
+    def copy(self):
+        new_vertices = [ list(layer) for layer in self.vertices ]
+        new_edges = [ list(layer) for layer in self.edges ]
+
+        new_graph = Graph(new_vertices, new_edges)
+        new_graph.update()
+        new_graph.build_connection_matrices()        
+        return new_graph
+        
+        
     def __str__(self):
         repr_str_list = ["Graph:\n"]
         
