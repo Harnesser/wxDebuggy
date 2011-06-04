@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+import graph_builder
 
 class PnR:
     """ Schematic Layout Engine.
@@ -29,6 +30,13 @@ class PnR:
     def __init__(self, use_pickled_module=False):
         self.module = None    # The Module to draw
         
+        # Worker classes
+        self.grapher = None
+
+        # Graph Info
+        self.graph_edges = []          #
+        self.layer_dict = {}           # look up which layer an object is in
+        self.connection_list = []
         
     def place_and_route(self, module, animate=False, debug=False ):
         """ Place and Route a Module.
@@ -39,10 +47,8 @@ class PnR:
         """
         
         self.module = module # should I type-check?
+        self._build_graph()
         
-        # Get graph representation of the circuit
-        self.grapher = graph_builder.Graph_Builder()
-
         # Reorder layers to reduce xovers
         
         # Decide on block co-ords
@@ -50,5 +56,17 @@ class PnR:
         # Route nets
         
         # Return drawing objects
+        
+        
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    # Private Methods
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    def _build_graph(self):
+        """ Call Graph_Builder on the specified module. """
+        self.grapher = graph_builder.Graph_Builder()
+        
+        self.graph_edges     = self.grapher.extract_graph( self.module )
+        self.layer_dict      = self.grapher.get_layer_dict()
+        self.connection_list = self.grapher.get_conn_list()
         
         
