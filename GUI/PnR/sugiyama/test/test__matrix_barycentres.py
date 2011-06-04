@@ -4,10 +4,14 @@ import sys
 import unittest
 from collections import namedtuple
 
+sys.path.append('./')
 sys.path.append('../')
 import matrix
+import helpers
 
 Block = namedtuple('Block', 'name inputs outputs')
+
+DEBUG = False
 
 class MatrixBarycentreOperations( unittest.TestCase ):
 
@@ -133,8 +137,69 @@ class MatrixBarycentreOperations( unittest.TestCase ):
         self.assertEquals( M.col_blocks, [ self.vertices_bot[1],
                                            self.vertices_bot[0] ] )
 
-        
  
+    def test_row_reorder_keep_positions(self):
+        edges = [
+            'A.1:Z.2', 'A.2:Z.3',
+            'B.1:X.2', 'B.2:X.3', 'B.3:X.4',
+            'C.1:X.1', 
+            'D.1:Y.1', 'D.2:Y.2', 'D.3:Z.1'
+            ]
+        V_top, V_bot, E = helpers.parse_shorthand(';'.join(edges),
+            [ list('ACDB'), list('YXZ') ] )
+        M = matrix.Matrix( V_top, V_bot, E)
+        
+        # B & D have the same row barycentre numbers, so they shoudl keep their order
+        if DEBUG: print "BEFORE:", M.pretty()
+        self.assertEquals( self._get_row_block_names(M), list('ACDB') )
+        
+        M.barycentre_row_reorder()
+        if DEBUG: print "AFTER:", M.pretty()
+        self.assertEquals( self._get_row_block_names(M), list('DBCA') )
+      
+         
+    def test_col_reorder_keep_positions(self):
+        edges = [
+            'A.1:Z.2', 'A.2:Z.3',
+            'B.1:X.2', 'B.2:X.3', 'B.3:X.4',
+            'C.1:X.1', 
+            'D.1:Y.1', 'D.2:Y.2', 'D.3:Z.1'
+            ]
+        edges = self._reverse_edges(edges)
+        
+        V_top, V_bot, E = helpers.parse_shorthand(';'.join(edges),
+            [ list('YXZ'), list('ACDB') ] )
+        M = matrix.Matrix( V_top, V_bot, E)
+        
+        # B & D have the same row barycentre numbers, so they shoudl keep their order
+        if DEBUG: print "BEFORE:", M.pretty()
+        self.assertEquals( self._get_col_block_names(M), list('ACDB') )
+        
+        M.barycentre_col_reorder()
+        if DEBUG: print "AFTER:", M.pretty()
+        self.assertEquals( self._get_col_block_names(M), list('DBCA') )
+      
+      
+    def _reverse_edges(self, edges):
+        reversed_edges = []
+        for edge in edges:
+            (i,o) = edge.split(':')
+            reversed_edges.append( '%s:%s' % (o,i) )
+        return reversed_edges
+        
+    def _get_row_block_names(self, M):
+        names = []
+        for block in M.row_blocks:
+            names.append(block.name)
+        return names
+ 
+    def _get_col_block_names(self, M):
+        names = []
+        for block in M.col_blocks:
+            names.append(block.name)
+        return names
+ 
+               
     #  These functions below check the barycentres for both rows and
     # columns based on the first 3 matrices in Sugiyama's worked example
     # of the two-layer crossing barycentre algorithm.
