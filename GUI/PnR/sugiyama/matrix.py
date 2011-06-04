@@ -255,20 +255,9 @@ class Matrix(object):
         
         
     def barycentre_row_reorder(self):
-        """ Reorder the rows based on their barycentres. 
-        We're using Decorate-Sort-Undecerate here, decorating the row block
-        list with their barycentres, and with their order. This means that
-        if we pass over a set of blocks with the same barycentre, the order
-        within this small group is kept.
-        """
-        
-        # Find the new vertice order
-        orders = range( len( self.block_row_barycentres) )
-        dec = [ ( bc, _ord, v ) for (bc, _ord, v)  in zip (
-             self.block_row_barycentres, orders, self.row_blocks ) ]
-        dec.sort()
-        new_vertice_order = [ v for (bc, _ord, v) in dec ]
-         
+        """ Reorder the rows based on their barycentres. """
+        new_vertice_order = self._barycentre_reorder( self.row_blocks,
+            self.block_row_barycentres )
         self._new_row_order( new_vertice_order )
 
         
@@ -320,15 +309,28 @@ class Matrix(object):
                 
     def barycentre_col_reorder(self):
         """ Reorder the columns based on their barycentres. """
+        new_vertice_order = self._barycentre_reorder( self.col_blocks,
+            self.block_col_barycentres )
+        self._new_col_order( new_vertice_order )
+        
+        
+    def _barycentre_reorder(self, blocks, barycentres):
+        """ Reorder blocks based on barycentres.
+
+        We're using Decorate-Sort-Undecerate here, decorating the block
+        list with their barycentres, and with their order. This means that
+        if we pass over a set of blocks with the same barycentre, the order
+        within this small group is kept.
+        """
         
         # Find the new vertice order
-        orders = range( len(self.block_col_barycentres) )
-        dec = [ ( bc, _ord, v ) for (bc, _ord, v)  in zip( 
-            self.block_col_barycentres, orders, self.col_blocks ) ]
+        orders = range( len( barycentres) )
+        dec = [ ( bc, _ord, v ) for (bc, _ord, v)  in zip (
+             barycentres, orders, blocks ) ]
         dec.sort()
         new_vertice_order = [ v for (bc, _ord, v) in dec ]
         
-        self._new_col_order(new_vertice_order)
+        return new_vertice_order
         
         
     def _reversion(self, vertices, barycentres ):
