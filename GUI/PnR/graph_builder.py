@@ -60,6 +60,7 @@ class Graph_Builder:
         for layer in layers:
             edges.append(edge_dict[layer])
 
+        del special_vertices[-1] # empty list to get rid of
         return special_vertices, edges        
         
 

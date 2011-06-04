@@ -1,5 +1,8 @@
 #! /usr/bin/env python
-import graph_builder
+
+from graph_builder import Graph_Builder
+from sugiyama.graph import Graph
+from sugiyama.reordering import Reordering_Engine
 
 class PnR:
     """ Schematic Layout Engine.
@@ -32,8 +35,10 @@ class PnR:
         
         # Worker classes
         self.grapher = None
-
+        self.reorderer = None
+        
         # Graph Info
+        self.G = Graph()               # Special graph for sugiyama impl
         self.graph_edges = []          #
         self.layer_dict = {}           # look up which layer an object is in
         self.connection_list = []
@@ -53,6 +58,7 @@ class PnR:
         self._build_graph()
         
         # Reorder layers to reduce xovers
+        self._build_reorderer()
         
         # Decide on block co-ords
         
@@ -66,12 +72,18 @@ class PnR:
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     def _build_graph(self):
         """ Call Graph_Builder on the specified module. """
-        self.grapher = graph_builder.Graph_Builder()
+        self.grapher = Graph_Builder()
         
         self.graph_edges     = self.grapher.extract_graph( self.module )
         self.layer_dict      = self.grapher.get_layer_dict()
         self.connection_list = self.grapher.get_conn_list()
         
         self.sugiyama_vertices, self.sugiyama_edges = self.grapher.get_graph_for_sugiyama()
+        self.G = Graph( self.sugiyama_vertices, self.sugiyama_edges )
+        self.G.update()
+        self.G.build_connection_matrices()
         
+    def _build_reorderer(self):
+        if not self.reorderer:
+            self.reorderer = Reordering_Engine()
         
