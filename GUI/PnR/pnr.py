@@ -3,6 +3,7 @@
 from graph_builder import Graph_Builder
 from sugiyama.graph import Graph
 from sugiyama.reordering import Reordering_Engine
+from object_factory import Object_Factory
 
 class PnR:
     """ Schematic Layout Engine.
@@ -66,6 +67,7 @@ class PnR:
         # Route nets
         
         # Return drawing objects
+        return self._build_drawing_object_dict()
         
         
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -79,17 +81,26 @@ class PnR:
         self.layer_dict      = self.grapher.get_layer_dict()
         self.connection_list = self.grapher.get_conn_list()
         
-        self.sugiyama_vertices, self.sugiyama_edges = self.grapher.get_graph_for_sugiyama()
+        (V, E) = self.grapher.get_graph_for_sugiyama()
+        self.sugiyama_vertices, self.sugiyama_edges = V, E
         self.G = Graph( self.sugiyama_vertices, self.sugiyama_edges )
         self.G.update()
         self.G.build_connection_matrices()
         
     def _build_reorderer(self):
+        """ Instantiate a reorderer class if not already done so."""
         if not self.reorderer:
             self.reorderer = Reordering_Engine()
         
     def _run_reorderer(self):
+        """ Run the reorderer.
+        Take special care to get the correct graph from it at the end."""
         self.reorderer.set_graph(self.G)
         self.reorderer.run()
         self.G = self.reorderer.get_graph()
+               
+    def _build_drawing_object_dict(self):
+        """ Build the dict of objects to draw for the schematic. """
+        factory = Object_Factory()
+        return factory.build_object_dict(self.module, self.graph_edges)
         
