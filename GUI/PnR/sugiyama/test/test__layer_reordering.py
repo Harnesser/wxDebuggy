@@ -14,7 +14,7 @@ Block = namedtuple('Block', 'name inputs outputs')
 
 sys.stdout = codecs.lookup('utf-8')[-1](sys.stdout) # Python Cookbook, 1.22
 
-DEBUG = True
+DEBUG = False
 
 class SugiyamaLayerReordering( unittest.TestCase ):
        
@@ -114,7 +114,7 @@ class SugiyamaLayerReordering( unittest.TestCase ):
             self.show_conn_matrices(eng.G, title=place)
                 
         self.assertTrue( eng.G.check_consistency() )
-        self.assertEquals( eng.G.get_crossover_count(), 5)
+        self.assertEquals( eng.G.get_crossover_count(), 3)
         
         self.show_conn_matrices(eng.G, 'F I N A L   R E S U L T')
         
@@ -127,10 +127,11 @@ class SugiyamaLayerReordering( unittest.TestCase ):
         self.show_conn_matrices(eng.G, 'I N I T I A L')
         
         # Phase 1 : Barycentre reordering
-        self.assertEquals( eng.G.get_crossover_count(), 11) 
+        self.assertEquals( G.get_crossover_count(), 11) 
         for place in eng.gen_phase1():
-            self.show_conn_matrices(eng.G, title=place)
-        self.assertEquals( eng.G.get_crossover_count(), 3)
+            G = eng.get_graph()
+            self.show_conn_matrices(G, title=place)
+        self.assertEquals(G.get_crossover_count(), 3)
                 
         if DEBUG:
             print '#' * 80
@@ -139,33 +140,17 @@ class SugiyamaLayerReordering( unittest.TestCase ):
             print ' '
             
         # Phase 2: Reversion
+        G = eng.get_graph()
         for place in eng.gen_phase2():
-            self.show_conn_matrices(eng.G, title=place)
+            self.show_conn_matrices(G, title=place)
         print "Reversions:", eng.c_reversions
         
-        self.assertTrue( eng.G.check_consistency() )
-        self.assertEquals( eng.G.get_crossover_count(), 3)
+        self.assertTrue( G.check_consistency() )
+        self.assertEquals( G.get_crossover_count(), 3)
         
-        self.show_conn_matrices(eng.G, 'F I N A L   R E S U L T')
+        self.show_conn_matrices( G, 'F I N A L   R E S U L T')
         print "Reversions:", eng.c_reversions
         
-    def test__reorder_experiment(self):
-        V, E = self.get_graph_snake1()
-        G = self.setup_graph(V, E)
-        eng = reordering.Reordering_Engine()
-        eng.set_graph(G)
-        self.show_conn_matrices(eng.G, 'I N I T I A L')
-        
-        self.assertEquals( eng.G.get_crossover_count(), 11) 
-        for place in eng.gen_experiment(up=False):
-            self.show_conn_matrices(eng.G, title=place)
-            
-        for place in eng.gen_experiment(up=True):
-            self.show_conn_matrices(eng.G, title=place)
-            
-        self.assertTrue( eng.G.check_consistency() )
-        self.assertEquals( eng.G.get_crossover_count(), 3)
-        
-        self.show_conn_matrices(eng.G, 'F I N A L   R E S U L T')
+
         
 
