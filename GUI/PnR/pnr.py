@@ -59,7 +59,8 @@ class PnR:
         
         # Reorder layers to reduce xovers
         self._build_reorderer()
-        
+        self._run_reorderer()
+
         # Decide on block co-ords
         
         # Route nets
@@ -86,4 +87,9 @@ class PnR:
     def _build_reorderer(self):
         if not self.reorderer:
             self.reorderer = Reordering_Engine()
+        
+    def _run_reorderer(self):
+        self.reorderer.set_graph(self.G)
+        self.reorderer.run()
+        self.G = self.reorderer.get_graph()
         

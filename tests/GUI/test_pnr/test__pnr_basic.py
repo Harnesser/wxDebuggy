@@ -42,13 +42,43 @@ class PnR_Basic_Operations( pnr_test_base.PnR_Test_Base ):
     def test__pnr_graph_builder_sugiyama_graph(self):
         pnr = self.load_module('gates1')
         
-        names = []
-        for layer in pnr.G.vertices:
-            _names = [ block.name for block in layer ]
-            names.append( _names)
-            
+        names = self.get_block_names(pnr.G)
+
         self.assertEquals( len(names), 3 )
         self.assertEquals( names[0], 'in4:in1:in2:in3'.split(':') )
         self.assertEquals( names[1], ['U1', 'U2'] )
         self.assertEquals( names[2], ['out1', 'out2'] )
 
+
+    def test__pnr_reorderer_easy(self):
+        module = self.load_rtl_module_pickle('gates1')
+        pnr = PnR()
+        pnr.place_and_route(module, animate=False)
+        names = self.get_block_names(pnr.G)
+        
+        # main check
+        self.assertEquals( pnr.G.get_crossover_count(), 0 )
+        self.assertEquals( len(names), 3 )
+        self.assertEquals( names[0], 'in1:in2:in3:in4'.split(':') )
+        self.assertEquals( names[1], ['U1', 'U2'] )
+        self.assertEquals( names[2], ['out1', 'out2'] )
+                
+        
+    def test__pnr_reorderer_snake(self):
+        module = self.load_rtl_module_pickle('snake_1')
+        pnr = PnR()
+        pnr.place_and_route(module, animate=False)
+        names = self.get_block_names(pnr.G)
+        
+        # main check
+        self.assertEquals( len(names), 7 )
+        self.assertEquals( pnr.G.get_crossover_count(), 3 )
+        self.assertEquals( names[0], 'in1'.split(':') )
+        self.assertEquals( names[1], ['U1'])        
+        self.assertEquals( names[2], ['U2', 'U3'] )
+        self.assertEquals( names[3], ['U4', '_dummy_U2__to__U7_4', 'U5'] )
+        self.assertEquals( names[4], ['U6', 'U7'] )
+        self.assertEquals( names[5], ['U8'] )
+        self.assertEquals( names[6], ['out1'] )
+                
+                

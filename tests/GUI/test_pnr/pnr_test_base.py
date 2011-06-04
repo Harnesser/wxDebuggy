@@ -26,4 +26,11 @@ class PnR_Test_Base( unittest.TestCase ):
         hPICKLE.close()
         return module
 
-
+    def get_block_names(self, G):
+        """ Return the Block.names in every sub-list. """
+        names = []
+        for layer in G.vertices:
+            _names = [ block.name for block in layer ]
+            names.append( _names)
+        return names
+        
