@@ -355,39 +355,55 @@ class Matrix(object):
           
     def row_reversion(self):
         """ Reverse rows sequences that have equal barycentres."""
-        if not self._barycentres_are_monotonic(self.block_row_barycentres):
-            #print self.pretty()
+        if self._can_use_reversion(self.block_row_barycentres):
+            print "Reversing..."
+            print self.pretty()
             new_order = self._reversion( self.row_blocks, self.block_row_barycentres )
             self._new_row_order( new_order )
-            #print self.pretty()
-
-     
+            print self.pretty()
+            return True
+        else:
+            return False
+             
     def col_reversion(self):
         """ Reverse columns with equal barycentre numbers."""
-        if not self._barycentres_are_monotonic(self.block_col_barycentres):
+        if self._can_use_reversion(self.block_col_barycentres):
             new_order = self._reversion( self.col_blocks, self.block_col_barycentres )
             self._new_col_order( new_order )
-
+            return True
+        else:
+            return False
     
-    def _barycentres_are_monotonic(self, barycentres):
-        """ Barycentre list is always on the increase?"""
+    def _can_use_reversion(self, barycentres):
+        """ Are there consequitive equal barycenters? 
+        eg, [ 1.0, 2.0, 3.4, 3.4, 5.0 ]
+        but not: [ 1.0, 2.0, 3.4, 5.0, 3.4 ]
+        """
+        TOL = 0.00001
         
         if len(barycentres) == 1:
+            return False
+        for i in xrange(1, len(barycentres) ):
+            if barycentres[i-1] + TOL > barycentres[i] > barycentres[i-1] - TOL:
+                return True
+        return False
+
+        
+    def barycentres_are_monotonic(self, barycentres):
+        """ Are barycentres monotonic? """
+        if len(barycentres) == 1:
             return True
-            
         for i in xrange(1, len(barycentres) ):
             if barycentres[i] <= barycentres[i-1]:
                 return False
-                
         return True
-        
-        
+                    
     def row_barycenters_are_monotonic(self):
         return self._barycentres_are_monotonic(self.row_barycentres)
         
-        
     def col_barycenters_are_monotonic(self):
         return self._barycentres_are_monotonic(self.col_barycentres)
+
                   
     def _truncate_name(self, name):
         if len(name) >= self.N-1:

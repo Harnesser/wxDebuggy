@@ -27,22 +27,27 @@ class Reordering_Engine(object):
     def __init__(self):
         self.G = None
         self.verbose = True
+        self.c_reversions = 0
         
+                
     def set_graph(self, G):
         """ Set the graph to reorder """
         self.G = G    
 
     def run(self, max_runs=2):
         """ Run the layer reordering algorithm. """
+        self.c_reversions = 0
+        
         i = 1
-        for x in self.gen_phase1(max_runs):
+        for place in self.gen_phase1(max_runs):
             print "<<< Iteration %0d >>>" % (i) + ( '=' * 50 ) 
+            print place
             for m in self.G.matrices:
                 pass
                 #print m.pretty()
             i += 1
 
-        for x in self.gen_phase2(max_runs):
+        for place in self.gen_phase2(max_runs):
             print "<<< Iteration %0d >>>" % (i) + ( '=' * 50 ) 
             for m in self.G.matrices:
                 pass
@@ -56,13 +61,55 @@ class Reordering_Engine(object):
             
         for i in xrange(0, max_runs):
             self._phase1_down_up()
-            yield          
+            yield 'Run %d of %d' % (i+1, max_runs)      
+
 
     def gen_phase2(self, max_runs=3):
-
         for i in xrange(0, max_runs):
             self._phase2_down_up()
-            yield
+            yield 'Run %d of %d' % (i+1, max_runs)      
+
+            
+    def gen_experiment(self, up=True):
+        """ A scratchpad for experimenting with algorithm tweaks. """
+    
+        #  Initial reordering phase. At the end of this, all the cols
+        # in the connection matricies will be ordered via their barycentre
+        if up:
+            self._phase1_up()
+            yield 'Phase1 Up'
+        else:
+            self._phase1_down()
+            yield 'Phase1 Down'            
+            
+        # Reversion reordering phase
+        if up:
+            # Reversion Up
+            for layer in xrange(self.G.c_levels-1, 0, -1):
+                m = self.G.matrices[layer-1]
+                if m.row_reversion():
+                    self.c_reversions += 1
+                self.G.matrices[layer-1] = m
+                self.G.set_layer(layer-1, m.row_blocks)
+                yield 'Reversion in layer %d of %d' % (layer, self.G.c_levels)
+
+                self._phase1_up()
+                yield 'Phase1 after the row reversion on layer %d' % (layer)
+                
+        else:
+            # Reversion Down
+            for layer in xrange(0, self.G.c_levels-1):
+                m = self.G.matrices[layer]
+                if m.col_reversion():
+                    self.c_reversions += 1
+                self.G.matrices[layer] = m
+                self.G.set_layer(layer+1, m.col_blocks)
+                yield 'Reversion in layer %d' % (layer)
+
+                self._phase1_down()
+                yield 'Phase1 after the col reversion on layer %d' % (layer)
+        
+        yield 'Final Graph'
             
             
     # =================================================================
@@ -75,6 +122,7 @@ class Reordering_Engine(object):
             self.G.matrices[i] = m
             self.G.set_layer(i+1, m.col_blocks)
                 
+                
     def _phase1_up(self):
         for i in xrange(self.G.c_levels-1, 0, -1):
             m = Matrix( self.G.vertices[i-1], self.G.vertices[i], self.G.edges[i-1] )
@@ -82,7 +130,7 @@ class Reordering_Engine(object):
             self.G.matrices[i-1] = m
             self.G.set_layer(i-1, m.row_blocks)
             
-                            
+
     def _phase1_down_up(self):
         self._phase1_down()
         self._phase1_up()
@@ -96,7 +144,8 @@ class Reordering_Engine(object):
     def _phase2_down(self):
         for i in xrange(0, self.G.c_levels-1):
             m = self.G.matrices[i]
-            #m.col_reversion()
+            if m.col_reversion():
+                self.c_reversions += 1
             self.G.matrices[i] = m
             self.G.set_layer(i+1, m.col_blocks)
             self._phase1_down_up()
@@ -104,7 +153,8 @@ class Reordering_Engine(object):
     def _phase2_up(self):
         for i in xrange(self.G.c_levels-1, 0, -1):
             m = self.G.matrices[i-1]
-            #m.row_reversion()
+            if m.row_reversion():
+                self.c_reversions += 1
             self.G.matrices[i-1] = m
             self.G.set_layer(i-1, m.row_blocks)
             self._phase1_up_down()

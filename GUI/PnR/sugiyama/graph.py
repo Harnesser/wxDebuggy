@@ -33,7 +33,7 @@ class Graph(object):
         return c_crossovers
          
          
-    def set_layer(self, i, vertices ):
+    def set_layer(self, i, vertices, debug=False ):
         """  """
         
         old_order = ( vertex.name for vertex in self.vertices[i] )
@@ -42,7 +42,7 @@ class Graph(object):
         new_order = ( vertex.name for vertex in vertices )
         new_order = " ".join(new_order)
         
-        if new_order != old_order:
+        if debug and ( new_order != old_order ):
             print "> .set_layer() update:"
             print ">  FROM:", old_order
             print ">    TO:", new_order
