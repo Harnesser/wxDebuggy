@@ -4,6 +4,8 @@ from graph_builder import Graph_Builder
 from sugiyama.graph import Graph
 from sugiyama.reordering import Reordering_Engine
 from object_factory import Object_Factory
+from basic_placer import Placer
+from basic_router import Trace_Router
 
 class PnR:
     """ Schematic Layout Engine.
@@ -46,7 +48,11 @@ class PnR:
 
         self.sugiyama_edges = []
         self.sugiyama_vertices = []
-                
+
+        # Drawing info
+        self.drawing_object_dict = {}
+        
+        
     def place_and_route(self, module, animate=False, debug=False ):
         """ Place and Route a Module.
         
@@ -63,11 +69,14 @@ class PnR:
         self._run_reorderer()
 
         # Decide on block co-ords
-        
+        self.drawing_object_dict = self._build_drawing_object_dict()
+        self._place_objects()
+                
         # Route nets
+        self._route_nets()
         
         # Return drawing objects
-        return self._build_drawing_object_dict()
+        return self.drawing_object_dict
         
         
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -103,4 +112,19 @@ class PnR:
         """ Build the dict of objects to draw for the schematic. """
         factory = Object_Factory()
         return factory.build_object_dict(self.module, self.graph_edges)
+        
+    def _place_objects(self):
+        """ Use the Graph() to figure out where to place Drawing_Objects(). 
+        This will edit the attributes of the Drawing_Objects in the dict."""
+        placer = Placer()
+        placer.set_graph(self.G)
+        placer.set_object_dict(self.drawing_object_dict)
+        placer.run()
+        
+    def _route_nets(self):
+        router = Trace_Router()
+        router.set_object_dict(self.drawing_object_dict)
+        router.set_connections(self.connection_list)
+        router.run()
+        
         

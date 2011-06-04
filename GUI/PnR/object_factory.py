@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+from wx import Point
 from Drawing_Object import Drawing_Object
 
 DEBUG = False
@@ -114,8 +115,8 @@ class Object_Factory:
 
                 drawobj.lhs_ports.append( '_i' )
                 drawobj.rhs_ports.append( '_o' )
-                drawobj.startpt = (0,0)
-                drawobj.endpt   = (20,0)
+                drawobj.startpt = Point(0,0)
+                drawobj.endpt   = Point(20,0)
 
                 self.drawing_object_dict[node] = drawobj
 

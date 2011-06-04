@@ -37,14 +37,14 @@ class Schem_View( wx.ScrolledWindow ):
         self.dclick_module = None
 
         # Layout Engine
-        self.layout_engine = PnR.Layout_Engine()
+        self.layout_engine = PnR.pnr.PnR()
                 
         # Drawing objects
         self.drawing_object_dict = {}
 
         # Timer for algorithm visualisation
         self.gen = None
-        self.animate = True
+        self.animate = False
         self.timer = wx.Timer(self)
         self.timer.Start(2000) # 1000 milliseconds = 1 second
         self.Bind(wx.EVT_TIMER, self.OnTimer)
@@ -88,9 +88,12 @@ class Schem_View( wx.ScrolledWindow ):
     def draw_new_schematic(self):
         """ """
         self._get_current_module()
-        self.gen = self.layout_engine.place_and_route(self.current_module,
-                                                      animate = self.animate)
-        self.drawing_object_dict = self.gen.next()
+#        self.gen = self.layout_engine.place_and_route(self.current_module,
+#                                                      animate = self.animate)
+#        self.drawing_object_dict = self.gen.next()
+#        
+        self.drawing_object_dict = \
+            self.layout_engine.place_and_route(self.current_module, animate = self.animate)
         self.draw_schematic()
 
     def OnTimer(self,event):
@@ -131,30 +134,7 @@ class Schem_View( wx.ScrolledWindow ):
             print "Changed module to ", self.current_module.name
 
 
-    def BuildRatsnest( self, module ):
-        """Draw the ratsnest connections
-        """
-
-        for connection in self.connection_list:
-
-            conn1,conn2 = connection
-            #conn1 = conn1.replace('_iport.','')
-            #conn1 = conn1.replace('_oport.','')                                             
-            #conn2 = conn2.replace('_iport.','')
-            #conn2 = conn2.replace('_oport.','')   
-
-            # Create the flightline
-            drawobj = Drawing_Object( name='conn',
-                                        parent=self,
-                                        label=conn1,
-                                        obj_type='conn' )
             
-            drawobj.startpt  = conn1
-            drawobj.endpt    = conn2
-            #self.drawing_object_dict.append( drawobj )
-            
-            
- 
     def add_fake_hypernets(self):
         """ to test the drawing algorithm """
         
@@ -167,8 +147,6 @@ class Schem_View( wx.ScrolledWindow ):
         drawobj2.hypernet_tree = [ 200, 200, 250, [ 175, 310 ], [250, 310, 220, 350] ]
         #self.p2.drawobj_list.append( drawobj2 )
         
-        
-
 
 
     def show_connection_lists_and_dictionaries(self):
