@@ -25,7 +25,7 @@ class myApp( wx.App ):
     """Application class."""
     
     def OnInit(self):
-        self.frame = GUI.Top_Frame('A Frame, would you believe')
+        self.frame = GUI.Top_Frame("wxDebuggy 'Rainwater'")
         self.frame.Show()
         self.SetTopWindow(self.frame)
         return True

@@ -76,8 +76,7 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
         # Get the module dictionary
         self.module_dict = myparser.cds
 
-            
-        
+
         #
         # Image List stuff
         #
@@ -127,10 +126,6 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
                     print "Warning: Undefined Module: %s" % (inst.module_ref_name)
 
 
-        
-
-
-        # 
         for module in self.module_dict.values() :
             if module in module_ref_list :
                 #  A referenced (instanciated) module, which are not
@@ -143,11 +138,12 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
         # Expand the root?    
         self.Expand( self.root )
         
-
         # Select the first module and display the code for it
         first_module,cookie = self.GetFirstChild( self.root )
         self.SelectItem( first_module )
         self.UpdateHierInfo()
+        
+        print "Initialised Hier_Ctrl"
         
     def get_current_module_ref(self):
         return self.module_dict[self.cur_module_ref]
@@ -169,7 +165,7 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
         self.cur_hier_path  = self.MakeCurHierStr()
         self.cur_module_ref = module_name
 
-        if False:
+        if True:
             print "Current Hierarchy Path:", self.cur_hier_path
             print "Current Module Reference", self.cur_module_ref
 

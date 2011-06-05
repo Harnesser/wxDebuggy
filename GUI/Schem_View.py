@@ -1,15 +1,10 @@
 import wx
 import PnR
 import time
-#
-# Global Constants
-#
 
 # Size of the drawing page, in pixels.
 PAGE_WIDTH  = 400
 PAGE_HEIGHT = 400
-
-# Global Variables
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Schem_View
@@ -49,6 +44,9 @@ class Schem_View( wx.ScrolledWindow ):
         self.timer.Start(2000) # 1000 milliseconds = 1 second
         self.Bind(wx.EVT_TIMER, self.OnTimer)
 
+        self.draw_new_schematic()
+        print "Initialised Schem_View"
+        
     def set_treeview( self, treeview ):
         """ A pointer to the treeview hierarchy object.
         
@@ -82,7 +80,8 @@ class Schem_View( wx.ScrolledWindow ):
         
         
     def onPaint( self, event ):
-        self.draw_schematic()
+        if self.current_module:
+            self.draw_schematic()
 
 
     def draw_new_schematic(self):
@@ -241,10 +240,10 @@ class Schem_View( wx.ScrolledWindow ):
         
         Make sure that the whole schematic fits in the client area.
         """
-        
+
         # First, find the size of the client area
         x_dc, y_dc = dc.GetSize()
-        
+
         # Next, find the extent of the schematic. Go through the
         # list of drawing objects to see what the maximum x and y
         # values are.
