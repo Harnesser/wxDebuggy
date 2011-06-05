@@ -53,7 +53,7 @@ class PnR:
         self.drawing_object_dict = {}
         
         
-    def place_and_route(self, module, animate=False, debug=False ):
+    def place_and_route(self, module, animate=False ):
         """ Place and Route a Module.
         
         This will return a Python Generator and if set to animate, will
@@ -85,8 +85,8 @@ class PnR:
     def _build_graph(self):
         """ Call Graph_Builder on the specified module. """
         self.grapher = Graph_Builder()
-        
-        self.graph_edges     = self.grapher.extract_graph( self.module )
+        self.grapher.set_module(self.module)
+        self.graph_edges     = self.grapher.extract_graph()
         self.layer_dict      = self.grapher.get_layer_dict()
         self.connection_list = self.grapher.get_conn_list()
         

@@ -20,10 +20,11 @@ class Graph_Builder:
     def set_module(self, module):
         self.module = module
     
+    
     def get_graph_for_sugiyama(self):
         """ """
         
-        edges = self.extract_graph(self.module)
+        edges = self.extract_graph()
         block_dict = self._build_special_vertices(self.module)
        
         # flip layer dict so it's indexed by the layer
@@ -64,13 +65,12 @@ class Graph_Builder:
         return special_vertices, edges        
         
 
-    def extract_graph(self, module, debug=False):
+    def extract_graph(self, debug=False):
         """ Get a graph of the circuit to display.
         """
-        self.module = module
-        
+                
         # Extract edges from circuit
-        driver_dictionary = self._build_driver_dictionary(self.module)
+        driver_dictionary = self._build_driver_dictionary()
         self.connection_list = self._get_connection_list(driver_dictionary)
         
         #  Now we can build the graph since we've the vetices(instantiations) and
@@ -156,7 +156,6 @@ class Graph_Builder:
                 else:
                     sink_name = (inst.name, pin) #'.'.join( [inst.name, pin] )
                     driver_dict.setdefault(net, []).append(sink_name)
-
 
         if debug:
             print "\nDriver Dictionary"
@@ -404,8 +403,6 @@ class Graph_Builder:
             start_vertice = start_inst
             start_edge = start_port
 
-            print "Start place:", start_place
-            print "End place:", end_place
 
             for i in range( min(start_layer,end_layer) + 1, max(start_layer,end_layer) ):
                 new_vertice_name = '_dummy_' + start_place + '__to__' + end_place + '_' + str(i)
@@ -428,8 +425,9 @@ class Graph_Builder:
          
                       
         # DEBUG
-        libdb.show_dictionary( "Graph Edges Dictionary", self.graph_edges )
-        libdb.show_dictionary( "Graph Layers Dictionary", graph_layers )
+        if debug:
+            libdb.show_dictionary( "Graph Edges Dictionary", self.graph_edges )
+            libdb.show_dictionary( "Graph Layers Dictionary", graph_layers )
 
         return True
              

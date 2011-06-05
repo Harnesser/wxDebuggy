@@ -55,7 +55,6 @@ class Graph(object):
             
     def build_connection_matrices(self):
         """ Construct connection matrices for the graph. """
-        print self.vertices
         for i in xrange(self.c_levels-1):
             M = Matrix( self.vertices[i], self.vertices[i+1], self.edges[i] )
             self.matrices.append(M)

@@ -40,21 +40,21 @@ class Reordering_Engine(object):
         """ Set the graph to reorder """
         self.G = G    
 
-    def run(self, max_runs=2):
+    def run(self, max_runs=2, debug = False):
         """ Run the layer reordering algorithm. """
         self._reset()
         
         i = 1
         for place in self.gen_phase1(max_runs):
-            print "<<< Iteration %0d >>>" % (i) + ( '=' * 50 ) 
-            print place
+            if debug: print "<<< Iteration %0d >>>" % (i) + ( '=' * 50 ) 
+            if debug: print place
             for m in self.G.matrices:
                 pass
                 #print m.pretty()
             i += 1
 
         for place in self.gen_phase2(max_runs):
-            print "<<< Iteration %0d >>>" % (i) + ( '=' * 50 ) 
+            if debug: print "<<< Iteration %0d >>>" % (i) + ( '=' * 50 ) 
             for m in self.G.matrices:
                 pass
                 #print m.pretty()
@@ -149,7 +149,6 @@ class Reordering_Engine(object):
         """ Hold onto this graph if it's the best encountered so far. """
         c_xovers = self.G.get_crossover_count()
         if c_xovers < self.min_xovers:
-            print "NEW MIN"
             self.min_xovers = c_xovers
             self.min_graph = self.G.copy()
                     
