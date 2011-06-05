@@ -27,8 +27,8 @@ class Drawing_Object:
         self.rhs_ports = []
     
         # For nets
-        self.startpt = None
-        self.endpt   = None
+        self.startpt = wx.Point(0,0)
+        self.endpt   = wx.Point(0,0)
 
         # For hypernets 
         self.hypernet_tree = []
@@ -460,23 +460,9 @@ class Drawing_Object:
         # Set the pen - green
         dc.SetPen(wx.Pen('#00DD00', 1, wx.SOLID))
 
-        # Decode the start and end points.
-        #print self.parent.p2.glue_points.keys()
-        if self.startpt in self.parent.p2.glue_points.keys():
-            start_point = self.parent.p2.glue_points[self.startpt]
-        else:
-            print "Warning ", self.startpt, "not a gluepoint"
-            start_point = None
-            
-        if self.endpt in self.parent.p2.glue_points.keys():
-            end_point = self.parent.p2.glue_points[self.endpt]
-        else:
-            print "Warning ", self.endpt, "not a gluepoint"
-            end_point   = None
-
-        if start_point and end_point:
-            #print "Draw flightline between", start_point, end_point
-            dc.DrawLinePoint( start_point, end_point + wx.Point(1,1) )
+        if self.startpt and self.endpt:
+            #print "Draw flightline between", self.startpt, self.endpt , wx.Point(self.endpt)
+            dc.DrawLinePoint( self.startpt, self.endpt + wx.Point(1,1) )
 
     
     def draw_hypernet( self, dc ):
