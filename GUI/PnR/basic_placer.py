@@ -19,7 +19,7 @@ class Placer:
         self.obj_dict = obj_dict
         
     def run(self):
-        next_x = 10
+        next_x = 100  # allow some LHS space for port names
         for layer in self.G.vertices:
             next_y = 10
             x_hist = []

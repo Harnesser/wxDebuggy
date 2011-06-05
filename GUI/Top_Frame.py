@@ -11,7 +11,7 @@ class Top_Frame( wx.Frame ):
 
         wx.Frame.__init__( self, None, -1,
             name,
-            pos = (50,50), size=(1200,800),
+            pos = (50,50), size=(1300,600),
             style = wx.DEFAULT_FRAME_STYLE)
         
         self.sp = Splitter_Window( self )

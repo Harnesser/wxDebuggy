@@ -252,7 +252,7 @@ class Schem_View( wx.ScrolledWindow ):
         
         for part in self.drawing_object_dict.values():
             x1,x2,y1,y2 = part.getBounds()
-            
+
             if x1 < x_min:
                 x_min = x1
             elif x2 > x_max:
@@ -269,7 +269,8 @@ class Schem_View( wx.ScrolledWindow ):
                             
         #  Keep the schematic x:y scaling ratio constant so we don't get
         # stretched schematics
-        dc.SetUserScale(self.scaling, self.scaling)
+        
+        #dc.SetUserScale(self.scaling, self.scaling) scaling is currently busted
         
         return
         

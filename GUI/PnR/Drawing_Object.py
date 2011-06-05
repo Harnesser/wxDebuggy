@@ -421,8 +421,7 @@ class Drawing_Object:
       
             
         # Move the port polygons to the required screen position
-        for pin,point in enumerate( port_polygon_points ) :
-            port_polygon_points[pin] = point + self.position
+        port_polygon_points = [ point + self.position for point in port_polygon_points ]
 
         # See if we need to RJ text, and fill the glue point dictionary
         label_position = self.position + wx.Point( 0, port_height/2)
@@ -453,7 +452,6 @@ class Drawing_Object:
                           self.glue_points[ (self.label, '_out') ] )
         
 
-
     def Draw_FlightLine( self, dc, selected=False ):
         """ Draw a connection flightline """
 
@@ -462,7 +460,7 @@ class Drawing_Object:
 
         if self.startpt and self.endpt:
             #print "Draw flightline between", self.startpt, self.endpt , wx.Point(self.endpt)
-            dc.DrawLinePoint( self.startpt, self.endpt + wx.Point(1,1) )
+            dc.DrawLinePoint( self.startpt, self.endpt )
 
     
     def draw_hypernet( self, dc ):
@@ -533,9 +531,6 @@ class Drawing_Object:
         else:
             start_position = position + wx.Point( 2, -label_height/2)
 
-        #print "pos", position
-        #print "start", start_position
-        
         dc.DrawTextPoint( pin_label, start_position )
 
             
