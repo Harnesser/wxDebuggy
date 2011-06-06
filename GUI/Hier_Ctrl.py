@@ -60,6 +60,10 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
                          "tests/rtl/long_traces/long_1.v",
                          "tests/rtl/long_traces/long_2.v",
                          "tests/rtl/long_traces/one_in_three_out.v",
+                         "tests/rtl/feedback/feedback_1.v",
+                         "tests/rtl/feedback/feedback_2.v",
+                         "tests/rtl/feedback/feedback_3.v",
+                         "tests/rtl/feedback/three_in_three_out.v",
                          ]
         else:               
             rtl_files = [
