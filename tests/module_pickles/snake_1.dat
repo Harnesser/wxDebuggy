@@ -533,7 +533,7 @@ sg21
 (dp136
 sg23
 (dp137
-S'out1'
+S'out'
 p138
 (ivv.Port
 Port
@@ -637,7 +637,7 @@ ag147
 ag138
 asbsg23
 (dp151
-S'out1'
+S'out'
 p152
 S'n16'
 p153
@@ -676,7 +676,7 @@ sg15
 g131
 sg23
 (dp165
-S'out1'
+S'out'
 p166
 S'n15'
 p167

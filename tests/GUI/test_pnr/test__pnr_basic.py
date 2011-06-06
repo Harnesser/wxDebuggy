@@ -76,7 +76,7 @@ class PnR_Basic_Operations( pnr_test_base.PnR_Test_Base ):
         self.assertEquals( names[0], 'in1'.split(':') )
         self.assertEquals( names[1], ['U1'])        
         self.assertEquals( names[2], ['U2', 'U3'] )
-        self.assertEquals( names[3], ['U4', '_dummy_U2__to__U7_4', 'U5'] )
+        self.assertEquals( names[3], ['U4', '_U_U2_out1_U7_in2_4', 'U5'] )
         self.assertEquals( names[4], ['U6', 'U7'] )
         self.assertEquals( names[5], ['U8'] )
         self.assertEquals( names[6], ['out1'] )

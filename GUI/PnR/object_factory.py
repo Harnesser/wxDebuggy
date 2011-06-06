@@ -2,7 +2,7 @@
 from wx import Point
 from Drawing_Object import Drawing_Object
 
-DEBUG = False
+DEBUG = True
 
 class Object_Factory:
 
@@ -10,6 +10,7 @@ class Object_Factory:
         self.module = None
         self.drawing_object_dict = {} 
         
+
     def build_object_dict(self, module, graph_edges_dict):
         """ Take a module data structure and make drawing objects for it. 
         At this point, build only instantiations and ports, we'll leave the
@@ -23,7 +24,7 @@ class Object_Factory:
         self._build_passthru_objects(graph_edges_dict)
         
         return self.drawing_object_dict
-        
+
         
     def _build_instn_objects(self):
         """ Build Drawing_Object()s for each of the instantiations in a module.

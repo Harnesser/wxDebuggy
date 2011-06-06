@@ -249,10 +249,10 @@ class Drawing_Object:
 
         elif self.obj_type == 'passthru':
 
-            glue_point_key = ( self.label, '_in' )
+            glue_point_key = ( self.label, '_i' )
             self.glue_points[glue_point_key] =  self.startpt + self.position
 
-            glue_point_key = ( self.label, '_out' )
+            glue_point_key = ( self.label, '_o' )
             self.glue_points[glue_point_key] =  self.endpt + self.position
 
         
@@ -448,8 +448,8 @@ class Drawing_Object:
         # Set the pen - black
         dc.SetPen(wx.Pen('#000000', 1, wx.SOLID))
 
-        dc.DrawLinePoint( self.glue_points[ (self.label, '_in') ] ,
-                          self.glue_points[ (self.label, '_out') ] )
+        dc.DrawLinePoint( self.glue_points[ (self.label, '_i') ] ,
+                          self.glue_points[ (self.label, '_o') ] )
         
 
     def Draw_FlightLine( self, dc, selected=False ):

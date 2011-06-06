@@ -218,7 +218,6 @@ class Schem_View( wx.ScrolledWindow ):
         if net_name in module_input_pins:
             driver = "_iPort." + net_name
             
-
         # Now check each of the instanciations
         for inst in module.inst_dict.values():
 

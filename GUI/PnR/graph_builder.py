@@ -12,7 +12,7 @@ class Graph_Builder:
     def __init__(self):
         self.module = None
         self.connection_list = []
-        self.graph_edges = {}
+        self.graph_dict = {}
         self.layer_dict = {}
 
         self.Block = namedtuple('Block', 'name inputs outputs')
@@ -28,9 +28,7 @@ class Graph_Builder:
         block_dict = self._build_special_vertices(self.module)
        
         # flip layer dict so it's indexed by the layer
-        layers = {}
-        for key in self.layer_dict.keys():
-            layers.setdefault(self.layer_dict[key], []).append(key)
+        layers = self._invert_dict(self.layer_dict)
             
         # use this layer dict to make the special vertices list of lists
         l = layers.keys()
@@ -43,7 +41,6 @@ class Graph_Builder:
                     continue
                 tmp.append( block_dict[thing] )
             special_vertices.append(tmp)
-
 
         # Now for the edge list. Again, this has to be layered.
         edge_dict = {}
@@ -75,22 +72,23 @@ class Graph_Builder:
         
         #  Now we can build the graph since we've the vetices(instantiations) and
         # the edges (circuit point-to-point connections).
-        self.graph_edges = self._get_graph_dictionary(self.connection_list)
+        self.graph_dict = self._get_graph_dictionary(self.connection_list)
         
         # Determine which layer of the schematic the blocks belong on
         self.layer_dict = {}
-        self.layer_dict = self._determine_layering(self.graph_edges,
+        self.layer_dict = self._determine_layering(self.graph_dict,
                                                    col_dict=self.layer_dict)   
     
-        #  Insert dummy nodes to break up long edges -
-        # this makes the graph 'proper'
-        self._break_up_long_edges()
+        #  Insert dummy nodes to break up long edges - make the graph 'proper'
+        self._split_long_edges()
         
+        # DEBUG
         if debug:
-            print ":::: Graph Edges"
-            print self.graph_edges
+            libdb.show_dictionary("Graph Edges Dictionary", self.graph_dict )
+            libdb.show_dictionary("Graph Layer Dictionary", self.layer_dict )
+            self.show_connections(debug)
             
-        return self.graph_edges
+        return self.graph_dict
           
           
     def get_layer_dict(self):
@@ -100,11 +98,10 @@ class Graph_Builder:
         return self.connection_list
         
     def show_connections(self, debug=False ):
-
         if debug:
             print "\nPoint-to-Point"
             for connection in self.connection_list:
-                print "   ",connection 
+                print "   ", connection 
 
     
     
@@ -310,128 +307,73 @@ class Graph_Builder:
             print col_dict
 
         return col_dict
-        
-   
-    def _break_up_long_edges(self, debug=False):
-        """ Insert dummy nodes for long edges.
-        Produces a 'proper graph'.  Also known as normalisation, I think. 
+
+    
+    def _get_layer(self, block):
+        layer = self.layer_dict.get(block,0)
+        if block == '_iport':
+            layer += 1
+        elif block == '_oport':
+            layer -= 1
+        return layer        
+
+
+    def _get_dummy_connections(self, connection):
+        """ Build intermediate dummy connections for this long one.
+        This also updates:
+         * graph dict
+         * layer dict
         """
+        new_connections = []
         
-        # turn the layer graph inside out so that layer numbers are the keys.
-        graph_layers = {}
-        for key in self.layer_dict.keys():
-            graph_layers.setdefault( self.layer_dict[key], []).append(key)     
+        source, sink = connection
+        (block1, port1) = source
+        (block2, port2) = sink
 
+        start_point = source        
+        start_layer = self._get_layer(block1) 
+        end_layer   = self._get_layer(block2)
         
-        # Dummy nodes are placed in long edges (span >1)
-        edges_for_removal = []
-        for u in self.graph_edges.keys():
-            for v in self.graph_edges[u]:
-                start_layer = self.layer_dict.get(v,0) 
-                end_layer   = self.layer_dict.get(u,0) 
-                span = abs( start_layer - end_layer )
+        # Remove sink from source connection set
+        self.graph_dict[block1].discard(block2) 
+        
+        for i in range( min(start_layer,end_layer) + 1, max(start_layer,end_layer) ):
+            new_vertex_name = '_U_%s_%s_%s_%s_%d' % (block1, port1, block2, port2, i)
+            new_conn = ( start_point, (new_vertex_name, '_i') )
+            (block, port) = start_point     
+
+            new_connections.append(new_conn)
+            self.graph_dict.setdefault(block,set()).add(new_vertex_name)
+            self.layer_dict[new_vertex_name] = i
+            
+            start_point = (new_vertex_name, '_o')
+            
+        new_connections.append( (start_point, sink) )
+        self.graph_dict.setdefault(new_vertex_name,set()).add(block2)
+        
+        return new_connections
+        
+           
+    def _split_long_edges(self):
+        """ Return all the edges which span more than one layer. """
+        new_connections = []
+        for connection in self.connection_list:
+            ( (block1, port1), (block2, port2) ) = connection
                 
-                if span > 1: # we've found a long edge..
-                    print "!Found a long edge: (%s,%s)" % (u,v)   
-                    edges_for_removal.append( (u,v) )
-                
-        # Delete edges - can't delete items from lists when iterating over them
-        uid = 0
-        for u,v in edges_for_removal:
-            start_layer = self.layer_dict.get(v,0) 
-            end_layer   = self.layer_dict.get(u,0)        
-
-            start_vertice = u
-            for i in range( min(start_layer,end_layer) + 1, max(start_layer,end_layer) ):
-                new_vertice_name = '_dummy_%s__to__%s_%d' % ( u, v, i ) 
-                graph_layers[i].append(new_vertice_name)
-                self.graph_edges.setdefault(start_vertice,set()).add(new_vertice_name)
-                self.layer_dict[new_vertice_name] = i
-                uid += 1
-            self.graph_edges.setdefault(new_vertice_name,set()).add(v)
-                    
-
-
-        ## Now fix the connection list
-        connections_for_removal = []
-        new_connection_list = []
-        for connection  in self.connection_list:
-            (start_inst,start_port),(end_inst,end_port) = connection
-
-            if start_inst.startswith('_'):
-                start_layer = self.layer_dict[start_port]
-                start_place = start_port
-            else:
-                start_layer = self.layer_dict[start_inst] 
-                start_place = start_inst
-
-
-            if end_inst.startswith('_'):
-                end_layer   = self.layer_dict[end_port]        
-                end_place   = end_port
-            else:
-                end_layer   = self.layer_dict[end_inst] 
-                end_place   = end_inst
-
+            start_layer = self._get_layer(block1) 
+            end_layer   = self._get_layer(block2)
             span = abs( start_layer - end_layer )
             
-            if span > 1: # we've found a long edge..
-                print "!Found a long edge connection: ", connection
-                connections_for_removal.append( connection )
-            else: 
-                new_connection_list.append( connection )
+            if span == 1:
+                new_connections.append( connection )
+            else: # we've found a long edge..
+                print "!Found a long edge:", connection
+                dummy_connections = self._get_dummy_connections(connection)
+                new_connections.extend( dummy_connections )           
+              
+        self.connection_list = new_connections
         
-
-        for connection in connections_for_removal:
-            (start_inst,start_port),(end_inst,end_port) = connection
-           
-            if start_inst.startswith('_'):
-                start_layer = self.layer_dict[start_port]
-                start_place = start_port
-            else:
-                start_layer = self.layer_dict[start_inst] 
-                start_place = start_inst
-
-
-            if end_inst.startswith('_'):
-                end_layer   = self.layer_dict[end_port]        
-                end_place   = end_port
-            else:
-                end_layer   = self.layer_dict[end_inst] 
-                end_place   = end_inst
-
-            start_vertice = start_inst
-            start_edge = start_port
-
-
-            for i in range( min(start_layer,end_layer) + 1, max(start_layer,end_layer) ):
-                new_vertice_name = '_dummy_' + start_place + '__to__' + end_place + '_' + str(i)
-                new_connection = ( ( start_vertice, start_edge ), 
-                                   ( new_vertice_name, '_in' ) )
-
-                new_connection_list.append( new_connection )
-
-                # update for the next go...
-                start_vertice = new_vertice_name
-                start_edge    = '_out'
-                
-
-            new_connection = ( ( start_vertice, start_edge ), 
-                               ( end_inst, end_port) )
-            new_connection_list.append( new_connection )
-
-        self.connection_list = new_connection_list
-        self.show_connections()
-         
-                      
-        # DEBUG
-        if debug:
-            libdb.show_dictionary( "Graph Edges Dictionary", self.graph_edges )
-            libdb.show_dictionary( "Graph Layers Dictionary", graph_layers )
-
-        return True
-             
-             
+        
     def _build_special_vertices(self, module):
         """ Build special vertices for layout alg. """
 
@@ -456,13 +398,20 @@ class Graph_Builder:
             
         # Add the dummy_edges
         for vertex in self.layer_dict:
-            if vertex.startswith('_dummy_'):
+            if vertex.startswith('_U_'):
                 if vertex not in block_dict:
-                    dummy = self.Block(vertex, ('_in',), ('_out',) )
+                    dummy = self.Block(vertex, ('_i',), ('_o',) )
                     block_dict[vertex] = dummy
                                             
         return block_dict
         
+        
+    def _invert_dict(self, _dict):
+        new_dict = {}
+        for key in _dict:
+            new_dict.setdefault(_dict[key], []).append(key)
+        return new_dict
+            
             
 if __name__ == '__main__':
 

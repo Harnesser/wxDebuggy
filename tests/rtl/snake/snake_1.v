@@ -11,9 +11,9 @@ module snake_1 ( input in1, output out1 );
    two_in_two_out U5( .in1(n8),.in2(n9),                      .out1(n13),   .out2(    n14 
     ) );
    
-   three_in_one_out U6 ( .in1(n10), .in2(n11) ,  .in3(n12) ,            .out1(n15) );
+   three_in_one_out U6 ( .in1(n10), .in2(n11) ,  .in3(n12) ,            .out(n15) );
    
-   three_in_one_out U7 ( .in1(n13), .in2(n5),  .in3(n14),             .out1(n16));
+   three_in_one_out U7 ( .in1(n13), .in2(n5),  .in3(n14),             .out(n16));
    
    two_in_one_out U8 ( .in1(n15), .in2(n16),                        .out(out1) );
    

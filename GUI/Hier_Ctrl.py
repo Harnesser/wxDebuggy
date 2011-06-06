@@ -1,3 +1,4 @@
+import pickle
 import wx
 import wx.gizmos as gizmos
 from Verilog2001.parse.hdl_parser import hdl_parser
@@ -56,6 +57,9 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
                          "tests/rtl/snake/two_in_three_out.v",
                          "tests/rtl/snake/two_in_two_out.v",
                          "tests/rtl/snake/two_in_one_out.v",
+                         "tests/rtl/long_traces/long_1.v",
+                         "tests/rtl/long_traces/long_2.v",
+                         "tests/rtl/long_traces/one_in_three_out.v",
                          ]
         else:               
             rtl_files = [
@@ -167,8 +171,9 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
 
         if True:
             print "Current Hierarchy Path:", self.cur_hier_path
-            print "Current Module Reference", self.cur_module_ref
-
+            print "Current Module Reference", self.cur_module_ref 
+            self._pickle_module_for_tests(self.module_dict[self.cur_module_ref])
+            
         
     # Danger here! A recursive module!
     def AddModule( self, item, module, inst_name ):
@@ -249,5 +254,16 @@ class Hier_Ctrl(wx.gizmos.TreeListCtrl):
 
         return hier_pos
 
-
+        
+    def _pickle_module_for_tests(self, module):
+        """ Pickle an RTL module data structure for unittesting this module. 
+        
+        Only executed in full GUI mode.
+        """       
+        
+        filename = module.name + '.dat'
+        hPICKLE = open('./tests/module_pickles/' + filename,'wb')
+        pickle.dump( module, hPICKLE )
+        hPICKLE.close()
+        print 'Pickling: "%s"' % filename
 

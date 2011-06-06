@@ -14,7 +14,8 @@ class PnR_Drawing_Object_Checks( pnr_test_base.PnR_Test_Base ):
         pnr = PnR()
         _dict = pnr.place_and_route(module, animate=False)
         
-        expected = ['U1', 'U2', 'in1', 'in2', 'in3', 'in4', 'out1', 'out2']
+        expected = ['U1', 'U2', 'conn_0', 'conn_1', 'conn_2', 'conn_3', 
+            'conn_4', 'conn_5', 'in1', 'in2', 'in3', 'in4', 'out1', 'out2']
         objects = _dict.keys()
         objects.sort()
         self.assertEquals( objects, expected )
