@@ -39,6 +39,8 @@ class Graph_Builder:
             for thing in layers[i]:
                 if thing == '_oport':
                     continue
+                if thing.startswith('_B'):
+                    continue
                 tmp.append( block_dict[thing] )
             special_vertices.append(tmp)
 
@@ -46,6 +48,8 @@ class Graph_Builder:
         edge_dict = {}
         for conn in self.connection_list:
             ( (source, port1), (sink, port2) ) = conn
+            if source.startswith('_B') or sink.startswith('_B'):
+                continue
             if source == '_iport':
                 layer = 1
             else:
@@ -335,22 +339,32 @@ class Graph_Builder:
         end_layer   = self._get_layer(block2)
         
         # Remove sink from source connection set
-        self.graph_dict[block1].discard(block2) 
+        self.graph_dict[block1].discard(block2)
+
         
-        for i in range( min(start_layer,end_layer) + 1, max(start_layer,end_layer) ):
-            new_vertex_name = '_U_%s_%s_%s_%s_%d' % (block1, port1, block2, port2, i)
+        if ( end_layer - start_layer ) > 0:
+            prefix = '_U'
+            layers = range( start_layer + 1, end_layer )        
+        else:
+            prefix = '_B'
+            layers = range( end_layer, start_layer+1 )
+            
+        print "Conn:", connection, start_layer, end_layer
+        print " ", prefix, layers
+        for i in layers:
+            new_vertex_name = '_'.join([prefix, block1, port1, block2, port2, str(i)] )
             new_conn = ( start_point, (new_vertex_name, '_i') )
             (block, port) = start_point     
 
             new_connections.append(new_conn)
             self.graph_dict.setdefault(block,set()).add(new_vertex_name)
             self.layer_dict[new_vertex_name] = i
-            
+        
             start_point = (new_vertex_name, '_o')
-            
+        
         new_connections.append( (start_point, sink) )
         self.graph_dict.setdefault(new_vertex_name,set()).add(block2)
-        
+    
         return new_connections
         
            
@@ -362,7 +376,7 @@ class Graph_Builder:
                 
             start_layer = self._get_layer(block1) 
             end_layer   = self._get_layer(block2)
-            span = abs( start_layer - end_layer )
+            span = end_layer - start_layer
             
             if span == 1:
                 new_connections.append( connection )
@@ -398,7 +412,7 @@ class Graph_Builder:
             
         # Add the dummy_edges
         for vertex in self.layer_dict:
-            if vertex.startswith('_U_'):
+            if vertex.startswith('_U_') or vertex.startswith('_B_'):
                 if vertex not in block_dict:
                     dummy = self.Block(vertex, ('_i',), ('_o',) )
                     block_dict[vertex] = dummy
