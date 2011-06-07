@@ -1,0 +1,27 @@
+<H1>How I Tweaked Sugiyama's Algorithm to Handle Ports</H1>
+
+The RTL viewer I'm hacking on needs to be able to draw nice schematics. To draw these schematics, graph theory comes in handy - namely drawing layered acyclic graphs. And the granddaddy of all layered-graph dewing algorithm seems to be Sugiyama, Tagawa & Toda's "Methods for Visual Understanding of Hierarchical System Structures" [STT81]. So I thought I would start from there.
+
+<H2>Overview of Sugiyama's Algorithm</H2>
+For a given graph structure, Sugiyama's algorithm will tweak it in a number of ways to produce a pretty layout. Goals for the layout include: ordering the graph nodes in layers to reflect its flow, and reducing the number of crossings. There's three stages:
+<OL>
+  <LI>Create a proper hierarchy. This means figuring out which layer each node belongs on; temporarily removing cycles by reversing the direction of some connections; and finally splitting up long connections by adding 'dummy' nodes so that no connection spans between more than one layer.</LI>
+  <LI>Tweaking the order of nodes in each layer to reduce the crossover count.</LI>
+  <LI>Determining plotting co-ordinates for all the nodes. This is important as it will straighten up the long connections that are made of a list of dummy nodes.</LI>
+</OL>
+It's step 2 here that I want to tackle in the context of drawing circuit diagrams.
+
+<H2>Layer Reordering with Normal Graphs</H2>
+Trying to reorder all the layers together to reduce crossovers turns out to be a bad idea for huge graphs (buzzwords: runtime, memory, NP-hard). So instead, Sugiyama, Tagawa & Toda use a procedure called the "n-Level Barycentre Method", which untangles the graph in stages. This BC Method sweeps up and down through the layers of the graph, considering two layers at a time. It holds the first in a fixed order and reorders the second based on its connections to the first.
+
+A 'best' position for each node in the second layer is computed by averaging the rank of the nodes it's connected to in the first layer. The rank is simply the index of a node in a layer, and the average positions are called barycentres. The drawing below shows a simple examples of computing the barycentres and the result of reordering the second layer in order of barycentres. Note that not all the crossovers were removed - swapping B & C in the top layer will reduce the crossover count to 0.
+
+<H2>So What's the Problem, Exactly?</H2>
+The STT algorithm needs to be souped up a bit to work for schematics.
+
+If a schematic maps to a graph, then the schematic's ports and sub-block instantiations map to graph vertices, with the nets mapping to edges. But these graph vertices are no longer 'classical' vertices because sub-blocks have input and output ports which are conventionally drawn at opposite sides of the sub-block rectangle. And, if I want to keep the ports of the sib-block in a fixed order, then 
+
+
+
+
+
