@@ -119,6 +119,7 @@ class PnR:
         placer = Placer()
         placer.set_graph(self.G)
         placer.set_object_dict(self.drawing_object_dict)
+        placer.resize_passthrus()
         placer.run()
         
     def _route_nets(self):

@@ -33,5 +33,26 @@ class Placer:
                 
             next_x += max(x_hist) + X_DELTA 
                             
+    def resize_passthrus(self):
+        """ Resize each of the passthrus in each layer.
+        Should match the widest block in that layer
+        """
         
+        for layer in self.G.vertices:
+            # find widest object in the layer
+            names = [ block.name for block in layer ]
+            widths = [ self._get_width(name) for name in names ]
+            max_width = max(widths)
+            
+            # set all passthru objects to match widest object
+            dummies = [ name for name in names if name.startswith('_') ]
+            for dummy in dummies:
+                obj = self.obj_dict[dummy]
+                obj.endpt   = Point(max_width,0)
 
+                
+    def _get_width(self, name):
+        """ Lookup the drawing object dict to get the width of the named object."""
+        width, height = self.obj_dict[name].getSize()
+        return width
+             
