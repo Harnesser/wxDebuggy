@@ -17,6 +17,10 @@ def set_path():
     rootdir = find_base()
     sys.path.append( rootdir + '/Verilog2001/BNF' )
     
+def rtl_dir():
+    rootdir = find_base()
+    return rootdir + '/tests/rtl'
     
 if __name__ == '__main__':
     print find_base()
+    print rtl_dir()
