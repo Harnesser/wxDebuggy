@@ -7,7 +7,7 @@ from literals import *
 from module_instanciations import *
 from module_items import *
 from modules import *
-from numbers import *
+from vnumbers import *
 from primaries import *
 
 
