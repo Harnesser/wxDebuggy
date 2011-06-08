@@ -12,7 +12,7 @@ else:
     print "Can't set the correct path"
 
 import pyparsing
-import numbers as mut
+import vnumbers as mut
 import unittest
 
 class ValidNumberStrings( unittest.TestCase ):

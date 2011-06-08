@@ -2,21 +2,16 @@
 # $Id: modules_test.py,v 1.1 2007-08-15 23:47:58 marty Exp $
 """ Unittest for verilog modules """
 
-import sys
+
 import os
+import sys
 
-if os.path.exists('../../Verilog2001/BNF'): # run from this dir
-    sys.path.append('../../Verilog2001/BNF')
-elif os.path.exists('../Verilog2001/BNF'): # aggregate run from ../
-    sys.path.append('../Verilog2001/BNF')
-else:
-    print "Can't set the correct path"
- 
-
-import os.path
 import pyparsing
-import modules as mut
 import unittest
+
+import helpers
+print helpers.set_path()
+import modules as mut
 
 class ValidModules( unittest.TestCase ):
 
