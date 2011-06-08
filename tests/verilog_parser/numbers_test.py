@@ -1,19 +1,12 @@
 #!/usr/bin/env python
 """ Unittest for verilog numbers """
 
-import sys
-import os
-
-if os.path.exists('../../Verilog2001/BNF'): # run from this dir
-    sys.path.append('../../Verilog2001/BNF')
-elif os.path.exists('../Verilog2001/BNF'): # aggregate run from ../
-    sys.path.append('../Verilog2001/BNF')
-else:
-    print "Can't set the correct path"
-
-import pyparsing
-import vnumbers as mut
 import unittest
+import pyparsing
+
+import helpers
+print helpers.set_path()
+import vnumbers as mut
 
 class ValidNumberStrings( unittest.TestCase ):
     valid_number_strings = ( '34',
