@@ -4,8 +4,8 @@
 import unittest
 from collections import namedtuple
 
-import sys
-sys.path.append('../')
+import helpers
+helpers.set_path()
 import matrix
 
 Block = namedtuple('Block', 'name inputs outputs')

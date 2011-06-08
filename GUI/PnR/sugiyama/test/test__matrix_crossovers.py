@@ -2,10 +2,11 @@
 
 from collections import namedtuple
 import unittest
-import sys
-sys.path.append('../')
 
+import helpers
+helpers.set_path()
 import matrix
+
 Block = namedtuple('Block', 'name inputs outputs')
 
 class MatrixCrossoverCounting( unittest.TestCase ):

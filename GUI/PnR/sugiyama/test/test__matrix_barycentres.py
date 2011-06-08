@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
-import sys
 import unittest
 from collections import namedtuple
 
-sys.path.append('./')
-sys.path.append('../')
-import matrix
 import helpers
+helpers.set_path()
+import matrix
+
 
 Block = namedtuple('Block', 'name inputs outputs')
 

@@ -1,17 +1,18 @@
 #! /usr/bin/env python
 """ Sugiyama Layer Reordering Operations"""
 
-import sys
 import unittest
 import codecs
 from collections import namedtuple
 
-sys.path.append('../')
+import helpers
+helpers.set_path()
 import graph
 import reordering
             
 Block = namedtuple('Block', 'name inputs outputs')
 
+import sys
 sys.stdout = codecs.lookup('utf-8')[-1](sys.stdout) # Python Cookbook, 1.22
 
 DEBUG = False
