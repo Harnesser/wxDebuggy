@@ -3,7 +3,8 @@ import sys
 import unittest
 from collections import namedtuple
 
-sys.path.append('../')
+import helpers
+helpers.set_path()
 import graph
 
 class GraphBasicOperations( unittest.TestCase ):

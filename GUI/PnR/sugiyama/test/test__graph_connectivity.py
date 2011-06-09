@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-import sys
-
-sys.path.append('../')
+import helpers
+helpers.set_path()
 
 import graph
 import unittest

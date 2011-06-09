@@ -1,11 +1,12 @@
 #! /usr/bin/env python
 """ Graph Upper and Lower Barycentre calculation tests. """
 
-import sys
-sys.path.append('../')
-
-import graph
 import unittest
+
+import helpers
+helpers.set_path()
+import graph
+
 
 class GraphBarycentreOperations( unittest.TestCase ):
 

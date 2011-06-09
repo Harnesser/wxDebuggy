@@ -2,10 +2,9 @@
 import sys
 import unittest
 
-sys.path.append('./')
-sys.path.append('../')
-import matrix
 import helpers
+helpers.set_path()
+import matrix
 
 class MatrixReversion( unittest.TestCase ):
     "Connectivity Matrix Row Reversion Tests."

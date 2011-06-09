@@ -1,3 +1,5 @@
+import os
+import sys
 import pprint
 from collections import namedtuple
 
@@ -83,4 +85,21 @@ def make_dict( vertex_list ):
     for vertex in vertex_list:
         vertex_dict[vertex.name] = vertex
     return vertex_dict
+    
         
+def find_base():
+    
+    path = os.getcwd()
+    while path != '/':
+        basename = os.path.basename(path)
+        if basename == 'wxDebuggy' or basename == 'workspace':
+            return path
+        else:
+            path = os.path.dirname(path)
+    return None
+    
+def set_path():
+    rootdir = find_base()
+    sys.path.append( rootdir + '/GUI/PnR/sugiyama' )
+    
+
