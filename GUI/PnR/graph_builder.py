@@ -39,8 +39,6 @@ class Graph_Builder:
             for thing in layers[i]:
                 if thing == '_oport':
                     continue
-                if thing.startswith('_B'):
-                    continue
                 tmp.append( block_dict[thing] )
             special_vertices.append(tmp)
 
@@ -48,8 +46,6 @@ class Graph_Builder:
         edge_dict = {}
         for conn in self.connection_list:
             ( (source, port1), (sink, port2) ) = conn
-            if source.startswith('_B') or sink.startswith('_B'):
-                continue
             if source == '_iport':
                 layer = 1
             else:

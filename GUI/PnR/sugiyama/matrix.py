@@ -76,8 +76,8 @@ class Matrix(object):
 
         # Fill in the connections
         for ( (source, o_pin), (sink, i_pin) ) in self.edges:
-            #print "SOURCE:", source, o_pin
-            #print "  SINK:", sink, i_pin
+
+            # First, names for port connections
             if source == '_iport':
                 source_name = '.'.join([o_pin, o_pin])
             else:
@@ -86,10 +86,28 @@ class Matrix(object):
                 sink_name = '.'.join([i_pin, i_pin])
             else:
                 sink_name = '.'.join([sink, i_pin])
+
+
+            #  Now look for the index of each end of the edge in the upper and 
+            # lower layer. These form the row and col index of the '1' 
+            # representing this connection in the matrix.
+            #  I've put try/excepts on each as the name lookup won't work if we've
+            # got the start/end of a feedback edge. This, is a !!!FIXME!!! ftm.
+            feed_forward = True
+            try:                
+                row_index = self.row_vertices.index( source_name )
+            except ValueError:
+                feed_forward = False
                 
-            row_index = self.row_vertices.index( source_name )
-            col_index = self.col_vertices.index( sink_name )
-            M[row_index][col_index] = 1
+            try:
+                col_index = self.col_vertices.index( sink_name )
+            except ValueError:
+                feed_forward = False
+                
+            #  Only register the connection if it's not the start/end of a 
+            # feedback loop.
+            if feed_forward:
+                M[row_index][col_index] = 1
             
         return M
 
