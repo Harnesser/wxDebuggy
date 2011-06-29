@@ -16,7 +16,10 @@ class GraphBarycentreOperations( unittest.TestCase ):
                     [('c','g'), ('d','h'), ('d','i'), ('d','j'), ('e','g'), ('e','j') ],
                     [('g','k'), ('i','k'), ('i','m'), ('j','k'), ('j','l') ]
                  ]
-        self.G = graph.Graph( self.V, self.E )
+                 
+        self.new_V, self.new_E = helpers.new_style_conversion(self.V, self.E)
+        
+        self.G = graph.Graph( self.new_V, self.new_E )
         self.G.build_connection_matrices()
         self.G.calc_upper_connectivities()
         self.G.calc_lower_connectivities()            
