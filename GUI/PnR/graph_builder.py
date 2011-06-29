@@ -330,35 +330,39 @@ class Graph_Builder:
         (block1, port1) = source
         (block2, port2) = sink
 
-        start_point = source        
         start_layer = self._get_layer(block1) 
         end_layer   = self._get_layer(block2)
         
         # Remove sink from source connection set
         self.graph_dict[block1].discard(block2)
 
-        
         if ( end_layer - start_layer ) > 0:
             prefix = '_U'
-            layers = range( start_layer + 1, end_layer )        
+            layers = range( start_layer + 1, end_layer )
+            loopback = False
+            start_point = source
         else:
             prefix = '_B'
             layers = range( end_layer, start_layer+1 )
+            loopback = True
+            start_point = sink
             
-        print "Conn:", connection, start_layer, end_layer
-        print " ", prefix, layers
         for i in layers:
             new_vertex_name = '_'.join([prefix, block1, port1, block2, port2, str(i)] )
             new_conn = ( start_point, (new_vertex_name, '_i') )
-            (block, port) = start_point     
-
             new_connections.append(new_conn)
+
+            (block, port) = start_point
             self.graph_dict.setdefault(block,set()).add(new_vertex_name)
             self.layer_dict[new_vertex_name] = i
-        
+
             start_point = (new_vertex_name, '_o')
-        
-        new_connections.append( (start_point, sink) )
+                    
+        if loopback:
+            new_connections.append( (start_point, source) )
+        else:
+            new_connections.append( (start_point, sink) )
+            
         self.graph_dict.setdefault(new_vertex_name,set()).add(block2)
     
         return new_connections
