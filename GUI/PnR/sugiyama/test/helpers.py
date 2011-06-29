@@ -87,6 +87,44 @@ def make_dict( vertex_list ):
     return vertex_dict
     
         
+def new_style_conversion( V, E ):
+    """ Convert the graph datastructure to the new version.
+     
+    Vertices:
+    Before: G = [ [ 'U1, 'U2' ], ['U3'] ] 
+    After : G = [ [ Block(name = 'U1', inputs = ('i',), outputs = ('o',) ) ,
+                    Block(name = 'U2', inputs = ('i',), outputs = ('o',) ) ] ,
+                  [ Block(name = 'U3', inputs = ('i',), outputs = ('o',) ) ]
+                ]
+                
+    Edges:          <   edge  >  ( source, sink)
+    Before: E = [ [ ('U1', 'U3'), ('U2', 'U3') ] ]
+    After : E = [ [ ( ('U1', 'o'), ('U3', 'i') ),
+                    ( ('U2', 'o'), ('U3', 'i') ) 
+                  ] ]
+    """
+
+    # Vertices
+    new_V = []
+    for layer in V:
+        new_layer = []
+        for vertice in layer:
+            block = Block( vertice.upper(), ('i',), ('o',) )
+            new_layer.append(block)
+        new_V.append(new_layer)
+        
+    # Edges
+    new_E = []
+    for layer in E:
+        new_layer = []
+        for edge in layer:
+            source, sink = edge
+            new_layer.append( ( (source.upper(), 'o'), (sink.upper(), 'i') ) )
+        new_E.append(new_layer)
+               
+    return new_V, new_E
+    
+         
 def find_base():
     
     path = os.getcwd()

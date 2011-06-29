@@ -15,9 +15,18 @@ class GraphConnectivityOperations( unittest.TestCase ):
                     [('g','k'), ('i','k'), ('i','m'), ('j','k'), ('j','l') ]
                  ]
 
+        #
+        # Convert into new vertice/edge style. Input port is called 'i', and output 'o'
+        #
+        
 
+        self.new_V, self.new_E = helpers.new_style_conversion(self.V, self.E)
+        print self.new_V                
+        print self.new_E
+                
+                
     def test_upper_connectivity(self):
-        G = graph.Graph( self.V, self.E )
+        G = graph.Graph( self.new_V, self.new_E )
         
         G.build_connection_matrices()
         G.calc_upper_connectivities()
@@ -31,7 +40,7 @@ class GraphConnectivityOperations( unittest.TestCase ):
     
     
     def test_lower_connectivity(self):
-        G = graph.Graph( self.V, self.E )
+        G = graph.Graph( self.new_V, self.new_E )
         
         G.build_connection_matrices()
         G.calc_lower_connectivities()
