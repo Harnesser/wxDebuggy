@@ -1,0 +1,29 @@
+class Port():
+    """ Port Class. 
+    References to Port() classes are listed in the Vertex() class.
+    """
+    
+    def __init__(self, name, side):
+        self.name = name
+        self.side = side  # 'left', 'right', 'top' or 'bottom'
+        
+        self.rank = None
+        
+    def set_rank(self, rank):
+        """ Set the rank of the port."""
+        self.rank = rank
+        
+    def get_rank(self):
+        """ Return the rank of the port."""
+        return self.rank
+        
+        
+    def is_on_left(self):
+        """ Is this port a vertex input? """
+        return self.side == 'left'
+        
+    def is_on_right(self):
+        """ Is this port a vertex output? """
+        return self.side == 'right'
+        
+        
