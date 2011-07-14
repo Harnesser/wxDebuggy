@@ -20,7 +20,23 @@ class Vertex():
         """ Return instance name of this vertex."""
         return self.name
         
-         
+        
+    def add_port(self, port):
+        """ Add the Port() to the port list. 
+        port should be an instance of port.Port()
+        
+        Port order is important.
+        """
+        port_name = port.get_name()
+        self.port_list.append(port_name)
+        self.port_dict[port_name] = port
+        
+                 
+    def get_port_names(self):
+        """ Return the ordered port list. """
+        return self.port_list
+        
+        
     def set_rank(self, extended_rank):
         """ Set the extended rank of this vertex.
         This has to be calculted at a higher level cos it depends on
@@ -45,6 +61,33 @@ class Vertex():
         return self.rank_width
         
         
+    def get_input_ports(self):
+        """ Return the sublist of input ports. """
+        ports = []
+        for port_name in self.port_list:
+            _port = self.port_dict[port_name]
+            if _port.is_on_left():
+                ports.append(_port)
+                
+        return ports
+        
+
+    def get_output_ports(self):
+        """ Return the sublist of output ports. """
+        ports = []
+        for port_name in self.port_list:
+            _port = self.port_dict[port_name]
+            if _port.is_on_right():
+                ports.append(_port)
+                
+        return ports
+        
+        
+    def _extract_port_names(self, port_list):
+        """ Take the list of Port() objects, and return a list of instn names."""
+        return [ _port.get_name() for _port in port_list ]
+
+
     def rank_ports(self):
         """ Determine the rank of each port in this vertex.
         As the ports are fixed, the port ranking need only happen once.
@@ -61,15 +104,5 @@ class Vertex():
             rank += 1
         
         assert( rank == (self.rank_width-1) )
-        
-        
-    def add_port(self, port):
-        """ Add the Port() to the port list. 
-        port should be an instance of port.Port()
-        
-        Port order is important.
-        """
-        port_name = port.get_name()
-        self.port_list.append(port_name)
-        self.port_dict[port_name] = Port
+
         
