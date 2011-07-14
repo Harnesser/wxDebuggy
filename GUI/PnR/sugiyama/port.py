@@ -26,4 +26,6 @@ class Port():
         """ Is this port a vertex output? """
         return self.side == 'right'
         
+    def get_name(self):
+        return self.name
         
