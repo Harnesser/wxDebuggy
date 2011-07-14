@@ -6,20 +6,22 @@ class Vertex():
     [SFHM09]
     """
     
-    def __init__(self, name, ports=None):
+    def __init__(self, name):
         self.name = name
-        if ports is None:
-            self.ports = ports
-        else:
-            self.ports = []
-            
+        self.port_dict = {}
+        self.port_list = []
+ 
         self.rank_width = None
-        self.extended_rank
-        self.port_ranks
+        self.extended_rank = None
         self.type = 'module' # or 'dummy'
         
-                
-    def set_rank(extended_rank):
+               
+    def get_name(self):
+        """ Return instance name of this vertex."""
+        return self.name
+        
+         
+    def set_rank(self, extended_rank):
         """ Set the extended rank of this vertex.
         This has to be calculted at a higher level cos it depends on
         the position of this vertex in the graph layer, and on the extended rank
@@ -28,28 +30,28 @@ class Vertex():
         self.extended_rank = extended_rank
         
         
-    def get_rank():
+    def get_rank(self):
         """ Return the extended rank of this vertex."""
         return self.extended_rank
    
    
-    def get_rank_width():
+    def get_rank_width(self):
         """ Return the rank width of the vertex.
         The 'rank width' is simply the total number of ports.
         """
         if self.rank_width is None:
-            self.rank_width = len(self.ports)
+            self.rank_width = len(self.port_dict)
             assert( self.rank_width >= 1 )
         return self.rank_width
         
         
-    def rank_ports():
+    def rank_ports(self):
         """ Determine the rank of each port in this vertex.
         As the ports are fixed, the port ranking need only happen once.
         """
         rank = 0
-        inputs  = [ port for port in self.ports if self.port.is_on_left()  ]
-        outputs = [ port for port in self.ports if self.port.is_on_right() ]
+        inputs  = [ port for port in self.port_dict.values() if port.is_on_left()  ]
+        outputs = [ port for port in self.port_dict.values() if port.is_on_right() ]
         
         for port in outputs:
             port.set_rank(rank)
@@ -60,4 +62,14 @@ class Vertex():
         
         assert( rank == (self.rank_width-1) )
         
+        
+    def add_port(self, port):
+        """ Add the Port() to the port list. 
+        port should be an instance of port.Port()
+        
+        Port order is important.
+        """
+        port_name = port.get_name()
+        self.port_list.append(port_name)
+        self.port_dict[port_name] = Port
         
