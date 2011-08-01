@@ -3,6 +3,7 @@
 import os
 import sys
 import unittest
+import pprint
 
 def find_base():
     path = os.getcwd()
@@ -22,26 +23,25 @@ def set_paths():
 
 set_paths()
 
-import graph
-import vertex
-import port
-import edge
+import graph2
+from vertex import Vertex
+from port import Port
+from edge import Edge
 
 class Graph_Test_Base(unittest.TestCase):
     """ Base class for Graph Unittests. """
     
     
-    def build_graph_from_shorthand( graph_string, set_order=None, debug=True ):
+    def build_graph_from_shorthand(self, graph_string, debug=True ):
         """ Return a Graph() instance of the parsed shorthand string. """
         
-        V_top, V_bot, E = self._parse_shorthand( graph_string, set_order, debug )
+        V_top, V_bot, E = self._parse_shorthand( graph_string, debug )
            
-        G = graph.Graph( [ V_top, V_bot ], E )
+        G = graph2.Graph2( [ V_top, V_bot ], [E] )
         return G
         
         
-        
-    def _parse_shorthand( graph_string, set_order=None, debug=True ):
+    def _parse_shorthand( self, graph_string, debug=True ):
         """Take a string representing a graph and build a suitable datastructure
         2-layer graphs only.
         
@@ -63,7 +63,7 @@ class Graph_Test_Base(unittest.TestCase):
         V_bot_dict = {}
         
         source_outputs = {}
-        sink_inputs = {}
+        target_inputs = {}
         
         # Split into edges
         edge_strs = graph_string.split(';')
@@ -73,59 +73,47 @@ class Graph_Test_Base(unittest.TestCase):
             # Build source Vertex and Port objects if required
             v_source, p_source = source.split('.')
             if v_source not in V_top_dict:
-                V = vertex.Vertex(v_source)
-                P = port.Port(p_source, 'right')
+                V = Vertex(v_source)
+                P = Port(p_source, 'right')
                 V.add_port(P)
+                V_top_dict[v_source] = V
             else:
                 V = V_top_dict[v_source]
                 if p_source not in V.port_dict:
-                    P = port.Port(p_source, 'right')
+                    P = Port(p_source, 'right')
                     V.add_port(P)
             
             # Build target Vertex and Port objects if required                       
             v_target, p_target = target.split('.')
+            if v_target not in V_bot_dict:
+                V = Vertex(v_target)
+                P = Port(p_target, 'left')
+                V.add_port(P)
+                V_bot_dict[v_target] = V
+            else:
+                V = V_bot_dict[v_target]
+                if p_target not in V.port_dict:
+                    P = Port(p_target, 'left')
+                    V.add_port(P)
             
-            #v_target, p_target = 
-            block, port = source.split('.')
-            if block not in source_outputs:
-                source_outputs.setdefault(block, []).append(port)
-            elif port not in source_outputs[block]:
-                source_outputs[block].append(port)
-            
-            edge = [ (block, port) ]
-                        
-            block, port = sink.split('.')
-            if block not in sink_inputs:
-                sink_inputs.setdefault(block, []).append(port)
-            elif port not in sink_inputs[block]:
-                sink_inputs[block].append(port)
-            
-            edge.append( (block, port) )
-        
-            # Add edges
-            edge = tuple(edge)
+            # Add to edges list
+            edge = Edge( 'n_' + edge_str, (v_source, p_source), (v_target, p_target) )
             E.append(edge)
             
             
-        # Build vertice lists
-        for block in source_outputs:
-            vertex = Block(name=block, inputs=tuple(), outputs=tuple(source_outputs[block]) )
-            V_top.append(vertex)
-            
-        for block in sink_inputs:
-            vertex = Block(name=block, inputs=tuple(sink_inputs[block]), outputs=tuple() )
-            V_bot.append(vertex)
-                       
+        # Ordered Vertex list
+        blocks = V_top_dict.keys()
+        blocks.sort()
+        V_top = [ V_top_dict[block] for block in blocks ]
+
+        blocks = V_bot_dict.keys()
+        blocks.sort()
+        V_bot = [ V_bot_dict[block] for block in blocks ]
+        
         if debug:
             pprint.pprint(V_top)
             pprint.pprint(V_bot)
             pprint.pprint(E)
-            
-            
-        if set_order:
-            top_order, bot_order = set_order
-            V_top = reorder_vertices( V_top, top_order )
-            V_bot = reorder_vertices( V_bot, bot_order )
             
         return V_top, V_bot, E
 

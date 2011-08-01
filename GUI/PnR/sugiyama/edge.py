@@ -2,11 +2,7 @@
 class Edge():
     """ Edge Class """
     
-    def __init__(self, net, source, sink):
+    def __init__(self, net, source, target ):
         self.net = net
-        self.name = name
-        self.source = source
-        self.sink = sink
-        
-        self.source_rank
-        self.sink_rank
+        self.source, self.source_port = source
+        self.target, self.target_port = target

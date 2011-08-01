@@ -83,6 +83,11 @@ class Vertex():
         return ports
         
         
+    def get_port(self, port_name):
+        """ Return the Port() instantiation for the given port name. """
+        return self.port_dict[port_name]
+        
+        
     def _extract_port_names(self, port_list):
         """ Take the list of Port() objects, and return a list of instn names."""
         return [ _port.get_name() for _port in port_list ]
