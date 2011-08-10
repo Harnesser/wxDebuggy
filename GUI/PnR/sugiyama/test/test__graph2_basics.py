@@ -72,3 +72,11 @@ class Graph2BasicOperations(graph_test_base.Graph_Test_Base):
         self.assertEqual( bcs, expected_bcs )
         
         
+    def test_calc_barycentres_down(self):
+        G = self.build_graph_from_shorthand(self.graph_str)
+        G.update()
+        
+        expected_bcs = [ 3.0, 21.0/4, 19.0/3, 2.5, 11.0/2]
+        bcs = G.calc_barycentres(1, 'up')
+        self.assertEqual( bcs, expected_bcs )
+        
