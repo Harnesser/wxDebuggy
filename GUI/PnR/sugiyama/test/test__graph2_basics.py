@@ -48,7 +48,6 @@ class Graph2BasicOperations(graph_test_base.Graph_Test_Base):
         G.update()
         
         expected_ranking = [0, 2, 3, 6, 9]
-        G.set_vertex_ranks(0)
         ranking = [ vertex.get_rank() for vertex in G.vertices[0] ]
         self.assertEquals( ranking, expected_ranking)
         
@@ -59,8 +58,17 @@ class Graph2BasicOperations(graph_test_base.Graph_Test_Base):
         
         expected_ranking = [0, 1, 4, 5, 7]
         i = 1
-        G.set_vertex_ranks(i)
         ranking = [ vertex.get_rank() for vertex in G.vertices[i] ]
         self.assertEquals( ranking, expected_ranking)
+        
+        
+    def test_calc_barycentres_up(self):
+        G = self.build_graph_from_shorthand(self.graph_str)
+        G.update()
+        
+        pprint.pprint(G.vertices)
+        expected_bcs = [ 3.0, 4.0, 4.0, 13.0/3, 3.0 ]
+        bcs = G.calc_barycentres(0,'down')
+        self.assertEqual( bcs, expected_bcs )
         
         

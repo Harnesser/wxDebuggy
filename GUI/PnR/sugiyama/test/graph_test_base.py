@@ -32,7 +32,7 @@ class Graph_Test_Base(unittest.TestCase):
     """ Base class for Graph Unittests. """
     
     
-    def build_graph_from_shorthand(self, graph_string, debug=True ):
+    def build_graph_from_shorthand(self, graph_string, debug=False ):
         """ Return a Graph() instance of the parsed shorthand string. """
         
         V_top, V_bot, E = self._parse_shorthand( graph_string, debug )
@@ -101,7 +101,7 @@ class Graph_Test_Base(unittest.TestCase):
             E.append(edge)
             
             
-        # Ordered Vertex list
+        # Alphabetically Ordered Vertex list
         blocks = V_top_dict.keys()
         blocks.sort()
         V_top = [ V_top_dict[block] for block in blocks ]
@@ -110,6 +110,12 @@ class Graph_Test_Base(unittest.TestCase):
         blocks.sort()
         V_bot = [ V_bot_dict[block] for block in blocks ]
         
+        # Alphabetically ordered port lists
+        for block in V_bot:
+            block.port_list.sort()
+        for block in V_top:
+            block.port_list.sort()
+            
         if debug:
             pprint.pprint(V_top)
             pprint.pprint(V_bot)
