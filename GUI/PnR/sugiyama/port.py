@@ -9,6 +9,13 @@ class Port():
         
         self.rank = None
         
+    def __str__(self):
+        return '"%s" (dir=%s, rank=%d)' % (self.name, self.side, self.rank)
+        
+    def __repr__(self):
+        return self.__str__()
+        
+        
     def set_rank(self, rank):
         """ Set the rank of the port."""
         self.rank = rank
