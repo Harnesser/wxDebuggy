@@ -15,7 +15,13 @@ class Vertex():
         self.extended_rank = None
         self.type = 'module' # or 'dummy'
         
-               
+
+    def __str__(self):
+        return '"%s" (%s)' % ( self.name, self.type)
+
+    def __repr__(self):
+        return self.__str__()
+        
     def get_name(self):
         """ Return instance name of this vertex."""
         return self.name
@@ -50,6 +56,10 @@ class Vertex():
         """ Return the extended rank of this vertex."""
         return self.extended_rank
    
+    def get_port_extended_rank(self, port_name):
+        """ Return the extended rank of the named port. """
+        port = self.port_dict[port_name]
+        return self.get_rank() + port.get_rank()
    
     def get_rank_width(self):
         """ Return the rank width of the vertex.
@@ -93,14 +103,21 @@ class Vertex():
         return [ _port.get_name() for _port in port_list ]
 
 
-    def rank_ports(self):
+    def rank_ports(self, debug=True):
         """ Determine the rank of each port in this vertex.
         As the ports are fixed, the port ranking need only happen once.
         """
         rank = 0
-        inputs  = [ port for port in self.port_dict.values() if port.is_on_left()  ]
-        outputs = [ port for port in self.port_dict.values() if port.is_on_right() ]
+        inputs = []
+        outputs = []
         
+        for port_name in self.port_list:
+            port = self.port_dict[port_name]
+            if port.is_on_left():
+                inputs.append(port)
+            else:
+                outputs.append(port)
+
         for port in outputs:
             port.set_rank(rank)
             rank += 1
@@ -108,6 +125,10 @@ class Vertex():
             port.set_rank(rank)
             rank += 1
         
-        assert( rank == (self.rank_width-1) )
+        if debug:
+            for port_name in self.port_list:
+                print self.port_dict[port_name]
+                
+        assert( rank == self.get_rank_width() )
 
         
