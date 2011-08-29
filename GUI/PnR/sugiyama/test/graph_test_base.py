@@ -41,7 +41,7 @@ class Graph_Test_Base(unittest.TestCase):
         return G
         
         
-    def _parse_shorthand( self, graph_string, debug=True ):
+    def _parse_shorthand( self, graph_string, debug=False ):
         """Take a string representing a graph and build a suitable datastructure
         2-layer graphs only.
         
