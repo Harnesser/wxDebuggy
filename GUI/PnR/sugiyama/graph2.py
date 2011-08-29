@@ -83,15 +83,21 @@ class Graph2():
 
         print " ", barycentres
         return barycentres
+        
+        
+    def reorder_layer(self, i, direction):
+        """ Barycentre Reordering of Layer i.
+        If direction is:
+        * 'down' - reorder layer i using upper barycentres.
+        * 'up'   - reorder layer i using lower barycentres. 
+        """
+        pass
+        
+        
+    def get_vertex_labels(self, i):
+        """ Return a list of the labels of each vertex in layer i. """
+        return [ vertex.name for vertex in self.vertices[i] ]
 
         
-    def reorder_down(self, i):
-        """ Reorder layer i+1, holding layer i fixed. """
         
-        
-    def reorder_up(self, i):
-        """ Reorder layer i-1, holding layer i fixed. """
-        pass
-    
-                
             

@@ -43,6 +43,9 @@ class Graph2BasicOperations(graph_test_base.Graph_Test_Base):
         self.assertEquals( ['6','7','8','90','91'], names_in_layer_1 )
         
         
+    #
+    # Vertex Ranking
+    #
     def test_graph2_init_ranking_top(self):
         G = self.build_graph_from_shorthand(self.graph_str)
         G.update()
@@ -62,6 +65,9 @@ class Graph2BasicOperations(graph_test_base.Graph_Test_Base):
         self.assertEquals( ranking, expected_ranking)
         
         
+    #
+    # Barycentre Calculations
+    #
     def test_calc_barycentres_up(self):
         G = self.build_graph_from_shorthand(self.graph_str)
         G.update()
@@ -80,3 +86,17 @@ class Graph2BasicOperations(graph_test_base.Graph_Test_Base):
         bcs = G.calc_barycentres(1, 'up')
         self.assertEqual( bcs, expected_bcs )
         
+        
+    #
+    # Layer Reordering
+    #
+    def test_layer_reorder_down(self):
+        G = self.build_graph_from_shorthand(self.graph_str)
+        G.update()
+        
+        pprint.pprint(G.vertices)
+        expected_vertex_order = '1:5:2:3:4'.split(':')
+        i_layer = 0
+        G.reorder_layer(i_layer, 'down')
+        self.assertEquals( G.get_vertex_labels(i_layer), expected_vertex_order)
+    
