@@ -103,7 +103,7 @@ class Vertex():
         return [ _port.get_name() for _port in port_list ]
 
 
-    def rank_ports(self, debug=True):
+    def rank_ports(self, debug=False):
         """ Determine the rank of each port in this vertex.
         As the ports are fixed, the port ranking need only happen once.
         """

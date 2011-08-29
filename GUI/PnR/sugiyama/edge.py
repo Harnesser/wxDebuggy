@@ -9,6 +9,6 @@ class Edge():
         
         
     def __str__(self):
-        print '"%s" %s.%s -> %s.%s' % ( self.net,
+        return '"%s" %s.%s -> %s.%s' % ( self.net,
             self.source, self.source_port,
             self.target, self.target_port )
