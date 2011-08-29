@@ -44,8 +44,8 @@ class Graph2():
         # Set port ranks for each vertex
         for layer in self.vertices:
             for vertex in layer:
-                print vertex
-                vertex.rank_ports(True)
+                #print vertex
+                vertex.rank_ports(debug=False)
                 
         # Set extended vertex ranks
         for i in range(len(self.vertices)):
@@ -90,8 +90,20 @@ class Graph2():
         If direction is:
         * 'down' - reorder layer i using upper barycentres.
         * 'up'   - reorder layer i using lower barycentres. 
+        
+        To preserve original ordering of vertices which share a barycentre
+        measure, we'll do a DSU.
         """
-        pass
+        
+        i_orig = range( len( self.vertices[i]) )
+        bc_dir = 'down'
+        if direction.lower() == 'down':
+            bc_dir = 'up'
+        barycentres = self.calc_barycentres(i, bc_dir )
+        
+        tmp = zip( barycentres, i_orig, self.vertices[i] )
+        tmp.sort()
+        self.vertices[i] = [ vertex for (bc,j,vertex) in tmp ]
         
         
     def get_vertex_labels(self, i):

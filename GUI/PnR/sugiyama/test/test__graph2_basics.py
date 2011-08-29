@@ -95,8 +95,21 @@ class Graph2BasicOperations(graph_test_base.Graph_Test_Base):
         G.update()
         
         pprint.pprint(G.vertices)
-        expected_vertex_order = '1:5:2:3:4'.split(':')
-        i_layer = 0
+        expected_vertex_order = '90:6:7:91:8'.split(':')
+
+        i_layer = 1
         G.reorder_layer(i_layer, 'down')
         self.assertEquals( G.get_vertex_labels(i_layer), expected_vertex_order)
     
+    
+    def test_layer_reorder_up(self):
+        G = self.build_graph_from_shorthand(self.graph_str)
+        G.update()
+        
+        pprint.pprint(G.vertices)
+        expected_vertex_order = '1:5:2:3:4'.split(':')
+        i_layer = 0
+        
+        G.reorder_layer(i_layer, 'up')
+        self.assertEquals( G.get_vertex_labels(i_layer), expected_vertex_order)
+     
