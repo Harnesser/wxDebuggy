@@ -112,4 +112,13 @@ class Graph():
 
         
         
+    def display(self):
+        str_ = ['Graph:']
+        for layer in self.vertices:
+            for vertex in layer:
+                str_.append( vertex.display() )
+                
+        return '\n'.join(str_)
+                
+        
             

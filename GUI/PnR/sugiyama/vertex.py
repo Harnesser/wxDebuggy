@@ -131,4 +131,28 @@ class Vertex():
                 
         assert( rank == self.get_rank_width() )
 
+
+    def display(self):
+        """ Return a nice string representation of the vertex. """
+        
+        str_ = [ "Vertex: '%s' of type '%s'" % ( self.name, self.type) ]
+        
+        str_.append("  Inputs: ")
+        for port in self.get_input_ports():
+            if not port.rank:
+                rank = 0
+            else:
+                rank = port.rank
+            str_.append("    '%s' (%d)" % ( port.name,rank )  )
+
+        str_.append("  Outputs: ")
+        for port in self.get_output_ports():
+            if not port.rank:
+                rank = 0
+            else:
+                rank = port.rank
+            str_.append("    '%s' (%d)" % ( port.name,rank )  )
+        
+        return '\n'.join(str_)
+        
         
