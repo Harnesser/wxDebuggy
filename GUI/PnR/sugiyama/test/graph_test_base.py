@@ -23,7 +23,7 @@ def set_paths():
 
 set_paths()
 
-import graph2
+import graph
 from vertex import Vertex
 from port import Port
 from edge import Edge
@@ -37,7 +37,7 @@ class Graph_Test_Base(unittest.TestCase):
         
         V_top, V_bot, E = self._parse_shorthand( graph_string, debug )
            
-        G = graph2.Graph2( [ V_top, V_bot ], [E] )
+        G = graph.Graph( [ V_top, V_bot ], [E] )
         return G
         
         

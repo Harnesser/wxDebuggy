@@ -1,6 +1,6 @@
 import pprint
 
-class Graph2():
+class Graph():
     """ A Graph Class """
     
     def __init__(self, vertices = [[],[]], edges = []):
