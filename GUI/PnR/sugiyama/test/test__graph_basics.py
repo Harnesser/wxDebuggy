@@ -1,89 +1,68 @@
-#!/usr/bin/env python
-import sys
-import unittest
-from collections import namedtuple
-
-import helpers
-helpers.set_path()
+#! /usr/bin/env python
+import pprint
+import graph_test_base
 import graph
 
-class GraphBasicOperations( unittest.TestCase ):
+class GraphBasicOperations(graph_test_base.Graph_Test_Base):
 
-
-    def get_circuit(self):
-        Block = namedtuple('Block', 'name inputs outputs')
+    graph_str = ';'.join(['1.a:7.a;1.b:90.a',
+                          '2.a:8.a',
+                          '3.a:6.a;3.b:7.c;3.b:90.b;3.c:91.a',
+                          '4.a:91.a;4.b:8.a;4.c:7.b',
+                          '5.a:7.b;5.b:8.a'
+                          ])
+                              
+    def test_graph_init_simples(self):
+        G = self.build_graph_from_shorthand( "A.p1:B.p2" )
+        G.update()
         
-        V = [[Block(name='in4', inputs=('in4',), outputs=('in4',)),
-              Block(name='in1', inputs=('in1',), outputs=('in1',)),
-              Block(name='in2', inputs=('in2',), outputs=('in2',)),
-              Block(name='in3', inputs=('in3',), outputs=('in3',))],
-             [Block(name='U1', inputs=('A', 'B'), outputs=('Y',)),
-              Block(name='U2', inputs=('A', 'B'), outputs=('Y',))],
-             [Block(name='U3', inputs=('A', 'B'), outputs=('Y',))],
-             [Block(name='out1', inputs=('out1',), outputs=('out1',))],
-             ]
-        E = [[(('_iport', 'in4'), ('U2', 'B')),
-              (('_iport', 'in2'), ('U1', 'B')),
-              (('_iport', 'in3'), ('U2', 'A')),
-              (('_iport', 'in1'), ('U1', 'A'))],
-             [(('U2', 'Y'), ('U3', 'B')), (('U1', 'Y'), ('U3', 'A'))],
-             [(('U3', 'Y'), ('_oport', 'out1'))]]
-
-
-        G = graph.Graph(V, E)
-        return G
-
-
-    def test_initialiser(self):
-        G = self.get_circuit()
-        # Check size of connection matrix
-        self.assertEquals(G.c_levels, 4)
-
-
-    def test_graph_copy(self):
-        G1 = self.get_circuit()
-        G2 = G1.copy()
-        G1.vertices[0].reverse()
-        
-        G1_names_0 = [ block.name for block in G1.vertices[0] ]
-        G2_names_0 = [ block.name for block in G2.vertices[0] ]
-        
-        self.assertEquals( G2_names_0, [ 'in4', 'in1', 'in2', 'in3' ] )        
-        self.assertEquals( G1_names_0, [ 'in3', 'in2', 'in1', 'in4' ] )
-
-            
-    def test_matrices_ckt_M0(self):
-        G = self.get_circuit()
-        G.build_connection_matrices()
-        self.assertEquals( G.matrices[0].M, 
-            [[0,0,0,1],
-             [1,0,0,0],
-             [0,1,0,0],
-             [0,0,1,0]] )
+        vertex_names = G.vertex_dict.keys()
+        vertex_names.sort()
+        self.assertEquals(vertex_names, ['A','B'])
         
         
-    def test_matrices_ckt_M1(self):
-        G = self.get_circuit()
-        G.build_connection_matrices()
-        print G.matrices[1]
-        self.assertEquals( G.matrices[1].M, 
-            [[1,0],
-             [0,1]] )
-
-
-    def test_matrices_ckt_M2(self):
-        G = self.get_circuit()
-        G.build_connection_matrices()
-        print G.matrices[2]
-        self.assertEquals( G.matrices[2].M, 
-            [[1]] )
-
-        
-    def test_crossovers_1(self):
-        G = self.get_circuit()
-        G.build_connection_matrices()
-        self.assertEquals( G.get_crossover_count(), 3)
-        
-
+    def test_graph_init(self):
+        G = self.build_graph_from_shorthand(self.graph_str)
+        G.update()
+       
+        vertex_names = G.vertex_dict.keys()
+        vertex_names.sort()
+        expected_vertex_names = list('12345678')
+        expected_vertex_names.extend( [ '90','91'] )
+        self.assertEquals(vertex_names, expected_vertex_names )
         
         
+    def test_graph_init_names(self):
+        G = self.build_graph_from_shorthand(self.graph_str)
+        G.update()
+        
+        names_in_layer_0 = [ vertex.name for vertex in G.vertices[0] ]
+        self.assertEquals( list('12345'), names_in_layer_0 )
+        
+        names_in_layer_1 = [ vertex.name for vertex in G.vertices[1] ]
+        self.assertEquals( ['6','7','8','90','91'], names_in_layer_1 )
+        
+        
+    #
+    # Vertex Ranking
+    #
+    def test_graph_init_ranking_top(self):
+        G = self.build_graph_from_shorthand(self.graph_str)
+        G.update()
+        
+        expected_ranking = [0, 2, 3, 6, 9]
+        ranking = [ vertex.get_rank() for vertex in G.vertices[0] ]
+        self.assertEquals( ranking, expected_ranking)
+        
+         
+    def test_graph_init_ranking_bot(self):
+        G = self.build_graph_from_shorthand(self.graph_str)
+        G.update()
+        
+        expected_ranking = [0, 1, 4, 5, 7]
+        i = 1
+        ranking = [ vertex.get_rank() for vertex in G.vertices[i] ]
+        self.assertEquals( ranking, expected_ranking)
+       
+        
+     

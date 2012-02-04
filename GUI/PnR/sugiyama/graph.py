@@ -1,178 +1,124 @@
-#! /usr/bin/env python
+import pprint
 
-from collections import namedtuple
-
-from matrix import Matrix
-
-class Graph(object):
-    """ A class to hold a proper, layered graph.
-    Calculates connectivity matrices too, I think...
-    """
+class Graph():
+    """ A Graph Class """
     
-    def __init__(self, vertices = [[],[]], edges = [[]]):
-        self.edges = edges  
+    def __init__(self, vertices = [[],[]], edges = []):
         self.vertices = vertices
-        self.matrices = []
-        
-        self.c_levels = 0
-        
-        self.lower_connectivities = []
-        self.upper_connectivities = []
-       
-        self.Block = namedtuple('Block', 'name inputs outputs')
-        self.update()
-                    
+        self.edges = edges
+
+        self.vertex_dict = {}
+        self.down_conn_dicts = []
+        self.up_conn_dicts = []    
+
+
     def update(self):
-        self.c_levels = len(self.vertices)
-        assert( len(self.vertices) -1 == len(self.edges) )
-           
-    def get_crossover_count(self):
-        c_crossovers = 0
-        for m in self.matrices:
-            c_crossovers += m.get_crossover_count()
-        return c_crossovers
-         
-         
-    def set_layer(self, i, vertices, debug=False ):
-        """  """
+        """ Build a few connection dictionaries. """
         
-        old_order = ( vertex.name for vertex in self.vertices[i] )
-        old_order = " ".join(old_order)
+        assert len(self.vertices) - 1 == len(self.edges)
         
-        new_order = ( vertex.name for vertex in vertices )
-        new_order = " ".join(new_order)
-        
-        if debug and ( new_order != old_order ):
-            print "> .set_layer() update:"
-            print ">  FROM:", old_order
-            print ">    TO:", new_order
-
-        self.vertices[i] = vertices
-        
-    # ===========================================================
-    #  Connectivities
-    # ===========================================================       
+        # dict of vertices indexed by their names
+        self.vertex_dict = {}
+        for vertices in self.vertices:
+            for vertex in vertices:
+                self.vertex_dict[vertex.name] = vertex
+     
+        # Downward connectivity dictionaries
+        self.down_conn_dicts = []
+        for edges in self.edges:
+            conn_dict = {}
+            for edge in edges:
+                conn = (edge.target, edge.target_port)
+                conn_dict.setdefault(edge.source, []).append(conn)
+            self.down_conn_dicts.append(conn_dict)
             
-    def build_connection_matrices(self):
-        """ Construct connection matrices for the graph. """
-        for i in xrange(self.c_levels-1):
-            M = Matrix( self.vertices[i], self.vertices[i+1], self.edges[i] )
-            self.matrices.append(M)
-   
+        # Upward connectivity dictionaries
+        self.up_conn_dicts = [ [] ]
+        for edges in self.edges:
+            conn_dict = {}
+            for edge in edges:
+                conn = (edge.source, edge.source_port)
+                conn_dict.setdefault(edge.target, []).append(conn)
+            self.up_conn_dicts.append(conn_dict)
             
-    def calc_lower_connectivities(self):
-        """ Calculate the Upper Connectivites for each layer. 
-        Equation (7) in Sugiyama."""
-
-        self.lower_connectivities = []
-        for M in self.matrices:
-            connectivities = [ sum(x) for x in M.M ]
-            self.lower_connectivities.append(connectivities)
-
-                            
-    def calc_upper_connectivities(self):    
-        """ Calculate the Lower Connectivites for each layer.
-        Equation (6) in Sugiyama's Paper.
-        See here for adding columns:
-        http://stackoverflow.com/questions/3223043
-        """
-
-        self.upper_connectivities = [ [] ] # extra level to keep indices consistent
-        for M in self.matrices:
-            connectivities = [ sum(x) for x in zip(*M.M) ]
-            self.upper_connectivities.append(connectivities)
-            
-    def check_consistency(self):
-        """ Check consistency of row and column orders of connection matrices.
-        For example, if the cols of matrices[0] == ['a','b,'c'], return False
-        if the rows of matrice[1] not the same.
-        """
-        for i in xrange(1,self.c_levels-1):
-            if self.matrices[i-1].col_blocks != self.matrices[i].row_blocks:
-                print "Row vs Col order mismatch between matrices %d & %d" % (i-1, i)
-                return False
-            if self.matrices[i].row_blocks != self.vertices[i]:
-                print "Row %d vertices in matrix mismatch between Graph version" % (d)
-                return False
-        return True
-        
-    # ===========================================================
-    #  Barycentres
-    # ===========================================================
-                  
-    def calc_upper_barycentres(self, i, upper_x_positions, debug=False):
-        """ Calculate the upper connectivity of layer i.
-        Equation (11) in Sugiyama's Paper.
-        """        
-        p = len(self.vertices[i-1])
-        M = self.matrices[i-1].M       
-        upper_barycentres = []
-
-        for k in xrange(len(self.vertices[i])): # sweep vertices in layer i
-            barycentre = 0.0
-           
-            for j in xrange(p): # sweep vertices in layer i-1
-                barycentre += M[j][k] * upper_x_positions[j]
-
-            if barycentre:            
-                barycentre /= self.upper_connectivities[i][k]
-            upper_barycentres.append( int(barycentre) )    
-        
-        if debug:
-            print "Upper barycenters for layer", i
-            print "  ", upper_barycentres
-            
-        return upper_barycentres
-        
-        
-    def calc_lower_barycentres(self, i, lower_x_positions, debug=False ):
-        """ Calculate the lower connectivities of each vertex in layer i.
-        Equation (12) in Sugiyama's paper.
-        """
-        q = len(self.vertices[i+1])
-        M = self.matrices[i].M
-        lower_barycentres = []
-        
-        for k in xrange(len(self.vertices[i])):
-            barycentre = 0.0
-            
-            for l in xrange(q):
-                barycentre += M[k][l] * lower_x_positions[l]
+        # Set port ranks for each vertex
+        for layer in self.vertices:
+            for vertex in layer:
+                #print vertex
+                vertex.rank_ports(debug=False)
                 
-            if barycentre:
-                barycentre /= self.lower_connectivities[i][k]
-            lower_barycentres.append( int(barycentre) )
+        # Set extended vertex ranks
+        for i in range(len(self.vertices)):
+            self.rank_vertices(i)
             
-        if debug:
-            print "Lower barycentres for layer i", i
-            print "  ", lower_barycentres
             
-        return lower_barycentres
+    def rank_vertices(self, i):
+        """ Update the ranks of each vertex in layer i. """
+        rank = 0
+        for vertex in self.vertices[i]:
+            vertex.set_rank(rank)
+            rank += vertex.get_rank_width()
+            
+            
+    def calc_barycentres(self, i, direction):
+        """ Calculate the extended barycentres of layer i. """
+        
+        pprint.pprint(self.down_conn_dicts)
+        barycentres = []
+        
+        if direction == 'up':
+            edge_dict = self.up_conn_dicts[i]
+        elif direction == 'down':
+            edge_dict = self.down_conn_dicts[i]
+            
+        print "Barycentre Calc:", i, direction
+        for vertex in self.vertices[i]:
+            adjacent_conns = edge_dict[vertex.name]
+            extended_ranks = []
+            for vertex_name, port_name in adjacent_conns:
+                vertex = self.vertex_dict[vertex_name]
+                extended_ranks.append( vertex.get_port_extended_rank(port_name) )
+            barycentres.append( 1.0 * sum(extended_ranks) /  len(adjacent_conns) )
+            print " ", extended_ranks, " ", barycentres[-1]
 
-
-    #
-    # Misc housekeeping methods
-    #
-    def copy(self):
-        new_vertices = [ list(layer) for layer in self.vertices ]
-        new_edges = [ list(layer) for layer in self.edges ]
-
-        new_graph = Graph(new_vertices, new_edges)
-        new_graph.update()
-        new_graph.build_connection_matrices()        
-        return new_graph
+        print " ", barycentres
+        return barycentres
         
         
-    def __str__(self):
-        repr_str_list = ["Graph:\n"]
+    def reorder_layer(self, i, direction):
+        """ Barycentre Reordering of Layer i.
+        If direction is:
+        * 'down' - reorder layer i using upper barycentres.
+        * 'up'   - reorder layer i using lower barycentres. 
         
-        repr_str_list.append(" Vertices:")
-        for i in xrange(self.c_levels):
-            blocks = [ vertex.name for vertex in self.vertices[i] ]
-            repr_str_list.append( "%10d %s" % (i, blocks ) )
-                    
-        repr_str_list.append("\n    Edges:")
-        for i in xrange(self.c_levels-1):
-            repr_str_list.append( "%10d %s" % (i, self.edges[i] ) )
+        To preserve original ordering of vertices which share a barycentre
+        measure, we'll do a DSU.
+        """
+        
+        i_orig = range( len( self.vertices[i]) )
+        bc_dir = 'down'
+        if direction.lower() == 'down':
+            bc_dir = 'up'
+        barycentres = self.calc_barycentres(i, bc_dir )
+        
+        tmp = zip( barycentres, i_orig, self.vertices[i] )
+        tmp.sort()
+        self.vertices[i] = [ vertex for (bc,j,vertex) in tmp ]
+        
+        
+    def get_vertex_labels(self, i):
+        """ Return a list of the labels of each vertex in layer i. """
+        return [ vertex.name for vertex in self.vertices[i] ]
+
+        
+        
+    def display(self):
+        str_ = ['Graph:']
+        for layer in self.vertices:
+            for vertex in layer:
+                str_.append( vertex.display() )
+                
+        return '\n'.join(str_)
+                
+        
             
-        return '\n'.join(repr_str_list)
