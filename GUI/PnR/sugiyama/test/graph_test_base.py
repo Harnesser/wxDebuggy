@@ -32,6 +32,42 @@ class Graph_Test_Base(unittest.TestCase):
     """ Base class for Graph Unittests. """
     
     
+    def build_multilayer_graph_from_shorthand(self, edges_string, vertices=None ):
+        """ Return a multilayer Graph() instance by parsing shorthand.
+        Vertices are ordered alphabetically by default. """
+        
+        layer_strs = graph_string.split('\n')
+        
+        # Have I specified the order I want to see the vertices in each layer?
+        if vertices:
+            for layer in vertices:
+                for vertex in vertices:
+                    V = Vertex(vertex)
+                    
+        
+        v_bot_prev = set()
+        V = []
+        E = []
+        for layer_str in layer_strs:
+            V_top, V_bot, E_layer = self._parse_shorthand( layer_str )
+            
+            names = [ vertex.name for vertex in V_top ]
+            print "Before:", v_bot_prev
+            v_bot_prev.update( set(names) )
+            print "After:", v_bot_prev
+            
+            V.append( list(v_bot_prev) )
+            V[-1].sort()
+            v_bot_prev = set(V_bot)
+            
+            E.append(E_layer)
+                
+        V.append(v_bot_prev)
+        
+        G = graph.Graph( V, E )
+        return G
+        
+        
     def build_graph_from_shorthand(self, graph_string, debug=False ):
         """ Return a Graph() instance of the parsed shorthand string. """
         
@@ -47,7 +83,7 @@ class Graph_Test_Base(unittest.TestCase):
         
         String is in the form:
             <source>.<port>:<sink>.<port>;
-        
+            
         Data Structures look like:
             source vertex list :  [ Vertex, ... ]
             target vertex list :  [ Vertex, ... ]
@@ -74,26 +110,38 @@ class Graph_Test_Base(unittest.TestCase):
             v_source, p_source = source.split('.')
             if v_source not in V_top_dict:
                 V = Vertex(v_source)
-                P = Port(p_source, 'right')
+                if p_source.startswith('o_'):
+                    P = Port(p_source, 'right')
+                else:   
+                    P = Port(p_source, 'left')
                 V.add_port(P)
                 V_top_dict[v_source] = V
             else:
                 V = V_top_dict[v_source]
                 if p_source not in V.port_dict:
-                    P = Port(p_source, 'right')
+                    if p_source.startswith('o_'):
+                        P = Port(p_source, 'right')
+                    else:
+                        P = Port(p_source, 'left')
                     V.add_port(P)
             
             # Build target Vertex and Port objects if required                       
             v_target, p_target = target.split('.')
             if v_target not in V_bot_dict:
                 V = Vertex(v_target)
-                P = Port(p_target, 'left')
+                if p_target.startswith('i_'):
+                    P = Port(p_target, 'left')
+                else:
+                    P = Port(p_target, 'right')
                 V.add_port(P)
                 V_bot_dict[v_target] = V
             else:
                 V = V_bot_dict[v_target]
                 if p_target not in V.port_dict:
-                    P = Port(p_target, 'left')
+                    if p_target.startswith('i_'):
+                        P = Port(p_target, 'left')
+                    else:
+                        P = Port(p_target, 'right')
                     V.add_port(P)
             
             # Add to edges list
