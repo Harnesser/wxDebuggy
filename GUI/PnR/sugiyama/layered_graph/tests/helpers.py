@@ -151,3 +151,66 @@ def paper_cct():
 		g.add_edge(e)
 
 	return g
+
+
+def orig_sugiyama_cct():
+	""" Reimagined circuit from Sugiyama's original paper. """
+
+	g = graph.Graph('orig_sugiyama')
+
+	# Vertices|Modules
+	modules = [ [
+			('U0', [], ['w','x','y','z']),
+			('U1', [], ['y','z']),
+		], [
+			('U2', ['a','b'], ['z']),
+			('U3', ['a'], ['x','y','z']),
+			('U4', ['a'], ['y','z']),
+			('U5', ['a','b'], []),
+		], [
+			('U6', ['a','b'], ['z']),
+			('U7', ['a'], []),
+			('U8', ['a'], ['y','z']),
+			('U9', ['a','b'], ['y','z']),
+		], [
+			('U10', ['a','b','c'], []),
+			('U11', ['a'], []),
+			('U12', ['a'], []),
+		], 
+		]
+	
+	for layer in range(len(modules)):
+		for name, ins, outs in modules[layer]:
+			m = build_module(name, ins, outs)
+			g.add_vertex(layer, m)
+
+	# Connections
+	nets = (
+		('n1', ('U0','w'), ('U2','a')),
+		('n2', ('U0','x'), ('U3','a')),
+		('n3', ('U0','y'), ('U4','a')),
+		('n4', ('U0','z'), ('U5','a')),
+		('n5', ('U1','y'), ('U2','b')),
+		('n6', ('U1','z'), ('U5','b')),
+
+		('n7',  ('U2','z'), ('U6','a')),
+		('n8',  ('U3','x'), ('U7','a')),
+		('n9',  ('U3','y'), ('U8','a')),
+		('n10', ('U3','z'), ('U9','a')),
+		('n11', ('U4','y'), ('U6','b')),
+		('n12', ('U4','z'), ('U9','b')),
+		
+		('n13', ('U6','z'), ('U10','a')),
+		('n14', ('U8','y'), ('U10','b')),
+		('n15', ('U8','z'), ('U12','a')),
+		('n16', ('U9','y'), ('U10','c')),
+		('n17', ('U9','z'), ('U11','a')),
+		)
+
+	for name, source, target in nets:
+		e = edge.Edge(name, source, target)
+		g.add_edge(e)
+
+	return g
+
+				
