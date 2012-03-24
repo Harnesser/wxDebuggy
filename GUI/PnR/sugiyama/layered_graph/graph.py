@@ -41,9 +41,7 @@ class Graph():
         
         # Downward connectivity dictionaries
         self.down_conn_dicts = []
-        print self.edges
         for i_layer in self.edges:
-            print self.edges[i_layer]
             conn_dict = {}
             for edge in self.edges[i_layer]:
                 conn = (edge.target, edge.target_port)
@@ -62,7 +60,6 @@ class Graph():
         # Set port ranks for each vertex
         for i_layer in self.vertices:
             for vertex in self.vertices[i_layer]:
-                #print vertex
                 vertex.rank_ports(debug=False)
                 
         # Set extended vertex ranks

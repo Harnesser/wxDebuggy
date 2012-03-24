@@ -54,27 +54,27 @@ class Test_GraphBasicOperations():
 
 		# make sure the layer counts match
 		assert len(expected_names) == len(G.edges)
-"""
-    #
-    # Vertex Ranking
-    #
-    def test_graph_init_ranking_top(self):
-        G = self.build_graph_from_shorthand(self.graph_str)
-        G.update()
-        
-        expected_ranking = [0, 2, 3, 6, 9]
-        ranking = [ vertex.get_rank() for vertex in G.vertices[0] ]
-        self.assertEquals( ranking, expected_ranking)
-        
-         
-    def test_graph_init_ranking_bot(self):
-        G = self.build_graph_from_shorthand(self.graph_str)
-        G.update()
-        
-        expected_ranking = [0, 1, 4, 5, 7]
-        i = 1
-        ranking = [ vertex.get_rank() for vertex in G.vertices[i] ]
-        self.assertEquals( ranking, expected_ranking)
-       
-        
-"""  
+
+
+	#
+	# Vertex Ranking
+	#
+	def test_graph_init_ranking_top(self):
+		G = helpers.simple_cct()
+		G.update()
+ 
+		expected_ranking = [0, 1, 2, 3]
+		ranking = [ vertex.get_rank() for vertex in G.vertices[0] ]
+		assert ranking ==  expected_ranking
+ 
+ 
+	def test_graph_init_ranking_bot(self):
+		G = helpers.simple_cct()
+		G.update()
+		print "Here, right?"
+		expected_ranking = [0, 3]
+		i = 1
+		ranking = [ vertex.get_rank() for vertex in G.vertices[i] ]
+		print "Ranking:", ranking
+		assert ranking == expected_ranking
+ 
