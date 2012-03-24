@@ -1,26 +1,25 @@
 #! /usr/bin/env python
 import pprint
-import graph_test_base
-import graph
 
-class GraphBasicOperations(graph_test_base.Graph_Test_Base):
+from .. import graph
+from .. import vertex
+from .. import edge
+from .. import port
 
-    graph_str = ';'.join(['1.a:7.a;1.b:90.a',
-                          '2.a:8.a',
-                          '3.a:6.a;3.b:7.c;3.b:90.b;3.c:91.a',
-                          '4.a:91.a;4.b:8.a;4.c:7.b',
-                          '5.a:7.b;5.b:8.a'
-                          ])
-                              
+import helpers
+
+class Test_GraphBasicOperations():
+
     def test_graph_init_simples(self):
-        G = self.build_graph_from_shorthand( "A.p1:B.p2" )
+        G = helpers.very_simple_cct()
         G.update()
         
         vertex_names = G.vertex_dict.keys()
         vertex_names.sort()
-        self.assertEquals(vertex_names, ['A','B'])
-        
-        
+        assert vertex_names == ['A', 'B']
+
+"""
+    
     def test_graph_init(self):
         G = self.build_graph_from_shorthand(self.graph_str)
         G.update()
@@ -65,4 +64,4 @@ class GraphBasicOperations(graph_test_base.Graph_Test_Base):
         self.assertEquals( ranking, expected_ranking)
        
         
-     
+"""  
