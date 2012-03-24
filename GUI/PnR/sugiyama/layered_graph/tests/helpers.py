@@ -102,3 +102,52 @@ def simple_cct():
 		g.add_edge(e)
 
 	return g
+
+
+def paper_cct():
+	""" Circuit from the Extended Sugiyama Paper. """
+
+	modules_top = (
+		('U1', [], ['y','z'] ),
+		('U2', [], ['z'] ),
+		('U3', [], ['x','y','z'] ),
+		('U4', [], ['x','y','z'] ),
+		('U5', [], ['y','z'] ),
+		)
+	
+	modules_bot = (
+		('U6', ['a'], []),
+		('U7', ['a','b','c'], []),
+		('U8', ['a'], []),
+		('U9', ['a','b'], []),
+		('U10', ['a'], []),
+		)
+
+	g = graph.Graph('extended_sugiyama_paper_cct')
+	for name, ins, outs in modules_top:
+		m = build_module(name, ins, outs)
+		g.add_vertex(0, m)
+	for name, ins, outs in modules_bot:
+		m = build_module(name, ins, outs)
+		g.add_vertex(1, m)
+
+	nets = (
+		('n1',  ('U1','y'), ('U7','a') ),
+		('n2',  ('U1','z'), ('U9','a') ),
+		('n3',  ('U2','z'), ('U8','a') ),
+		('n4',  ('U3','x'), ('U6','a') ),
+		('n5',  ('U3','y'), ('U7','c') ),
+		('n6',  ('U3','y'), ('U9','b') ),
+		('n7',  ('U3','z'), ('U10','a') ),
+		('n8',  ('U4','x'), ('U10','a') ),
+		('n9',  ('U4','y'), ('U8','a') ),
+		('n10', ('U4','z'), ('U7','b') ),
+		('n11', ('U5','y'), ('U7','b') ),
+		('n12', ('U5','z'), ('U8','a') ),
+		)
+
+	for name, source, target in nets:
+		e = edge.Edge(name, source, target)
+		g.add_edge(e)
+
+	return g
