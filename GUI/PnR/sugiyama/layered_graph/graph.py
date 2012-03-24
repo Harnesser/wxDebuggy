@@ -7,10 +7,10 @@ class Graph():
     """
     
     def __init__(self, name):
-        self.vertices = {} # keyed by layer
-        self.edges = {}    # keyed by layer
+        self.vertices = {}          # keyed by layer
+        self.edges = {}             # keyed by layer
 
-        self.vertex_dict = {}
+        self.vertex_dict = {}       # keyed by vertex|module name
         self.down_conn_dicts = []
         self.up_conn_dicts = []    
 
@@ -22,16 +22,21 @@ class Graph():
     def add_edge(self, edge):
         """ Should this be add_connection?
         Should I figure out which layers this is between?
+	Just put on the same layer as its source vertex ftm
         """
-        i_layer = 0
-        self.edges.setdefault(i_layer, []).append(edge)
+        # do it the long way ftm
+	for i_layer, vertices in self.vertices.iteritems():
+		for v in vertices:
+			if edge.source == v.name:
+			        self.edges.setdefault(i_layer, []).append(edge)
+				break
+
 
     def update(self):
         """ Build a few connection dictionaries.
         You should probably call this task after you've built the graph of
         your circuit.
         """
-        
         assert len(self.vertices) - 1 == len(self.edges)
         
         # Downward connectivity dictionaries

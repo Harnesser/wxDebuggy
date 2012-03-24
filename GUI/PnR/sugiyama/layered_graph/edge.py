@@ -12,3 +12,6 @@ class Edge():
         return '"%s" %s.%s -> %s.%s' % ( self.net,
             self.source, self.source_port,
             self.target, self.target_port )
+
+    def __repr(self):
+	return self.__str__()

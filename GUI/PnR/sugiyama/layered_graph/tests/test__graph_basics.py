@@ -10,38 +10,51 @@ import helpers
 
 class Test_GraphBasicOperations():
 
-    def test_graph_init_simples(self):
-        G = helpers.very_simple_cct()
-        G.update()
-        
-        vertex_names = G.vertex_dict.keys()
-        vertex_names.sort()
-        assert vertex_names == ['A', 'B']
+	def test_graph_init_simples(self):
+		G = helpers.very_simple_cct()
+		G.update()
+ 
+		vertex_names = G.vertex_dict.keys()
+		vertex_names.sort()
+		assert vertex_names == ['A', 'B']
 
-"""
-    
-    def test_graph_init(self):
-        G = self.build_graph_from_shorthand(self.graph_str)
-        G.update()
+
+	def test_graph_init_names(self):
+		G = helpers.simple_cct()
+		G.update()
+        	
+		expected_names = (
+			['in1', 'in2', 'in3', 'in4'],
+			['U0', 'U1'],
+			['U2'],
+			['out1'],
+			)
+
+		for i in range(0, len(expected_names)):
+			names_in_layer = [ vertex.name for vertex in G.vertices[i] ]
+			assert names_in_layer == expected_names[i]
+
+		# make sure the layer count matches
+		assert len(expected_names) == len(G.vertices)
        
-        vertex_names = G.vertex_dict.keys()
-        vertex_names.sort()
-        expected_vertex_names = list('12345678')
-        expected_vertex_names.extend( [ '90','91'] )
-        self.assertEquals(vertex_names, expected_vertex_names )
-        
-        
-    def test_graph_init_names(self):
-        G = self.build_graph_from_shorthand(self.graph_str)
-        G.update()
-        
-        names_in_layer_0 = [ vertex.name for vertex in G.vertices[0] ]
-        self.assertEquals( list('12345'), names_in_layer_0 )
-        
-        names_in_layer_1 = [ vertex.name for vertex in G.vertices[1] ]
-        self.assertEquals( ['6','7','8','90','91'], names_in_layer_1 )
-        
-        
+ 
+	def test_graph_init_net_names(self):
+		G = helpers.simple_cct()
+		G.update()
+
+		expected_names = (
+			['in1', 'in2', 'in3', 'in4'],
+			['n1','n2'],
+			['out1'],
+			)
+
+		for i in range(0, len(expected_names)):
+			nets_in_layer = [ edge.net for edge in G.edges[i] ]
+			assert nets_in_layer == expected_names[i]
+
+		# make sure the layer counts match
+		assert len(expected_names) == len(G.edges)
+"""
     #
     # Vertex Ranking
     #
