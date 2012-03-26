@@ -1,3 +1,0 @@
-class Matrix(object):
-	pass
-

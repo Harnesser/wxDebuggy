@@ -1,5 +1,4 @@
-from graph import Graph
-from matrix import Matrix
+from layered_graph.graph import Graph
 
 class Reordering_Engine(object):
     """ Graph Layer-Reordering Engine.
@@ -48,16 +47,10 @@ class Reordering_Engine(object):
         for place in self.gen_phase1(max_runs):
             if debug: print "<<< Iteration %0d >>>" % (i) + ( '=' * 50 ) 
             if debug: print place
-            for m in self.G.matrices:
-                pass
-                #print m.pretty()
             i += 1
 
         for place in self.gen_phase2(max_runs):
             if debug: print "<<< Iteration %0d >>>" % (i) + ( '=' * 50 ) 
-            for m in self.G.matrices:
-                pass
-                #print m.pretty()
             i += 1
                         
                     
@@ -87,7 +80,7 @@ class Reordering_Engine(object):
         for i in xrange(0, self.G.c_levels-1):
             m = Matrix(self.G.vertices[i], self.G.vertices[i+1], self.G.edges[i] )
             m.barycentre_col_reorder()
-            self.G.matrices[i] = m
+	    self.G.matrices[i] = m
             self.G.set_layer(i+1, m.col_blocks)
         self._keep_if_best_yet()
         

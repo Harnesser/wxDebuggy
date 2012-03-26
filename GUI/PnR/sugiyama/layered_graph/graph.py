@@ -125,12 +125,17 @@ class Graph():
         """ Return a list of the labels of each vertex in layer i. """
         return [ vertex.name for vertex in self.vertices[i] ]
 
-        
+    def count_crossovers(self):
+	""" Count the crossovers in the Graph. """
+	x_overs = 0
+
+
+	return x_overs        
         
     def display(self):
         str_ = ['Graph:']
         for layer in self.vertices:
-            for vertex in layer:
+            for vertex in self.vertices[layer]:
                 str_.append( vertex.display() )
                 
         return '\n'.join(str_)

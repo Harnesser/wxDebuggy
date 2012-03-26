@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 from graph_builder import Graph_Builder
-from sugiyama.graph import Graph
+from sugiyama.layered_graph.graph import Graph
 from sugiyama.reordering import Reordering_Engine
 from object_factory import Object_Factory
 from basic_placer import Placer
