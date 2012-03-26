@@ -15,22 +15,21 @@ class Graph():
         self.up_conn_dicts = []    
 
     def add_vertex(self, i_layer, vertex):
-	""" Should this be add_module? """
+        """ Should this be add_module? """
         self.vertices.setdefault(i_layer, []).append(vertex)
         self.vertex_dict[vertex.name] = vertex
 
     def add_edge(self, edge):
         """ Should this be add_connection?
         Should I figure out which layers this is between?
-	Just put on the same layer as its source vertex ftm
+        Just put on the same layer as its source vertex ftm
         """
         # do it the long way ftm
-	for i_layer, vertices in self.vertices.iteritems():
-		for v in vertices:
-			if edge.source == v.name:
-			        self.edges.setdefault(i_layer, []).append(edge)
-				break
-
+        for i_layer, vertices in self.vertices.iteritems():
+            for v in vertices:
+                if edge.source == v.name:
+                    self.edges.setdefault(i_layer, []).append(edge)
+                    break
 
     def update(self):
         """ Build a few connection dictionaries.
@@ -126,11 +125,64 @@ class Graph():
         return [ vertex.name for vertex in self.vertices[i] ]
 
     def count_crossovers(self):
-	""" Count the crossovers in the Graph. """
-	x_overs = 0
-
-
-	return x_overs        
+        """ Count the crossovers in the Graph.
+        !!!FIXME!!! This turns out to be a bit tricky to do with the data
+        structures available by default...
+        !!!TODO!!! "Simple and Efficient Bilayer Cross Counting"
+        """
+        layers = self.vertices.keys()
+        layers.sort()
+        pprint.pprint(self.up_conn_dicts)
+        x_overs = 0
+  
+        for layer in layers[:-1]:
+            source_extended_ranks = []
+            print "Layer", layer
+            
+            # connection dict to this layer
+            conn_dict = {}
+            for edge in self.edges[layer]:
+                target = (edge.target, edge.target_port)
+                source = (edge.source, edge.source_port)
+                conn_dict.setdefault(target, []).append(source)
+            pprint.pprint(conn_dict)
+            
+            # get all sinks in the next layer
+            targets = []
+            for vertex in self.vertices[layer+1]:
+                for port in vertex.get_input_ports():
+                    targets.append((vertex.name, port.name))
+            pprint.pprint(targets)
+                        
+            # build source enumeration
+            # can't use the extended rank because this will take the
+            # input ports into account too...
+            source_ranks = {}
+            _i = 1
+            for vertex in self.vertices[layer]:
+                for oport in vertex.get_output_ports():
+                    source_ranks[(vertex.name, oport.name)] = _i
+                    _i += 1
+                    
+            print('Source Rankings')
+            pprint.pprint(source_ranks)
+            
+            # now we can calculate the crossovers
+            lhs_ranks = []
+            for target in targets:
+                for source in conn_dict[target]:
+                    source_rank = source_ranks[source]
+                    for lhs_rank in lhs_ranks:
+                        if lhs_rank > source_rank:
+                            x_overs += 1
+                    lhs_ranks.append(source_rank)
+                    print "LHS:", 
+                    pprint.pprint(lhs_ranks)
+                                            
+        # jeez, I hope we're done now after all that...
+        print 'OK, I see %d crossovers' % (x_overs)
+        return x_overs        
+        
         
     def display(self):
         str_ = ['Graph:']
