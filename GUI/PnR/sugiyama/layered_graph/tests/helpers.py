@@ -212,5 +212,41 @@ def orig_sugiyama_cct():
 		g.add_edge(e)
 
 	return g
+	
+	
+def cct_no_adjacents():
+    """
+    """
+    g = graph.Graph('no_adjacents')
 
-				
+    modules = [
+        [
+            ['U0' ,[] ,['y'] ],
+            ['U1' ,[] ,['y'] ],
+            ['U2' ,[] ,['y'] ],
+        ] , [
+            ['U3' ,['a'], [] ],
+            ['U4' ,['a'], [] ],
+            ['U5' ,['a'], [] ],
+            ['U6' ,['a'], [] ],
+            ['U7' ,['a'], [] ],
+        ]]
+        
+    for layer in range(len(modules)):
+	    for name, ins, outs in modules[layer]:
+		    m = build_module(name, ins, outs)
+		    g.add_vertex(layer, m)        
+		
+    # Connections
+    nets = (
+	    ('n1', ('U0','y'), ('U3','a')),
+	    ('n2', ('U0','y'), ('U5','a')),
+	    ('n3', ('U2','y'), ('U4','a')),
+	    ('n4', ('U2','y'), ('U5','a')),
+        )
+        
+    for name, source, target in nets:
+	    e = edge.Edge(name, source, target)
+	    g.add_edge(e)			
+
+    return g				

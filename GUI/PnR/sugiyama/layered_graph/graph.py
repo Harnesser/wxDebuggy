@@ -92,17 +92,46 @@ class Graph():
             pprint.pprint(edge_dict)
         
         for vertex in self.vertices[i]:
-            adjacent_conns = edge_dict[vertex.name]
-            extended_ranks = []
-            for vertex_name, port_name in adjacent_conns:
-                vertex = self.vertex_dict[vertex_name]
-                extended_ranks.append( vertex.get_port_extended_rank(port_name) )
-            barycentres.append( 1.0 * sum(extended_ranks) /  len(adjacent_conns) )
-
+            adjacent_conns = edge_dict.get(vertex.name, [])
+            if adjacent_conns:
+                extended_ranks = []
+                for vertex_name, port_name in adjacent_conns:
+                    vertex = self.vertex_dict[vertex_name]
+                    extended_ranks.append( vertex.get_port_extended_rank(port_name) )
+                barycentres.append( 1.0 * sum(extended_ranks) /  len(adjacent_conns) )
+            else:
+                barycentres.append(-1.0)
+                
+        # now sweep up the -1s as in section 4.2 in [SFHM09]
+        barycentres = self.fix_barycentres(barycentres)
         if DEBUG:
             print "Barycentres of layer %0d %0s: " % ( i, direction), barycentres
         return barycentres
+
         
+    def fix_barycentres(self, barycentres):
+        """ Replace the -1s 4.2 """
+        
+        fixed_barycentres = [0.0] * len(barycentres)
+        
+        for i in range ( len(barycentres) -1 ):
+            if barycentres[i] != -1.0:
+                fixed_barycentres[i] = barycentres[i]
+            elif i == 0:
+                fixed_barycentres[i] = 0.0
+            elif barycentres[i+1] == -1:
+                fixed_barycentres[i] = barycentres[i-1]
+            elif barycentres[i-1] == -1:
+                fixed_barycentres[i] = fixed_barycentres[i-1]
+            else:
+                fixed_barycentres[i] = ( barycentres[i-1] + barycentres[i+1] ) / 2.0
+                
+        if barycentres[-1] == -1.0:
+            fixed_barycentres[-1] = fixed_barycentres[-2]
+        else:
+            fixed_barycentres[-1] = barycentres[-1]
+        return fixed_barycentres
+            
         
     def reorder_layer(self, i, direction):
         """ Barycentre Reordering of Layer i.
@@ -155,8 +184,11 @@ class Graph():
 
         vertice_group.reverse()
         new_vertice_order.extend(vertice_group)
+        if DEBUG:
+            print "Reversion of layer %0d (%0s)" % (i, bc_dir)
+            pprint.pprint( self.get_vertex_labels(i) )
         self.vertices[i] = new_vertice_order
-        
+        if DEBUG : pprint.pprint( self.get_vertex_labels(i) )
         
     def get_vertex_labels(self, i):
         """ Return a list of the labels of each vertex in layer i. """
@@ -174,23 +206,20 @@ class Graph():
         x_overs = 0
   
         for layer in layers[:-1]:
-            source_extended_ranks = []
-            print "Layer", layer
-            
+            source_extended_ranks = []     
+                   
             # connection dict to this layer
             conn_dict = {}
             for edge in self.edges[layer]:
                 target = (edge.target, edge.target_port)
                 source = (edge.source, edge.source_port)
                 conn_dict.setdefault(target, []).append(source)
-            pprint.pprint(conn_dict)
             
             # get all sinks in the next layer
             targets = []
             for vertex in self.vertices[layer+1]:
                 for port in vertex.get_input_ports():
                     targets.append((vertex.name, port.name))
-            pprint.pprint(targets)
                         
             # build source enumeration
             # can't use the extended rank because this will take the
@@ -201,10 +230,7 @@ class Graph():
                 for oport in vertex.get_output_ports():
                     source_ranks[(vertex.name, oport.name)] = _i
                     _i += 1
-                    
-            print('Source Rankings')
-            pprint.pprint(source_ranks)
-            
+                                
             # now we can calculate the crossovers
             lhs_ranks = []
             for target in targets:
@@ -214,11 +240,9 @@ class Graph():
                         if lhs_rank > source_rank:
                             x_overs += 1
                     lhs_ranks.append(source_rank)
-                    print "LHS:", 
-                    pprint.pprint(lhs_ranks)
                                             
         # jeez, I hope we're done now after all that...
-        print 'OK, I see %d crossovers' % (x_overs)
+        if DEBUG : print 'OK, I see %d crossovers' % (x_overs)
         return x_overs        
         
         
