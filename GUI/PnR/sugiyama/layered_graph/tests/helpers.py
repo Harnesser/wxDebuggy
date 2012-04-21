@@ -105,7 +105,7 @@ def simple_cct():
 
 
 def paper_cct():
-	""" Circuit from the Extended Sugiyama Paper. """
+	""" Circuit from the Extended Sugiyama Presentation. """
 
 	modules_top = (
 		('U1', [], ['y','z'] ),

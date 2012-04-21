@@ -1,5 +1,7 @@
 import pprint
 
+DEBUG = True
+
 class Graph():
     """ A Graph Class.
     For Layered, directed, acyclic graphs.
@@ -76,16 +78,19 @@ class Graph():
             
     def calc_barycentres(self, i, direction):
         """ Calculate the extended barycentres of layer i. """
-        
-        pprint.pprint(self.down_conn_dicts)
+      
         barycentres = []
         
-        if direction == 'up':
+        if direction == 'upper':
             edge_dict = self.up_conn_dicts[i]
-        elif direction == 'down':
+        else:
             edge_dict = self.down_conn_dicts[i]
             
-        print "Barycentre Calc:", i, direction
+        if DEBUG:
+            print "Barycentre Calc:", i, direction
+            print "  edge_dict:"
+            pprint.pprint(edge_dict)
+        
         for vertex in self.vertices[i]:
             adjacent_conns = edge_dict[vertex.name]
             extended_ranks = []
@@ -93,31 +98,64 @@ class Graph():
                 vertex = self.vertex_dict[vertex_name]
                 extended_ranks.append( vertex.get_port_extended_rank(port_name) )
             barycentres.append( 1.0 * sum(extended_ranks) /  len(adjacent_conns) )
-            print " ", extended_ranks, " ", barycentres[-1]
 
-        print " ", barycentres
+        if DEBUG:
+            print "Barycentres of layer %0d %0s: " % ( i, direction), barycentres
         return barycentres
         
         
     def reorder_layer(self, i, direction):
         """ Barycentre Reordering of Layer i.
         If direction is:
-        * 'down' - reorder layer i using upper barycentres.
-        * 'up'   - reorder layer i using lower barycentres. 
+        * 'upper' - reorder layer i using upper barycentres.
+        * 'lower' - reorder layer i using lower barycentres. 
+        
+        where layer 0 is the top-most layer.
         
         To preserve original ordering of vertices which share a barycentre
         measure, we'll do a DSU.
         """
         
         i_orig = range( len( self.vertices[i]) )
-        bc_dir = 'down'
-        if direction.lower() == 'down':
-            bc_dir = 'up'
+        bc_dir = 'lower'
+        if direction.lower() != 'lower':
+            bc_dir = 'upper'
         barycentres = self.calc_barycentres(i, bc_dir )
         
         tmp = zip( barycentres, i_orig, self.vertices[i] )
         tmp.sort()
         self.vertices[i] = [ vertex for (bc,j,vertex) in tmp ]
+        
+        if DEBUG:
+            print "Vertices: ", self.vertices[i]
+            print "-" * 70
+        
+        
+    def layer_reversion(self, i, direction):
+        """ Reverse any vertices with equal barycentres."""
+        print "Layer reversion", i
+     
+        bc_dir = 'lower'
+        if direction.lower() != 'lower':
+            bc_dir = 'upper'
+        
+        barycentres = self.calc_barycentres(i, bc_dir)
+        vertices = self.vertices[i]
+               
+        new_vertice_order = []
+        vertice_group = [ vertices[0] ]
+       
+        for j in xrange(1, len(barycentres) ):
+            if barycentres[j] == barycentres[j-1]:
+                vertice_group.append( vertices[j] )
+            else:
+                vertice_group.reverse()
+                new_vertice_order.extend(vertice_group)
+                vertice_group = [ vertices[j] ]
+
+        vertice_group.reverse()
+        new_vertice_order.extend(vertice_group)
+        self.vertices[i] = new_vertice_order
         
         
     def get_vertex_labels(self, i):
@@ -184,9 +222,15 @@ class Graph():
         return x_overs        
         
         
+    def count_layers(self):
+        """ Return the number of layers. """
+        return len(self.vertices)
+        
+        
     def display(self):
         str_ = ['Graph:']
         for layer in self.vertices:
+            str_.append('\n## Layer %0d' % (layer))
             for vertex in self.vertices[layer]:
                 str_.append( vertex.display() )
                 
