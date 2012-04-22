@@ -52,7 +52,7 @@ class Test_GraphBarycentreOperations():
         G.update()
         G.vertices[1].reverse() # so -1 is 1st
         
-        expected_bcs = [ 0.0, 0.0, 1.0, 1.0]
+        expected_bcs = [ 0.0, 0.0, 1.0, 2.0, 0.0]
         bcs = G.calc_barycentres(1, 'upper')
         assert bcs == expected_bcs
         
