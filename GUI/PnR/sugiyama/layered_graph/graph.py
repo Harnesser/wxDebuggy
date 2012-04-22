@@ -207,12 +207,10 @@ class Graph():
         """
         layers = self.vertices.keys()
         layers.sort()
-        pprint.pprint(self.up_conn_dicts)
         x_overs = 0
   
         for layer in layers[:-1]:
             source_extended_ranks = []     
-                   
             # connection dict to this layer
             conn_dict = {}
             for edge in self.edges[layer]:
@@ -239,8 +237,9 @@ class Graph():
             # now we can calculate the crossovers
             lhs_ranks = []
             for target in targets:
-                for source in conn_dict[target]:
-                    source_rank = source_ranks[source]
+                ranks = [ source_ranks[source] for source in conn_dict[target] ]
+                ranks.sort()
+                for source_rank in ranks:
                     for lhs_rank in lhs_ranks:
                         if lhs_rank > source_rank:
                             x_overs += 1
