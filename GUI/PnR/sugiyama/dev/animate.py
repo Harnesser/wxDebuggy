@@ -8,12 +8,16 @@ sys.path.append('../')
 import reordering
 import layered_graph 
 import layered_graph.tests.helpers as ccts
-                
+    
+MODULE_WIDTH  = 100
+MODULE_HEIGHT = 60
+PORT_WIDTH    = 5
+PORT_HEIGHT   = 5            
                 
 class MainWindow(wx.Frame):
     def __init__(self, parent, title, size=wx.DefaultSize):
         wx.Frame.__init__(self, parent, wx.ID_ANY, title, wx.DefaultPosition, size)
-
+        
         self.circles = list()
         self.displaceX = 30
         self.displaceY = 30
@@ -27,9 +31,10 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_TIMER, self.OnTimer)
         self.Bind(wx.EVT_LEFT_UP, self.OnClick)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-
+        
         self.layout_iter = None
         self.G1 = None
+        self.port_positions = {}
         self.init_graph()
         
         
@@ -40,19 +45,69 @@ class MainWindow(wx.Frame):
         
     def OnPaint(self, e):
         #print "OnPaint called"
+        self.port_positions = {}        
         dc = wx.PaintDC(self)
-        dc.SetTextForeground(wx.WHITE)
+
+        # Go through the list of vertices to draw all of them
+        for vertex in self.vertices:
+            x,y,v = vertex
+            self.draw_vertex(dc, v, x, y)
+
+        # draw the connetions
+        if not self.port_positions:
+            return
+            
+        for layer in range(self.G1.count_layers()-1):
+            for edge in self.G1.edges[layer]:
+                x1,y1 = self.port_positions[ (edge.source, edge.source_port) ]
+                x2,y2 = self.port_positions[ (edge.target, edge.target_port) ]
+                dc.DrawLine(x1,y1,x2,y2)
+
+
+    def draw_vertex(self, dc, vertex, x, y):
+        """ """
+        # module block
         dc.SetBrush(wx.Brush(wx.BLUE))
+        dc.DrawRectangle( x, y, MODULE_WIDTH, MODULE_HEIGHT)
+        
+        # instance name
+        dc.SetTextForeground(wx.WHITE)
         font = wx.Font( pointSize=20, family=wx.MODERN,
             style=wx.NORMAL, weight=wx.BOLD )
         dc.SetFont(font)
+        dc.DrawText( vertex.get_name(), x+30, y+10 )
         
-        # Go through the list of vertices to draw all of them
-        for vertex in self.vertices:
-            dc.DrawRectangle( vertex[0], vertex[1], 100, 60)
-            dc.DrawText( vertex[2], vertex[0]+30, vertex[1]+10 )
+        # extended rank
+        dc.SetTextForeground(wx.WHITE)
+        font = wx.Font( pointSize=10, family=wx.MODERN,
+            style=wx.ITALIC, weight=wx.NORMAL )
+        dc.SetFont(font)
+        dc.DrawText( str(vertex.get_rank()), x+MODULE_WIDTH-20, y+MODULE_HEIGHT-20 )
+        
+        # ports
+        dc.SetBrush(wx.Brush(wx.BLACK))
+        dc.SetTextForeground(wx.RED)
+        font = wx.Font( pointSize=8, family=wx.MODERN,
+            style=wx.NORMAL, weight=wx.NORMAL)
+        dc.SetFont(font)
+        
+        xp, yp = x + 5, y - PORT_HEIGHT
+        for port in vertex.get_input_ports():
+            dc.DrawRectangle(xp, yp, PORT_WIDTH, PORT_HEIGHT) 
+            dc.DrawText( str(port.get_rank()), xp, yp-12 )
+            # register port position so we can find it for net drawing
+            self.port_positions[ (vertex.get_name(), port.get_name()) ] = (xp+2, yp+2)
+            xp += PORT_WIDTH + 5
             
-            
+        xp, yp = x + 5, y + MODULE_HEIGHT
+        for port in vertex.get_output_ports():
+            dc.DrawRectangle(xp, yp, PORT_WIDTH, PORT_HEIGHT) 
+            dc.DrawText( str(port.get_rank()), xp, yp+5)
+            # register port position so we can find it for net drawing
+            self.port_positions[ (vertex.get_name(), port.get_name()) ] = (xp+2, yp+2)
+            xp += PORT_WIDTH + 5                                   
+        
+    
     def OnTimer(self, e):
         #print "OnTimer called"
         self.vertices = []
@@ -66,11 +121,11 @@ class MainWindow(wx.Frame):
 #            return
             
         for i in range( self.G1.count_layers() ):
-            y_pos = 20 + ( i * 100 )
+            y_pos = 40 + ( i * (MODULE_HEIGHT * 2.0) )
             for j in range( len(self.G1.vertices[i]) ):
-                name = self.G1.vertices[i][j].get_name()
-                x_pos = 75 + ( j * 150 )
-                self.vertices.append( [x_pos, y_pos, name])
+                vertex = self.G1.vertices[i][j]
+                x_pos = 75 + ( j * (MODULE_WIDTH * 1.5) )
+                self.vertices.append( [x_pos, y_pos, vertex])
                 
         self.Refresh()
 
@@ -80,7 +135,7 @@ class MainWindow(wx.Frame):
         
 def main():
     app = wx.App()
-    win = MainWindow(None, "Animate Sugiyama et al Algorithm ", size=(820,660))
+    win = MainWindow(None, "Animate Layout Algorithm ", size=(820,660))
     win.Show()
     app.MainLoop()
    
