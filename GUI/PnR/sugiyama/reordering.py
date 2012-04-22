@@ -42,31 +42,46 @@ class Reordering_Engine(object):
     def run(self, max_runs=2, debug = False):
         """ Run the layer reordering algorithm. """
         self._reset()
-        
-        i = 1
-        for place in self.gen_phase1(max_runs):
-            if debug: print "<<< Iteration %0d >>>" % (i) + ( '=' * 50 ) 
-            if debug: print place
-            i += 1
+       
+        print '\n' 
+        print '#' * 80
+        print '### here we go'
+        print '#' * 80
+        gen = self.gen_run()
+        for place in gen:
+            pass
 
-        for place in self.gen_phase2(max_runs):
-            if debug: print "<<< Iteration %0d >>>" % (i) + ( '=' * 50 ) 
-            i += 1
                         
-                    
+    def gen_run(self, max_runs=2, debug=False):
+        """ Generator for the reordering algorithm."""
+        i = 1
+        gen = self.gen_phase1(max_runs)
+        for place in gen:
+            yield place
+            i += 1
+            
+        gen = self.gen_phase1(max_runs)
+        for place in gen:
+            yield place
+            i += 1
+        
+        
     def gen_phase1(self, max_runs=3):
         if self.G == None:
             print "Ooops - you might want to set a graph first..."
-            
+
         for i in xrange(0, max_runs):
-            self._phase1_down_up()
-            yield 'Run %d of %d' % (i+1, max_runs)      
+            gen = self._phase1_down_up()
+            for (layer, direction) in gen:
+                yield (layer, direction)
 
 
     def gen_phase2(self, max_runs=3):
+    
         for i in xrange(0, max_runs):
-            self._phase2_down_up()
-            yield 'Run %d of %d' % (i+1, max_runs)      
+            gen = self._phase2_down_up()
+            for (layer, direction) in gen:
+                yield (layer, direction)
 
             
     def get_graph(self):
@@ -76,59 +91,48 @@ class Reordering_Engine(object):
     # =================================================================
     #  Phase 1: Barycentre Reordering
     # =================================================================
-    def _phase1_down(self):
-        for i in xrange(0, self.G.c_levels-1):
-            m = Matrix(self.G.vertices[i], self.G.vertices[i+1], self.G.edges[i] )
-            m.barycentre_col_reorder()
-	    self.G.matrices[i] = m
-            self.G.set_layer(i+1, m.col_blocks)
-        self._keep_if_best_yet()
-        
-    def _phase1_up(self):
-        for i in xrange(self.G.c_levels-1, 0, -1):
-            m = Matrix( self.G.vertices[i-1], self.G.vertices[i], self.G.edges[i-1] )
-            m.barycentre_row_reorder()
-            self.G.matrices[i-1] = m
-            self.G.set_layer(i-1, m.row_blocks)
-        self._keep_if_best_yet()
-                    
     def _phase1_down_up(self):
-        self._phase1_down()
-        self._phase1_up()
+        num_layers = self.G.count_layers()
+        for i in xrange(1, num_layers):
+            self.G.reorder_layer(i, 'upper')
+            yield (i, 'Down')
+        self.G.count_crossovers()
+        for i in xrange(num_layers-2, -1, -1):
+            self.G.reorder_layer(i, 'lower')
+            yield (i, 'Up')
+        self.G.count_crossovers()
         
     def _phase1_up_down(self):
-        self._phase1_up()
-        self._phase1_down()                
-        
+        num_layers = self.G.count_layers()
+        for i in xrange(num_layers-2, -1, -1):
+            self.G.reorder_layer(i, 'lower')
+            yield (i, 'Up')
+        self.G.count_crossovers()
+        for i in xrange(1, num_layers):
+            self.G.reorder_layer(i, 'upper')
+            yield (i, 'Down')
+        self.G.count_crossovers()
+         
 
     # =================================================================
     #  Phase 2: Reversion
     # =================================================================
-    def _phase2_down(self):
-        for i in xrange(0, self.G.c_levels-1):
-            m = self.G.matrices[i]
-            if m.col_reversion():
-                self.c_reversions += 1
-            self.G.matrices[i] = m
-            self.G.set_layer(i+1, m.col_blocks)
-            self._phase1_down_up()
-                        
-    def _phase2_up(self):
-        for i in xrange(self.G.c_levels-1, 0, -1):
-            m = self.G.matrices[i-1]
-            if m.row_reversion():
-                self.c_reversions += 1
-            self.G.matrices[i-1] = m
-            self.G.set_layer(i-1, m.row_blocks)
-            self._phase1_up_down()
-
-    def _phase2_up_down(self):
-        self._phase2_up()
-        self._phase2_down()
-            
     def _phase2_down_up(self):
-        self._phase2_down()
-        self._phase2_up()
+        num_layers = self.G.count_layers()
+        
+        for i in xrange(0, num_layers-1):
+            self.G.layer_reversion(i, 'lower')
+            gen = self._phase1_down_up()
+            for (layer, direction) in gen:
+                yield (layer, direction)
+               
+            
+        for i in xrange(num_layers-1, -1, -1):
+            self.G.layer_reversion(i, 'upper')
+            gen = self._phase1_up_down()
+            for (layer, direction) in gen:
+                yield (layer, direction)           
+
 
     # =================================================================
     #  Bookkeeping helper methods
