@@ -2,20 +2,12 @@
 
 import wx
 import random
-import sugiyama
-import graph
+import sys
 
-V = [ list('a'), 
-      list('bc'),
-      list('defg'),
-      list('hi'),
-      list('j')
-    ]
-E = [  [('a','b'), ('a','c')],
-       [('b','d'), ('b','e'), ('c','f'), ('c','g')],
-       [('d','h'), ('e','h'), ('f','i'), ('g','i')],
-       [('h','j'), ('i','j')]
-    ]
+sys.path.append('../')
+import reordering
+import layered_graph 
+import layered_graph.tests.helpers as ccts
                 
                 
 class MainWindow(wx.Frame):
@@ -42,14 +34,12 @@ class MainWindow(wx.Frame):
         
         
     def init_graph(self):
-        self.G1 = graph.Graph( sugiyama.V, sugiyama.E)
-        #self.G1 = graph.Graph(V, E)
-        print self.G1
-        self.G1.build_connection_matrices()
-        self.layout_iter = sugiyama._priority_layout(self.G1)
+        self.G1 = ccts.orig_sugiyama_cct()
+        self.G1.update()
+        
         
     def OnPaint(self, e):
-        print "OnPaint called"
+        #print "OnPaint called"
         dc = wx.PaintDC(self)
         dc.SetTextForeground(wx.WHITE)
         dc.SetBrush(wx.Brush(wx.BLUE))
@@ -62,36 +52,30 @@ class MainWindow(wx.Frame):
             dc.DrawRectangle( vertex[0], vertex[1], 100, 60)
             dc.DrawText( vertex[2], vertex[0]+30, vertex[1]+10 )
             
+            
     def OnTimer(self, e):
-        print "OnTimer called"
+        #print "OnTimer called"
         self.vertices = []
         
         # Get next graph layout
-        try:
-            layout = self.layout_iter.next()
-        except StopIteration:
-            self.timer.Stop()
-            print "Done"
-            return
+#        try:
+#            layout = self.layout_iter.next()
+#        except StopIteration:
+#            self.timer.Stop()
+#            print "Done"
+#            return
             
-        for i in range(self.G1.c_levels):
+        for i in range( self.G1.count_layers() ):
             y_pos = 20 + ( i * 100 )
             for j in range( len(self.G1.vertices[i]) ):
-                x_pos = 200 + ( layout[i][j] * 150 )
-                self.vertices.append( [x_pos, y_pos, self.G1.vertices[i][j] ])
+                name = self.G1.vertices[i][j].get_name()
+                x_pos = 75 + ( j * 150 )
+                self.vertices.append( [x_pos, y_pos, name])
                 
         self.Refresh()
 
     def OnClick(self, e):
-        print "Window clicked"
-        # Do something here to show the click was received.
-        # Here we remove a random circle.
-        n = len(self.circles)
-        if n <= 1: # then dont do it
-            return
-        i = random.randrange(n)
-        del self.circles[i]
-        print "Removed %dth circle" % (i,)
+        """ Advance the layout alg?. """
         self.Refresh()
         
 def main():
