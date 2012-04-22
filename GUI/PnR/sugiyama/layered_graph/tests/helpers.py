@@ -213,6 +213,69 @@ def orig_sugiyama_cct():
 
 	return g
 	
+
+def orig_sugiyama_single_port_cct():
+	""" Reimagined circuit from Sugiyama's original paper. """
+
+	g = graph.Graph('orig_sugiyama')
+
+	# Vertices|Modules
+	modules = [ [
+			('A', [], ['x']),
+			('B', [], ['x']),
+		], [
+			('C', ['a'], ['x']),
+			('D', ['a'], ['x']),
+			('E', ['a'], ['x']),
+			('F', ['a'], []),
+		], [
+			('G', ['a'], ['x']),
+			('H', ['a'], []),
+			('I', ['a'], ['x']),
+			('J', ['a'], ['x']),
+		], [
+			('K', ['a'], []),
+			('L', ['a'], []),
+			('M', ['a'], []),
+		], 
+		]
+	
+	for layer in range(len(modules)):
+		for name, ins, outs in modules[layer]:
+			m = build_module(name, ins, outs)
+			g.add_vertex(layer, m)
+
+	# Connections
+	nets = (
+		('n1', ('A','x'), ('C','a')),
+		('n2', ('A','x'), ('D','a')),
+		('n3', ('A','x'), ('E','a')),
+		('n4', ('A','x'), ('F','a')),
+		('n5', ('B','x'), ('C','a')),
+		('n6', ('B','x'), ('F','a')),
+
+		('n7',  ('C','x'), ('G','a')),
+		('n8',  ('D','x'), ('H','a')),
+		('n9',  ('D','x'), ('I','a')),
+		('n10', ('D','x'), ('J','a')),
+		('n11', ('E','x'), ('G','a')),
+		('n12', ('E','x'), ('J','a')),
+		
+		('n13', ('G','x'), ('K','a')),
+		('n14', ('I','x'), ('K','a')),
+		('n15', ('I','x'), ('M','a')),
+		('n16', ('J','x'), ('K','a')),
+		('n17', ('J','x'), ('L','a')),
+		)
+
+	for name, source, target in nets:
+		e = edge.Edge(name, source, target)
+		g.add_edge(e)
+
+	return g
+		
+	
+	
 	
 def cct_no_adjacents():
     """
