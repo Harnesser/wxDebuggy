@@ -74,7 +74,9 @@ class Graph():
         for vertex in self.vertices[i]:
             vertex.set_rank(rank)
             rank += vertex.get_rank_width()
-            
+        print "rankings:"
+        for vertex in self.vertices[i]:
+            print " ", vertex.name, vertex.get_rank()
             
     def calc_barycentres(self, i, direction):
         """ Calculate the extended barycentres of layer i. """
@@ -158,6 +160,7 @@ class Graph():
         if DEBUG:
             print "Vertices: ", self.vertices[i]
             print "-" * 70
+        self.rank_vertices(i)
         
         
     def layer_reversion(self, i, direction):
@@ -189,6 +192,8 @@ class Graph():
             pprint.pprint( self.get_vertex_labels(i) )
         self.vertices[i] = new_vertice_order
         if DEBUG : pprint.pprint( self.get_vertex_labels(i) )
+        self.rank_vertices(i)
+        
         
     def get_vertex_labels(self, i):
         """ Return a list of the labels of each vertex in layer i. """
