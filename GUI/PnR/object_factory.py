@@ -68,14 +68,8 @@ class Object_Factory:
 
         if self.module.port_name_list:
             for port in self.module.port_dict.values():
-                
-                if port.direction == 'input':
-                    key = '_iport'
-                else:
-                    key = '_oport'
-
+            
                 # Unitless positions for the meantime
-                #x_pos += 2 # inst_col_dict[key]
                 drawobj = Drawing_Object( name='port',
                                            parent=None,
                                            label=port.GetLabelStr(),
