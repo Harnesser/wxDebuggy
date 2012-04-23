@@ -20,11 +20,14 @@ class Placer:
         
     def run(self):
         next_x = 100  # allow some LHS space for port names
-        for layer in self.G.vertices:
+        layers = self.G.vertices.keys()
+        layers.sort()
+        for i_layer in layers:
+            layer = self.G.vertices[i_layer]
             next_y = 10
             x_hist = []
             for block in layer:
-                obj = self.obj_dict[block.name]
+                obj = self.obj_dict[block.get_name()]
                 obj.SetPosition( Point(next_x, next_y) )
                 
                 (x,y) = obj.getSize()
@@ -37,15 +40,17 @@ class Placer:
         """ Resize each of the passthrus in each layer.
         Should match the widest block in that layer
         """
-        
-        for layer in self.G.vertices:
+        layers = self.G.vertices.keys()
+        layers.sort()
+        for i_layer in layers:
+            layer = self.G.vertices[i_layer]
             # find widest object in the layer
-            names = [ block.name for block in layer ]
+            names = [ block.get_name() for block in layer ]
             widths = [ self._get_width(name) for name in names ]
             max_width = max(widths)
             
             # set all passthru objects to match widest object
-            dummies = [ name for name in names if name.startswith('_') ]
+            dummies = [ name for name in names if block.type == 'dummy' ]
             for dummy in dummies:
                 obj = self.obj_dict[dummy]
                 obj.endpt   = Point(max_width,0)

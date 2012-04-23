@@ -41,7 +41,7 @@ class PnR:
         self.reorderer = None
         
         # Graph Info
-        self.G = Graph()               # Special graph for sugiyama impl
+        self.G = None                  # Special graph for sugiyama impl
         self.graph_edges = []          #
         self.layer_dict = {}           # look up which layer an object is in
         self.connection_list = []
@@ -90,11 +90,8 @@ class PnR:
         self.layer_dict      = self.grapher.get_layer_dict()
         self.connection_list = self.grapher.get_conn_list()
         
-        (V, E) = self.grapher.get_graph_for_sugiyama()
-        self.sugiyama_vertices, self.sugiyama_edges = V, E
-        self.G = Graph( self.sugiyama_vertices, self.sugiyama_edges )
-        self.G.update()
-        self.G.build_connection_matrices()
+        self.G = self.grapher.get_graph_for_sugiyama()
+
         
     def _build_reorderer(self):
         """ Instantiate a reorderer class if not already done so."""

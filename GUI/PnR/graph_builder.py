@@ -6,7 +6,7 @@ Take a circuit module and build its Layered Directed Acyclic Graph.
 import lib_pnr_debug as libdb # debug prints only...
 import sugiyama.layered_graph as graph
 
-DEBUG = True
+DEBUG = False
 
 class Graph_Builder:
     """ Extract the DAG of the circuit. """
@@ -39,21 +39,14 @@ class Graph_Builder:
         for i in l:
             tmp = []
             for thing in layers[i]:
-                if thing == '_oport':
-                    continue
                 tmp.append( block_dict[thing] )
             special_vertices.append(tmp)
 
-        libdb.show_dictionary("MARAEREWRWER Layer Dictionary", self.layer_dict )
-        
         # Now for the edge list. Again, this has to be layered.
         edge_dict = {}
         for conn in self.connection_list:
             ( (source, port1), (sink, port2) ) = conn
-            if source == '_iport':
-                layer = 1
-            else:
-                layer = self.layer_dict[source]
+            layer = self.layer_dict[source]
             edge_dict.setdefault(layer, []).append(conn)
         
         layers = edge_dict.keys()
@@ -61,8 +54,6 @@ class Graph_Builder:
         edges = []
         for layer in layers:
             edges.append(edge_dict[layer])
-
-        del special_vertices[-1] # empty list to get rid of
         
         # Now for the graph
         g = graph.Graph(self.module.name)
@@ -78,8 +69,8 @@ class Graph_Builder:
             print e
             g.add_edge(e)        
             n += 1
-        #g.update()        
-        return g        
+        g.update()        
+        return g
         
 
     def extract_graph(self):
@@ -255,6 +246,9 @@ class Graph_Builder:
         for key in graph_dictionary.keys():
             graph_dictionary[key] = set( graph_dictionary[key] )
         
+        # add origin so the layering has a single point to start from 
+        graph_dictionary['_origin'] = self.module.GetInputPinNames() 
+       
         if DEBUG:
             print "\n\n### Graph Dictionary"
             for key in graph_dictionary.keys():
@@ -263,7 +257,7 @@ class Graph_Builder:
         return graph_dictionary
     
     
-    def _determine_layering(self, graph, inst='in1', 
+    def _determine_layering(self, graph, inst='_origin', 
                             col_dict = {}, path = [] ):
         """ Layer the graph.
         
@@ -415,13 +409,13 @@ class Graph_Builder:
         # Add the ports - these are vertices in their own right
         for port_name in module.GetInputPinNames():
             v_in = graph.Vertex(port_name, 'port')
-            v_in.add_port( graph.Port(port_name, 'left') )
+            v_in.add_port( graph.Port(port_name, 'right') )
             block_dict[port_name] = v_in
         
         for port_name in module.GetOutputPinNames():
             v_out = graph.Vertex(port_name, 'port')
-            v_out.add_port( graph.Port(port_name, 'right') )
-            block_dict['_oport'] = v_out
+            v_out.add_port( graph.Port(port_name, 'left') )
+            block_dict[port_name] = v_out
             
         # Add the dummy vertices that split long edges
         for vertex in self.layer_dict:
@@ -431,6 +425,7 @@ class Graph_Builder:
                     dummy.add_port( graph.Port('_i', 'left') )
                     dummy.add_port( graph.Port('_o', 'right') )
                     block_dict[vertex] = dummy
+              
                                             
         return block_dict
         
@@ -471,4 +466,3 @@ if __name__ == '__main__':
     g = dag.get_graph_for_sugiyama()
     print g.display()
     pprint.pprint(g.edges)
-    g.update()

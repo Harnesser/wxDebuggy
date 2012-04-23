@@ -240,10 +240,10 @@ class Drawing_Object:
             
             # See if we need to RJ text, and fill the glue point dictionary
             if self.mirror: # output ports
-                glue_point_key = ('_oport', self.label)
+                glue_point_key = (self.label, self.label)
                 self.glue_points[glue_point_key] =  port_polygon_points[4] #- self.position
             else: # input ports
-                glue_point_key = ('_iport', self.label)
+                glue_point_key = (self.label, self.label)
                 self.glue_points[glue_point_key] =  port_polygon_points[2] #- self.position
       
 
@@ -255,12 +255,11 @@ class Drawing_Object:
             glue_point_key = ( self.label, '_o' )
             self.glue_points[glue_point_key] =  self.endpt + self.position
 
+
         
     def update_horizontal_position(self):
         """ """
-
         self.hypernet_tree[2] = self.horizontal_origin + ( self.track * 5 )
-
 
 
     def is_hypernet(self):
