@@ -1,6 +1,6 @@
 import pprint
 
-DEBUG = True
+DEBUG = False
 
 class Graph():
     """ A Graph Class.
@@ -9,6 +9,7 @@ class Graph():
     """
     
     def __init__(self, name):
+        self.name = name
         self.vertices = {}          # keyed by layer
         self.edges = {}             # keyed by layer
 
@@ -16,10 +17,12 @@ class Graph():
         self.down_conn_dicts = []
         self.up_conn_dicts = []    
 
+
     def add_vertex(self, i_layer, vertex):
         """ Should this be add_module? """
         self.vertices.setdefault(i_layer, []).append(vertex)
         self.vertex_dict[vertex.name] = vertex
+
 
     def add_edge(self, edge):
         """ Should this be add_connection?
@@ -32,6 +35,7 @@ class Graph():
                 if edge.source == v.name:
                     self.edges.setdefault(i_layer, []).append(edge)
                     break
+
 
     def update(self):
         """ Build a few connection dictionaries.
@@ -74,9 +78,7 @@ class Graph():
         for vertex in self.vertices[i]:
             vertex.set_rank(rank)
             rank += vertex.get_rank_width()
-        print "rankings:"
-        for vertex in self.vertices[i]:
-            print " ", vertex.name, vertex.get_rank()
+            
             
     def calc_barycentres(self, i, direction):
         """ Calculate the extended barycentres of layer i. """
@@ -165,7 +167,6 @@ class Graph():
         
     def layer_reversion(self, i, direction):
         """ Reverse any vertices with equal barycentres."""
-        print "Layer reversion", i
      
         bc_dir = 'lower'
         if direction.lower() != 'lower':
@@ -198,6 +199,7 @@ class Graph():
     def get_vertex_labels(self, i):
         """ Return a list of the labels of each vertex in layer i. """
         return [ vertex.name for vertex in self.vertices[i] ]
+
 
     def count_crossovers(self):
         """ Count the crossovers in the Graph.
@@ -255,6 +257,20 @@ class Graph():
         return len(self.vertices)
         
         
+    def copy(self):
+        g = Graph(self.name)
+        for (layer, vertices) in self.vertices.iteritems():
+            for v in vertices:
+                g.add_vertex(layer, v)
+        
+        for (layer, edges) in self.edges.iteritems():
+            for e in edges:
+                g.add_edge(e)
+                
+        g.update()
+        return g
+        
+        
     def display(self):
         str_ = ['Graph:']
         for layer in self.vertices:
@@ -263,6 +279,5 @@ class Graph():
                 str_.append( vertex.display() )
                 
         return '\n'.join(str_)
-                
         
             

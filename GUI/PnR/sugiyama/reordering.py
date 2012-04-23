@@ -26,7 +26,6 @@ class Reordering_Engine(object):
     def __init__(self):
         self.G = None
         self.verbose = True
-        self.c_reversions = 0
                
         # Keep track of minimal graph
         self.min_xovers = None
@@ -42,16 +41,13 @@ class Reordering_Engine(object):
     def run(self, max_runs=2, debug = False):
         """ Run the layer reordering algorithm. """
         self._reset()
-       
-        print '\n' 
-        print '#' * 80
-        print '### here we go'
-        print '#' * 80
         gen = self.gen_run()
         for place in gen:
             pass
 
-                        
+    def get_min_graph(self):
+        return self.min_graph
+        
     def gen_run(self, max_runs=2, debug=False):
         """ Generator for the reordering algorithm."""
         i = 1
@@ -60,12 +56,15 @@ class Reordering_Engine(object):
             yield place
             i += 1
             
-        gen = self.gen_phase1(max_runs)
+        gen = self.gen_phase2(max_runs)
         for place in gen:
             yield place
             i += 1
-        
-        
+            
+        self.G = self.min_graph
+        yield ('End', -1, '')
+                
+
     def gen_phase1(self, max_runs=3):
         if self.G == None:
             print "Ooops - you might want to set a graph first..."
@@ -73,7 +72,7 @@ class Reordering_Engine(object):
         for i in xrange(0, max_runs):
             gen = self._phase1_down_up()
             for (layer, direction) in gen:
-                yield (layer, direction)
+                yield ("Phase 1", layer, direction)
 
 
     def gen_phase2(self, max_runs=3):
@@ -81,37 +80,43 @@ class Reordering_Engine(object):
         for i in xrange(0, max_runs):
             gen = self._phase2_down_up()
             for (layer, direction) in gen:
-                yield (layer, direction)
+                yield ("Phase 2", layer, direction)
 
             
     def get_graph(self):
         """ Return the graph. """
         return self.min_graph
         
+        
     # =================================================================
     #  Phase 1: Barycentre Reordering
     # =================================================================
     def _phase1_down_up(self):
         num_layers = self.G.count_layers()
+        
         for i in xrange(1, num_layers):
             self.G.reorder_layer(i, 'upper')
             yield (i, 'Down')
-        self.G.count_crossovers()
+        self._keep_if_best_yet()
+        
         for i in xrange(num_layers-2, -1, -1):
             self.G.reorder_layer(i, 'lower')
             yield (i, 'Up')
-        self.G.count_crossovers()
+        self._keep_if_best_yet()
+        
         
     def _phase1_up_down(self):
         num_layers = self.G.count_layers()
+        
         for i in xrange(num_layers-2, -1, -1):
             self.G.reorder_layer(i, 'lower')
             yield (i, 'Up')
-        self.G.count_crossovers()
+        self._keep_if_best_yet()
+        
         for i in xrange(1, num_layers):
             self.G.reorder_layer(i, 'upper')
             yield (i, 'Down')
-        self.G.count_crossovers()
+        self._keep_if_best_yet()
          
 
     # =================================================================
@@ -120,14 +125,13 @@ class Reordering_Engine(object):
     def _phase2_down_up(self):
         num_layers = self.G.count_layers()
         
-        for i in xrange(0, num_layers-1):
+        for i in xrange(0, num_layers-2):
             self.G.layer_reversion(i, 'lower')
             gen = self._phase1_down_up()
             for (layer, direction) in gen:
                 yield (layer, direction)
-               
             
-        for i in xrange(num_layers-1, -1, -1):
+        for i in xrange(num_layers-1, 1, -1):
             self.G.layer_reversion(i, 'upper')
             gen = self._phase1_up_down()
             for (layer, direction) in gen:
@@ -140,11 +144,11 @@ class Reordering_Engine(object):
     def _reset(self):
         self.min_xovers = 1e12
         self.min_graph = None
-        self.c_reversions = 0
+                
                 
     def _keep_if_best_yet(self):
         """ Hold onto this graph if it's the best encountered so far. """
-        c_xovers = self.G.get_crossover_count()
+        c_xovers = self.G.count_crossovers()
         if c_xovers < self.min_xovers:
             self.min_xovers = c_xovers
             self.min_graph = self.G.copy()

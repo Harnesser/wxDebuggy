@@ -23,7 +23,7 @@ class Test_SugiyamaLayerReordering():
         assert eng.G.count_crossovers() == 0
 """     
 
-    def test__reorder_sugiyama_cct(self):
+    def test__reorder_sugiyama_single_port_cct(self):
         G = helpers.orig_sugiyama_cct()
         G.update()
         print G.display()
@@ -34,6 +34,20 @@ class Test_SugiyamaLayerReordering():
         
         eng.run(debug=True)
         print G.display()
-        assert eng.G.count_crossovers() == 1
+        assert eng.G.count_crossovers() == 7
+        
+
+    def test__reorder_sugiyama_cct(self):
+        G = helpers.orig_sugiyama_single_port_cct()
+        G.update()
+        print G.display()
+        
+        eng = reordering.Reordering_Engine()
+        eng.set_graph(G)
+        assert eng.G.count_crossovers() == 8
+        
+        eng.run(debug=True)
+        print G.display()
+        assert eng.G.count_crossovers() == 2
         
         
