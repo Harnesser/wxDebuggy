@@ -4,10 +4,12 @@
 Take a circuit module and build its Layered Directed Acyclic Graph.
 """
 import lib_pnr_debug as libdb # debug prints only...
-from collections import namedtuple
+import sugiyama.layered_graph as graph
+
+DEBUG = True
 
 class Graph_Builder:
-    """ """
+    """ Extract the DAG of the circuit. """
     
     def __init__(self):
         self.module = None
@@ -15,14 +17,14 @@ class Graph_Builder:
         self.graph_dict = {}
         self.layer_dict = {}
 
-        self.Block = namedtuple('Block', 'name inputs outputs')
-
     def set_module(self, module):
         self.module = module
     
     
     def get_graph_for_sugiyama(self):
-        """ """
+        """ Construct the graph of the circuit.
+        This uses the data structures in the layered_graph module.
+        """
         
         edges = self.extract_graph()
         block_dict = self._build_special_vertices(self.module)
@@ -42,6 +44,8 @@ class Graph_Builder:
                 tmp.append( block_dict[thing] )
             special_vertices.append(tmp)
 
+        libdb.show_dictionary("MARAEREWRWER Layer Dictionary", self.layer_dict )
+        
         # Now for the edge list. Again, this has to be layered.
         edge_dict = {}
         for conn in self.connection_list:
@@ -59,10 +63,26 @@ class Graph_Builder:
             edges.append(edge_dict[layer])
 
         del special_vertices[-1] # empty list to get rid of
-        return special_vertices, edges        
+        
+        # Now for the graph
+        g = graph.Graph(self.module.name)
+        layer = 0
+        for vertices in special_vertices:
+            for v in vertices:
+                g.add_vertex(layer, v)
+            layer += 1
+
+        n = 0 # have to fix net names...
+        for source,target in self.connection_list:
+            e = graph.Edge('n%d' %(n), source, target)
+            print e
+            g.add_edge(e)        
+            n += 1
+        #g.update()        
+        return g        
         
 
-    def extract_graph(self, debug=False):
+    def extract_graph(self):
         """ Get a graph of the circuit to display.
         """
                 
@@ -83,10 +103,10 @@ class Graph_Builder:
         self._split_long_edges()
         
         # DEBUG
-        if debug:
+        if DEBUG:
             libdb.show_dictionary("Graph Edges Dictionary", self.graph_dict )
             libdb.show_dictionary("Graph Layer Dictionary", self.layer_dict )
-            self.show_connections(debug)
+            self.show_connections()
             
         return self.graph_dict
           
@@ -109,7 +129,7 @@ class Graph_Builder:
     ## Private stuff
     ##
     
-    def _build_driver_dictionary(self, debug=False ):
+    def _build_driver_dictionary(self ):
         """ Build a dictionary of what each net and input port drives.
 
         Loops thru the instanciations in the current module and adds each
@@ -134,9 +154,9 @@ class Graph_Builder:
                 if net in self.module.port_dict:
 
                     if self.module.port_dict[net].direction == 'input':
-                        net = ('_iport', net)
+                        net = (net, net)
                     else:
-                        net = ('_oport', net) 
+                        net = (net, net) 
 
                 # if it's a net, give it an instance name of '_net' so everything
                 # is a tuple now...
@@ -154,7 +174,7 @@ class Graph_Builder:
                     sink_name = (inst.name, pin) #'.'.join( [inst.name, pin] )
                     driver_dict.setdefault(net, []).append(sink_name)
 
-        if debug:
+        if DEBUG:
             print "\nDriver Dictionary"
             for key in driver_dict:
                 print "  ",key, "::::", driver_dict[key]
@@ -162,14 +182,12 @@ class Graph_Builder:
         return driver_dict
 
 
-    def _get_connection_list( self, driver_dict, debug=False):
+    def _get_connection_list( self, driver_dict):
         """Determine the connections in the current module
-
+                port = graph.Port(port_name)
         This uses the driver_dict to build a connections list.  The driver_dict will
         contain ((inst,pin),('_net',net)) or (('_net',net),(inst,pin)) and this module 
         builds a connection list in the form ((inst,pin),(inst,pin))
-        (where inst can also be input or output ports ('_iport' or '_oport') ).
-
         """
 
         point_to_point_connection_list = []
@@ -181,10 +199,10 @@ class Graph_Builder:
             for net in driven_things:
                 net_inst, net_name = net # untuple
 
-                if  net_inst is '_oport': # Add output port connections
+                if net_inst == net_name: # Add output port connections
                     point_to_point_connection_list.append( (driver,net) )           
 
-                if driver_inst is ('_iport'): # Add input port connections 
+                if driver_inst == driver_name: # Add input port connections 
                     point_to_point_connection_list.append( (driver, net) )
 
                 if net in driver_dict:
@@ -196,7 +214,7 @@ class Graph_Builder:
                         point_to_point_connection_list.append( (driver, sink) )
 
 
-        if debug:
+        if DEBUG:
             print "\nPoint-to-Point"
             for connection in point_to_point_connection_list:
                 print "   ",connection 
@@ -204,7 +222,7 @@ class Graph_Builder:
         return point_to_point_connection_list
 
 
-    def _get_graph_dictionary(self, connection_list, debug=False):
+    def _get_graph_dictionary(self, connection_list):
         """Build a graph from the circuit connection list.
         
         Returns a directed graph of the circuit as a dictionary. Keys are vertices,
@@ -217,38 +235,27 @@ class Graph_Builder:
                  'E': ['F'],
                  'F': ['C']}
 
-        Pins on each instantiation are ignored.  Two additional vertices are added,
-        '_iport' which connects to input ports, and '_oport' which links output ports.
+        Pins on each instantiation are ignored. 
         
         See: http://www.python.org/doc/essays/graphs.html 
         """
         
         graph_dictionary = {}
         for source,sink in connection_list:
-            
-            
-            # Determine names for vertices
-            source_name = source[0]
-            if source_name.startswith('_'): # deal with ports
-                if source_name is '_iport': # '_iport' drives inputs
-                    graph_dictionary.setdefault(source[0], []).append(source[1])
-                source_name = source[1] 
         
-            sink_name = sink[0]
-            if sink_name.startswith('_'): # again, deal with ports
-                if sink_name is '_oport': # outputs drive '_oport'
-                    graph_dictionary.setdefault(sink[1], []).append(sink[0]) 
-                sink_name = sink[1] 
+            # Determine names for vertices
+            source_inst, source_pin = source       
+            sink_inst, sink_pin = sink
                 
             # Now fill in the dictionary
-            graph_dictionary.setdefault(source_name, []).append(sink_name)
+            graph_dictionary.setdefault(source_inst, []).append(sink_inst)
             
             
         # remove duplicates
         for key in graph_dictionary.keys():
             graph_dictionary[key] = set( graph_dictionary[key] )
         
-        if debug:
+        if DEBUG:
             print "\n\n### Graph Dictionary"
             for key in graph_dictionary.keys():
                 print "  [%s]: %s" % ( key, graph_dictionary[key] )
@@ -256,8 +263,8 @@ class Graph_Builder:
         return graph_dictionary
     
     
-    def _determine_layering(self, graph, inst='_iport', 
-                            col_dict = {}, path = [], debug = False ):
+    def _determine_layering(self, graph, inst='in1', 
+                            col_dict = {}, path = [] ):
         """ Layer the graph.
         
         Find the drivers of the current inst, and set their
@@ -273,7 +280,7 @@ class Graph_Builder:
         col_num = col_dict.get(inst, 0) + 1
         path.append(inst)
 
-        if debug:
+        if DEBUG:
             print ":: Determine Layering"
             print "  Inst:",inst
             print " Graph keys", graph.keys()
@@ -281,13 +288,13 @@ class Graph_Builder:
         #  Go through the drivers of this sink and update their
         # column numbers if necessary
 
-        if debug: print "Inst:", inst, "; Sinks:", graph.get(inst,[])        
+        if DEBUG: print "Inst:", inst, "; Sinks:", graph.get(inst,[])        
         for sink in graph.get(inst,[]):
 
-            if debug: print "SINK:" + sink
+            if DEBUG: print "SINK:" + sink
             # Loop detection...
             if sink in path :
-                if debug: print "Loop!!: ", sink, ":", path
+                if DEBUG: print "Loop!!: ", sink, ":", path
                 continue
 
             # Only update the column count if needed.  If the load
@@ -299,7 +306,7 @@ class Graph_Builder:
                 
         path.pop()
         
-        if debug:
+        if DEBUG:
             print '::::: Layering Dictionary'
             for key in col_dict.keys():
                 print ("        " * ( col_dict[key] )) + key.center(8) 
@@ -392,29 +399,37 @@ class Graph_Builder:
         """ Build special vertices for layout alg. """
 
         block_dict = {}
+        
+        # add the instantiations
         for inst in module.inst_dict.keys():
-            inputs = []
-            outputs = []
+            block = graph.Vertex(inst)
             submod = module.inst_dict[inst].module_ref
-            for port_name in submod.port_name_list:
+            for port_name in submod.GetInputPinNames():
                 port = submod.port_dict[ port_name ]
-                if port.direction == 'input':
-                    inputs.append(port.name)
-                else:
-                    outputs.append(port.name)
-            block = self.Block(inst, tuple(inputs), tuple(outputs))
+                block.add_port( graph.Port(port_name, 'left') )
+            for port_name in submod.GetOutputPinNames():
+                port = submod.port_dict[ port_name ]
+                block.add_port( graph.Port(port_name, 'right') )
             block_dict[inst] = block
             
-        # Add the ports
-        for port_name in module.port_name_list:
-            block = self.Block( port_name, (port_name,), (port_name,) )
-            block_dict[port_name] = block
+        # Add the ports - these are vertices in their own right
+        for port_name in module.GetInputPinNames():
+            v_in = graph.Vertex(port_name, 'port')
+            v_in.add_port( graph.Port(port_name, 'left') )
+            block_dict[port_name] = v_in
+        
+        for port_name in module.GetOutputPinNames():
+            v_out = graph.Vertex(port_name, 'port')
+            v_out.add_port( graph.Port(port_name, 'right') )
+            block_dict['_oport'] = v_out
             
-        # Add the dummy_edges
+        # Add the dummy vertices that split long edges
         for vertex in self.layer_dict:
             if vertex.startswith('_U_') or vertex.startswith('_B_'):
                 if vertex not in block_dict:
-                    dummy = self.Block(vertex, ('_i',), ('_o',) )
+                    dummy = graph.Vertex(vertex, 'dummy')
+                    dummy.add_port( graph.Port('_i', 'left') )
+                    dummy.add_port( graph.Port('_o', 'right') )
                     block_dict[vertex] = dummy
                                             
         return block_dict
@@ -451,8 +466,9 @@ if __name__ == '__main__':
             
     module = load_rtl_module_pickle(module_name)
     dag = Graph_Builder()
-    dag.extract_graph(module)
-    dag.show_connections(debug=True)
-    V,E = dag.get_graph_for_sugiyama(module)
-    pprint.pprint(V)
-    pprint.pprint(E)
+    dag.set_module(module)
+    dag.extract_graph()
+    g = dag.get_graph_for_sugiyama()
+    print g.display()
+    pprint.pprint(g.edges)
+    g.update()
