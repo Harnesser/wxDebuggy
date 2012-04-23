@@ -40,15 +40,18 @@ class Module( Object ):
 
     def GetInputPinNames( self ):
         input_pin_names = []
-        for pin in self.port_dict.values():
+        for pin_name in self.port_name_list:
+            pin = self.port_dict[pin_name]
             if pin.direction == 'input':
                 input_pin_names.append( pin.name )
 
         return input_pin_names
 
+
     def GetOutputPinNames( self ):
         output_pin_names = []
-        for pin in self.port_dict.values():
+        for pin_name in self.port_name_list:
+            pin = self.port_dict[pin_name]
             if pin.direction == 'output':
                 output_pin_names.append( pin.name )
 
