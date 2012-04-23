@@ -13,5 +13,5 @@ class Edge():
             self.source, self.source_port,
             self.target, self.target_port )
 
-    def __repr(self):
-	return self.__str__()
+    def __repr__(self):
+        return self.__str__()
