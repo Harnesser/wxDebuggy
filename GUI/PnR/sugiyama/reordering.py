@@ -44,9 +44,6 @@ class Reordering_Engine(object):
         gen = self.gen_run()
         for place in gen:
             pass
-
-    def get_min_graph(self):
-        return self.min_graph
         
     def gen_run(self, max_runs=2, debug=False):
         """ Generator for the reordering algorithm."""

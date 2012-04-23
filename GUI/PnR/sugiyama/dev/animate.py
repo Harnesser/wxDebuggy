@@ -46,6 +46,7 @@ class MainWindow(wx.Frame):
     def init_graph(self):
         #self.G1 = ccts.orig_sugiyama_single_port_cct()
         self.G1 = ccts.orig_sugiyama_cct()
+        #self.G1 = ccts.paper_cct()
         self.G1.update()
         self.eng.set_graph(self.G1)
         self.layout_iter = self.eng.gen_run()  # plug in a generator here
@@ -148,7 +149,7 @@ class MainWindow(wx.Frame):
             place = self.layout_iter.next()
             (self.alg_place, self.alg_layer, self.alg_direction) = place
         except StopIteration:
-            self.G1 = self.eng.get_min_graph()
+            self.G1 = self.eng.get_graph()
             self.timer.Stop()
             pass
         
