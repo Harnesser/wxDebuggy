@@ -6,14 +6,14 @@ class Vertex():
     [SFHM09]
     """
     
-    def __init__(self, name):
+    def __init__(self, name, _type='module'):
         self.name = name
         self.port_dict = {}
         self.port_list = []
  
         self.rank_width = None
         self.extended_rank = None
-        self.type = 'module' # or 'dummy'
+        self.type = _type
         
 
     def __str__(self):
