@@ -239,7 +239,7 @@ class Graph():
             # now we can calculate the crossovers
             lhs_ranks = []
             for target in targets:
-                ranks = [ source_ranks[source] for source in conn_dict[target] ]
+                ranks = [ source_ranks[source] for source in conn_dict.get(target, []) ]
                 ranks.sort()
                 for source_rank in ranks:
                     for lhs_rank in lhs_ranks:
