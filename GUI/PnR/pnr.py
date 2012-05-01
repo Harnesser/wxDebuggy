@@ -5,7 +5,7 @@ from sugiyama.layered_graph.graph import Graph
 from sugiyama.reordering import Reordering_Engine
 from object_factory import Object_Factory
 from basic_placer import Placer
-from basic_router import Trace_Router
+from sifting_router import Trace_Router
 
 class PnR:
     """ Schematic Layout Engine.
@@ -121,8 +121,8 @@ class PnR:
         
     def _route_nets(self):
         router = Trace_Router()
+        router.set_graph(self.G)
         router.set_object_dict(self.drawing_object_dict)
-        router.set_connections(self.connection_list)
         router.run()
         
         
