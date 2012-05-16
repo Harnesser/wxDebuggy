@@ -6,11 +6,11 @@ class Test_Hyperedges(object):
         start_point = (2,3)
         end_point = (7,6)
         
-        hype = hyperedge.Hyperedge()
-        hype.add_connection(start_point, end_point)
-        hype.display()
+        hedge = hyperedge.Hyperedge()
+        hedge.add_connection(start_point, end_point)
+        print hedge
 
-        lines = [line for line in hype.ilines()]
+        lines = [line for line in hedge.ilines()]
         print lines
         assert lines == [ ((2,3), (5,3)),
                            ((5,3), (5,6)),
