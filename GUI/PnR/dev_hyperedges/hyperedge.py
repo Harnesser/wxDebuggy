@@ -1,10 +1,7 @@
 """ Hyperedges
 
-We'll be using hyperedges for drawing the connections in the circuit. And
-we'll use the scheme in [] to store them. 
-
-Hyperedges are modeled as a list of hyperedge segments. For the moment, I'm 
-only going deal with 1:n connections.
+We'll be using hyperedges for drawing the connections in the circuit. For the
+moment, I'm only going deal with 1:n connections.
 
 I'll want to do a few things with a hyperedge:
 * traverse it and return line segments
@@ -19,7 +16,6 @@ SEPARATION = 5
         
 class Hyperedge(object):
     """ Hyperedge Class.
-    Modeled as a tree of hyperedge Segments starting from a root segment.
     
     Also includes one or two methods to traverse the hyperedge tree:
     * returns line segments for drawing and crossover counting
