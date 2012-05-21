@@ -59,3 +59,21 @@ class Test_Hyperedges(object):
                            ((5,3), (5,5)),
                            ((5,5), end_point1) ]
     
+    def test__adjust_track_number(self):
+        start_point = (10,6)
+        end_point1 = (50,8)
+        end_point2 = (50,1)
+        
+        hedge = hyperedge.Hyperedge()
+        hedge.add_connection(start_point, end_point1)
+        hedge.add_connection(start_point, end_point2)        
+        hedge.set_track(4)
+        lines = [line for line in hedge.ilines()]        
+        
+        print lines
+        assert lines == [ (start_point, (20,6)),
+                           ((20,1), (20,8)),
+                           ((20,8), end_point1),
+                           ((20,1), end_point2)]
+        
+        

@@ -44,6 +44,13 @@ class Hyperedge(object):
         
         # initial point
         
+    def set_track(self, track_num):
+        """ Set the track number of the vertical segment. """
+        if track_num <= 0:
+            print "Bad track id for vertical segment"
+            return
+        self.track = track_num
+        
     def ilines(self):
         """ Return an iterator to return the lines in the hyperedge"""
         x_vertical = self.track * SEPARATION
