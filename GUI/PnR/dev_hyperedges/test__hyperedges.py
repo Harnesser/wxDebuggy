@@ -75,5 +75,24 @@ class Test_Hyperedges(object):
                            ((20,1), (20,8)),
                            ((20,8), end_point1),
                            ((20,1), end_point2)]
+
+class Test_Hyperedge_Xover_Counting(object):
+    """ Crossover Counting Function Tests.
+               +--------*
+        *------+  +=====*
+               +--------*
+                  |
+        *=========+=====*
+    """
+    
+    def test__single_crossover(self):
+        hedge1 = hyperedge.Hyperedge()
+        hedge1.add_connection((10,3), (60,6))
+        hedge1.add_connection((10,3), (60,4))
         
+        hedge2 = hyperedge.Hyperedge()
+        hedge2.add_connection((10,5), (60,5))
+        hedge2.add_connection((10,5), (60,8))
         
+        xovers = hyperedge.count_crossovers(hedge1, hedge2)
+        assert xovers == 1
