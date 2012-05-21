@@ -6,28 +6,16 @@ we'll use the scheme in [] to store them.
 Hyperedges are modeled as a list of hyperedge segments. For the moment, I'm 
 only going deal with 1:n connections.
 
+I'll want to do a few things with a hyperedge:
+* traverse it and return line segments
+* tweak the co-ordinate of the vertical segment
+* build a hyperedge, given some normal graph edges, or maybe target
+  co-ordinates.
+
 """
 
 SEPARATION = 5
 
-class Segment(object):
-    """ Hyperedge Segment Class. 
-    Stores the co-ordinate of the segment, and a list of segments that
-    lead out from it.
-    """
-    def __init__(self, point):
-        self.point = point
-        self.children = []
-
-    def add_child(self, child):
-        """ Add a Child Segment. """
-        self.children.append(child)
-        return child
-        
-    def get_children(self):
-        """ Return a list of Segments that flow from this segment. """
-        return self.children
-        
         
 class Hyperedge(object):
     """ Hyperedge Class.
@@ -39,53 +27,41 @@ class Hyperedge(object):
     
     def __init__(self):
         self.netname = ''
-        self.root = None
         self.track = 1
         
+        self.start_point = None
+        self.end_points = []
+        self.vertical = self.track * SEPARATION
+       
     def add_connection(self, start_point, end_point ):
         """ Add hyperedge segments to connect start_point to end_point. """
-        x1,y1 = start_point
-        x2,y2 = end_point
+        self.start_point = start_point
+        self.end_points.append(end_point)
         
         # initial point
-        self.root = Segment(x1)
-        tip = self.root.add_child( Segment(y1) )
-        
-        # vertical segment
-        vertical = tip.add_child( Segment(self.track * SEPARATION) )
-        
-        # end point
-        a = vertical.add_child(Segment(y2))
-        b = a.add_child(Segment(x2))
         
     def ilines(self):
         """ Return an iterator to return the lines in the hyperedge"""
-        x1 = self.root.point
-        y1 = self.root.get_children()[0].point
-        x2, y2 = 0, y1
+        x_vertical = self.track * SEPARATION
         
-        segments = self.root.get_children()
-        segments = segments[0].get_children()
-        x2 = segments[0].point
-        yield (x1,y1), (x2,y2)
+        # 1st line is from source out to the vertical
+        yield self.start_point, ( x_vertical, self.start_point[1] )
         
-        orientation = 'vertical'
-        for segment in segments.get_children():
-            point = self._walk_tree(segment, orientation)
-            yield line
-            
-    def _walk_tree(self, segment, orientation):
-        """ Walk the Segment tree, breadth first."""
-        if segment.get_children():
-            for child in segments:
-                self._walk_tree(child)
+        # 2nd line is the vertical
+        ys_vertical = zip(*self.end_points)[1]
+        yield (x_vertical, min(ys_vertical)) , (x_vertical, max(ys_vertical))
+        
+        # 3rd 
+        for end_point in self.end_points:
+            yield (x_vertical, end_point[1]), end_point
+
         
     def __str__(self):
         """ Return a string representation of the hyperedge. """
         gen = self.ilines()
         _str = []
         for line in gen:
-            _str.append(line)
+            _str.append(str(line))
             
         return '\n'.join(_str)
         
