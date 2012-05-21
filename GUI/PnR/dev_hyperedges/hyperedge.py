@@ -34,8 +34,16 @@ class Hyperedge(object):
         self.vertical = self.track * SEPARATION
        
     def add_connection(self, start_point, end_point ):
-        """ Add hyperedge segments to connect start_point to end_point. """
-        self.start_point = start_point
+        """ Add hyperedge to connect start_point to end_point.
+        All edges for this hyperedge must have the same start point. """
+        
+        if self.start_point == None:
+            self.start_point = start_point
+        elif start_point != self.start_point:
+            print "Warning: Hyperedge connection start co-ordinate doesn't match."""
+            print self.start_point, start_point
+            return
+            
         self.end_points.append(end_point)
         
         # initial point
@@ -48,7 +56,8 @@ class Hyperedge(object):
         yield self.start_point, ( x_vertical, self.start_point[1] )
         
         # 2nd line is the vertical
-        ys_vertical = zip(*self.end_points)[1]
+        ys_vertical = list(zip(*self.end_points)[1])
+        ys_vertical.append( self.start_point[1] )
         yield (x_vertical, min(ys_vertical)) , (x_vertical, max(ys_vertical))
         
         # 3rd 
