@@ -53,7 +53,7 @@ class Hyperedge(object):
         
     def ilines(self):
         """ Return an iterator to return the lines in the hyperedge"""
-        x_vertical = self.track * SEPARATION
+        x_vertical = self.track * SEPARATION + self.start_point[0]
         
         # 1st line is from source out to the vertical
         yield self.start_point, ( x_vertical, self.start_point[1] )
