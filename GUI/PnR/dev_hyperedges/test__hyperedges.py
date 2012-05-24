@@ -85,14 +85,38 @@ class Test_Hyperedge_Xover_Counting(object):
         *=========+=====*
     """
     
-    def test__single_crossover(self):
+    # line crossing algorithm checks
+    def test__line_crossing_parallel(self):
+        line1, line2 = ((10,3), (5,3)), ((10, 5), (5, 5))
+        assert hyperedge._check_for_crossing(line1, line2) == False
+    
+    def test__lines_overlap(self): # !!!FIXME!!!
+        line1, line2 = ((10,3), (10,7)), ((10,5), (10, 20))
+        assert hyperedge._check_for_crossing(line1, line2) == True
+        
+    def test__lines_dont_overlap(self):
+        line1, line2 = ((10,3), (10,7)), ((10,10), (10, 20))
+        assert hyperedge._check_for_crossing(line1, line2) == False
+        
+    def test__lines_cross(self):
+        line1, line2 = ((0,0), (3,4)), ((2,2), (0,5))
+        assert hyperedge._check_for_crossing(line1, line2) == True
+        
+    def test__lines_do_not_cross(self):
+        line1, line2 = ((2,2), (2,6)), ((3,3), (3,6))
+        assert hyperedge._check_for_crossing(line1, line2) == False
+
+        
+    # hyperedge crossover counting checks
+    def test__single_crossover(self): # !!!FIXME!!!
         hedge1 = hyperedge.Hyperedge()
         hedge1.add_connection((10,3), (60,6))
         hedge1.add_connection((10,3), (60,4))
+        hedge1.set_track(2)
         
         hedge2 = hyperedge.Hyperedge()
         hedge2.add_connection((10,5), (60,5))
         hedge2.add_connection((10,5), (60,8))
-        
+        hedge2.set_track(3)
         xovers = hyperedge.count_crossovers(hedge1, hedge2)
         assert xovers == 1

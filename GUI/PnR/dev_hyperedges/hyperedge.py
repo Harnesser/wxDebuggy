@@ -96,16 +96,51 @@ def count_crossovers( hedge1, hedge2 ):
     integers.
     """
     
+    crossings = 0
     ilines_1 = hedge1.ilines()
-    ilines_2 = hedge2.ilines()
+
     
-    for start_point, end_point in ilines_1:
-        x_max = max( start_point[0], end_point[0] )
-        x_min = min( start_point[0], end_point[0] )
-        for start_point2, end_point2 in ilines_2:
-            print "A:", start_point, end_point, " B:", start_point2, end_point2
+    print "Crossover counting"
+    for line1 in ilines_1:
+        for line2 in hedge2.ilines() :
+            print "Lines:", line1, line2,
+            if _check_for_crossing(line1, line2):
+                crossings += 1
+                print " CROSS"
+            else:
+                print " don't cross"
     
-    return 2
+    return crossings
     
-          
-       
+    
+def _check_for_crossing( flightline1, flightline2):
+    """ Check if two line segments cross.
+    
+    Adapted from here:
+    * http://stackoverflow.com/a/1968345
+    
+    !!!FIXME!!! Crashes on two vertical lines:
+    Crossover counting
+    Lines: ((10, 3), (5, 3)) ((10, 5), (5, 5))
+    """
+    (p0_x, p0_y), (p1_x, p1_y) = flightline1
+    (p2_x, p2_y), (p3_x, p3_y) = flightline2
+
+    # rule out parallel lines
+    # http://en.wikipedia.org/wiki/Line-line_intersection#n-line_intersection
+    a = (p0_x - p1_x) * (p2_y - p3_y) - (p0_y - p1_y) * (p2_x - p3_x ) 
+    if a == 0:
+        return False
+        
+    s1_x = 1.0 * p1_x - p0_x
+    s1_y = 1.0 * p1_y - p0_y
+    s2_x = 1.0 * p3_x - p2_x
+    s2_y = 1.0 * p3_y - p2_y
+    
+    s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y)
+    t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y )
+
+    if s >= 0 and s <= 1 and t >= 0 and t <= 1:
+        return True
+
+    return False    
