@@ -1,0 +1,12 @@
+import hyperedge
+
+hedge1 = hyperedge.Hyperedge()
+hedge1.add_connection((10,3), (60,6))
+hedge1.add_connection((10,3), (60,4))
+hedge1.set_track(2)
+        
+hedge2 = hyperedge.Hyperedge()
+hedge2.add_connection((5,7), (50,5))
+hedge2.add_connection((5,7), (50,8))
+hedge2.set_track(3)
+hedges = [hedge1, hedge2 ]
