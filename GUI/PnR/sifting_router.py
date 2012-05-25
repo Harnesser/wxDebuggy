@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 from Drawing_Object import Drawing_Object
+import hypernet
 
 class Trace_Router:
     """ Sifting Router. """
@@ -21,34 +22,37 @@ class Trace_Router:
         self._build_port_layer_dict()
         self._determine_glue_points()
 
+        # Build up drawing objects, and their hypernets
+        #  All connections with the same net name will be collated in a
+        # single Hypernet object.
         for i_layer in self.G.edges:
-            track = 0
+            track = 1
+            hypernet_dict = {}
             for e in self.G.edges.get(i_layer, []):
-                name = 'conn_%d' %(trace_id)
-                drawobj = Drawing_Object( name=name,
-                    parent=None,
-                    label=e.net,
-                    obj_type='hypernet' )
+            
+                if e not in hypernet_dict:
+                    name = 'conn_%d' %(trace_id)
+                    drawobj = Drawing_Object( name=name,
+                        parent=None,
+                        label=e.net,
+                        obj_type='hypernet' )
                     
-                # Get start point
+                    hnet = hypernet.Hypernet(name)
+                    hnet.set_track(track)
+                    drawobj.set_hypernet(hnet)
+                    
+                    hypernet_dict[e] = hnet
+                    self.obj_dict[name] = drawobj
+                    track += 1                    
+                    trace_id += 1
+                else:
+                    hnet = hypernet_dict[e]
+                                        
+                # add connection to hypernet
                 start_point = self.glue_points[(e.source, e.source_port)]
                 end_point   = self.glue_points[(e.target, e.target_port)]
+                hnet.add_connection(start_point, end_point)
 
-                # Midway point - this is the x co-ord for the horizontal section
-                drawobj.horizontal_origin = ( ( ( end_point.x - start_point.x ) / 2 ) 
-                                               + start_point.x )
-
-                drawobj.hypernet_tree = [ start_point.x, start_point.y, 
-                                          0,  # horizontal section position
-                                          end_point.y, end_point.x ]
-                                          
-                drawobj.track = track
-                drawobj.update_horizontal_position()
-                
-                self.obj_dict[name] = drawobj
-                track += 1
-                trace_id += 1
-                
     
     def _build_port_layer_dict(self):
         """ So the layer of a port can be looked up. """
