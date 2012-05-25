@@ -1,4 +1,5 @@
 import wx
+import hypernet
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # DrawingObject
@@ -31,10 +32,7 @@ class Drawing_Object:
         self.endpt   = wx.Point(0,0)
 
         # For hypernets 
-        self.hypernet_tree = []
-        self.layer = None
-        self.horizontal_origin = 0
-        self.track = 0
+        self.hypernet = None
         
         # Virtual column number
         self.column_number = 0
@@ -255,13 +253,6 @@ class Drawing_Object:
             glue_point_key = ( self.label, '_o' )
             self.glue_points[glue_point_key] =  self.endpt + self.position
 
-
-        
-    def update_horizontal_position(self):
-        """ """
-        self.hypernet_tree[2] = self.horizontal_origin + ( self.track * 5 )
-
-
     def is_hypernet(self):
         """ True if a connection/hypernet. """
     
@@ -294,35 +285,6 @@ class Drawing_Object:
             print "hmmmm...."
 
         self.MarkGluePoints(dc)
-
-
-
-    def hypernet_generator(self):
-        """ A Generator to give out hypernet line segments. """
-
-        direction = 'horizontal' # state
-
-        for point_index in range(2, len(self.hypernet_tree), 1 ):
-
-            if direction == 'horizontal':
-                start_point = ( self.hypernet_tree[point_index-2],
-                                self.hypernet_tree[point_index-1] )
-                end_point   = ( self.hypernet_tree[point_index],
-                                self.hypernet_tree[point_index-1] )
-                direction = 'vertical'
-
-            else:
-                start_point = ( self.hypernet_tree[point_index-1],
-                                self.hypernet_tree[point_index-2] )
-                end_point   = ( self.hypernet_tree[point_index-1],
-                                self.hypernet_tree[point_index] )
-
-                direction = 'horizontal'               
-       
-            yield start_point, end_point
-
-            
-
 
     def Draw_Module( self, dc, selected ):
         """ Draw a module symbol """
@@ -461,17 +423,15 @@ class Drawing_Object:
             #print "Draw flightline between", self.startpt, self.endpt , wx.Point(self.endpt)
             dc.DrawLinePoint( self.startpt, self.endpt )
 
-    
-    def draw_hypernet( self, dc ):
-        """ Draw Orthogonal wires. 
-
-        Uses a generator..."""
-
-        # Set the pen - green
-        dc.SetPen(wx.Pen('#00DD00', 1, wx.SOLID))
+    def set_hypernet(self, hypernet):
+        """ Add the hypernet object here."""
+        self.hypernet = hypernet
         
-        segment_gen = self.hypernet_generator()
-        for start_point,end_point in segment_gen:
+    def draw_hypernet( self, dc ):
+        """ Draw Orthogonal wires. """
+
+        dc.SetPen(wx.Pen('#00DD00', 1, wx.SOLID)) # green pen
+        for start_point,end_point in self.hypernet.ilines():
             dc.DrawLinePoint( start_point, end_point )  
   
  
