@@ -1,0 +1,13 @@
+import hypernet
+
+hedge1 = hypernet.Hypernet()
+hedge1.add_connection((10,3), (60,6))
+hedge1.add_connection((10,3), (60,4))
+hedge1.set_track(2)
+        
+hedge2 = hypernet.Hypernet()
+hedge2.add_connection((5,7), (50,5))
+hedge2.add_connection((5,7), (50,8))
+hedge2.add_connection((5,7), (53,18))
+hedge2.set_track(3)
+hedges = [hedge1, hedge2 ]

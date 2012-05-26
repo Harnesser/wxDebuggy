@@ -1,0 +1,3 @@
+Using relative imports, so use nosetests or something if
+running from this directory.
+
