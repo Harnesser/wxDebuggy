@@ -9,8 +9,13 @@ class MainWindow(wx.Frame):
     def __init__(self, parent, title, size=wx.DefaultSize):
         wx.Frame.__init__(self, parent, wx.ID_ANY, title, wx.DefaultPosition, size)
         
-        
         self.hyperedges = None
+        
+        try:
+            self.filename = sys.argv[1]
+        except (IndexError):    
+            self.filename = '_hyperedge_data.pye'
+        
         self.read_hyperedge_data()
 
         self.timer = wx.Timer(self)
@@ -22,7 +27,7 @@ class MainWindow(wx.Frame):
                    
     def read_hyperedge_data(self):
         d = {}
-        execfile('_hyperedge_data.pye', d)
+        execfile(self.filename, d)
         self.hyperedges = d['hedges']
 
     def OnTimer(self, e):
@@ -41,7 +46,7 @@ class MainWindow(wx.Frame):
         # module block
         dc.SetPen(wx.Pen(colour))
         iterlines = hedge.ilines()
-        sf = 10
+        sf = 1
         for (x1,y1),(x2,y2) in iterlines:
             dc.DrawLine(x1*sf,y1*sf,x2*sf,y2*sf)
         

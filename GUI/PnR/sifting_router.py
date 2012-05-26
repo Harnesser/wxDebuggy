@@ -53,7 +53,9 @@ class Trace_Router:
                 end_point   = self.glue_points[(e.target, e.target_port)]
                 hnet.add_connection(start_point, end_point)
 
-    
+    #
+    # Drawing helper functions
+    #
     def _build_port_layer_dict(self):
         """ So the layer of a port can be looked up. """
         self.port_layer_dict = {}
@@ -77,4 +79,42 @@ class Trace_Router:
              
             for pin,position in drawing_obj.glue_points.iteritems():
                 self.glue_points[pin] = position
+ 
+#
+# Sifting functions
+#
+def _build_crossing_matrix(hypernets):
+    crossing_matrix = {}
+    
+    # list netnames of the hyperedges in the collection
+    netnames = []
+    for hnet in hypernets:
+        netnames.append( hnet.netname )
         
+    # initialise the crossing matrix. The cii = 0 is set here
+    d1 = {}
+    for hn in netnames:
+        d1[hn] = 0
+    for hn in netnames:
+        crossing_matrix[hn] = dict(d1)
+            
+    # fill in the crossing matrix
+    for hn1 in hypernets:
+        for hn2 in hypernets:
+            if hn1.netname == hn2.netname:
+                continue
+            
+            # hn1 is above hn2
+            hn1.set_track(1)
+            hn2.set_track(2)
+            crossings = hypernet.count_crossovers(hn1, hn2)
+            crossing_matrix[hn1.netname][hn2.netname] = crossings
+            
+            # hn2 is above hn1
+            hn1.set_track(2)
+            hn2.set_track(1)
+            crossings = hypernet.count_crossovers(hn1, hn2)
+            crossing_matrix[hn2.netname][hn1.netname] = crossings
+        
+    return crossing_matrix
+
