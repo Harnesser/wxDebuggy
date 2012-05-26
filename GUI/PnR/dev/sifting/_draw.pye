@@ -16,13 +16,23 @@ class Buildme(object):
         potato     3        0
         """
         hnets = []
-        hnets.append( self._build_hypernet('spud', (10,10), [(80,23), (80, 50)] ))
-        hnets.append( self._build_hypernet('potato', (10, 20), [(70, 30), (70, 60)] ))
+        hnets.append( self._build_hypernet('spud', (10,40), [(99,30), (99,80)] ))
+        hnets.append( self._build_hypernet('potato', (10,60), [(99,20), (99,90)] ))
         
         hnets[1].set_track(1)
         hnets[0].set_track(2)
         
         return hnets
         
+    def _build_three_hypernets(self):
+        hnets = self._build_two_hypernets()
+        hnets.append( self._build_hypernet('mash', (10,80), [(99,10), (99,99)]))
+        return hnets
 bldr = Buildme()
-hedges = bldr._build_two_hypernets()
+hedges = bldr._build_three_hypernets()
+
+hedges[0].set_track(1)
+hedges[1].set_track(2)
+hedges[2].set_track(3)
+
+
