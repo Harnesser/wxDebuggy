@@ -82,10 +82,10 @@ class Graph_Builder:
         driver_dictionary = self._build_driver_dictionary()
         self.connection_list = self._get_connection_list(driver_dictionary)
         self.edge_list = self._get_edge_list(driver_dictionary)
-        
+
         #  Now we can build the graph since we've the vetices(instantiations) and
         # the edges (circuit point-to-point connections).
-        self.graph_dict = self._get_graph_dictionary(self.connection_list)
+        self.graph_dict = self._get_graph_dictionary(self.edge_list)
 
         # Determine which layer of the schematic the blocks belong on
         self.layer_dict = {}
@@ -175,31 +175,38 @@ class Graph_Builder:
                 port = graph.Port(port_name)
         This uses the driver_dict to build an edge list. The driver_dict will
         contain ((inst,pin),('_net',net)) or (('_net',net),(inst,pin)) and this module
-        builds an edge list of Edge modules.
+        builds an edge list of Edge objects.
         """
         # !!!FIXME!!! floating nets?
         edge_list = []
         oops_id = 1
-        
+
         for driver in driver_dict.keys():
             driver_inst, driver_name = driver # untuple
             driven_things = driver_dict[ driver ]
             for driven in driven_things:
                 driven_inst, driven_name = driven # untuple
+
+                # port connections don't have an intermediate net
+                if driven_inst == driven_name or driver_inst == driver_name:
+                    net_name = driven_inst
+                    edge = graph.Edge( net_name, driver, driven)
+                    edge_list.append(edge)
+
+                # if the driven is in the dict itself, then it's an intermediate
+                # net, so find the ultimate target of this connection
                 sink_list = driver_dict.get(driven, [])
                 for sink in sink_list:
                     sink_inst, sink_name = sink # untuple
-                    
+
                     # figure out net name
                     if driven_inst == '_net':
                         net_name = driven_name
-                    elif sink_inst == sink_name:
-                        net_name = sink_inst  # output port
                     else:
                         print "Oops, can't determine net name"
                         net_name = 'Broken%0d' % (oops_id)
                         oops_id += 1
-                    
+
                     edge = graph.Edge( net_name, driver, sink)
                     edge_list.append(edge)
 
@@ -249,7 +256,7 @@ class Graph_Builder:
 
         return point_to_point_connection_list
 
-    def _get_graph_dictionary(self, connection_list):
+    def _get_graph_dictionary(self, edge_list):
         """Build a graph from the circuit connection list.
 
         Returns a directed graph of the circuit as a dictionary. Keys are vertices,
@@ -268,19 +275,8 @@ class Graph_Builder:
         """
 
         graph_dictionary = {}
-        for source,sink in connection_list:
-
-            # Determine names for vertices
-            source_inst, source_pin = source
-            sink_inst, sink_pin = sink
-
-            # Now fill in the dictionary
-            graph_dictionary.setdefault(source_inst, []).append(sink_inst)
-
-
-        # remove duplicates
-        for key in graph_dictionary.keys():
-            graph_dictionary[key] = set( graph_dictionary[key] )
+        for edge in edge_list:
+            graph_dictionary.setdefault(edge.source, set()).add(edge.target)
 
         # add origin so the layering has a single point to start from
         graph_dictionary['_origin'] = self.module.GetInputPinNames()
