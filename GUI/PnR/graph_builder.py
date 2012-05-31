@@ -321,14 +321,17 @@ class Graph_Builder:
             start_point = (edge.target, edge.target_port)
 
         for i in layers:
-            new_vertex_name = '_'.join([prefix, edge.source, edge.source_port,
-                 edge.target, edge.target_port, str(i)] )
-            dummy_edge = graph.Edge( edge.net, start_point, (new_vertex_name, '_i') )
-            dummy_edges.append(dummy_edge)
+            new_vertex_name = '_'.join([prefix, edge.net, str(i)] )
 
-            (block, port) = start_point
-            self.graph_dict.setdefault(block,set()).add(new_vertex_name)
-            self.layer_dict[new_vertex_name] = i
+            # check if we've already a dummy edge for this net on this layer,
+            if self.layer_dict.get(new_vertex_name, i-1) != i:
+                dummy_edge = graph.Edge( edge.net, start_point, (new_vertex_name, '_i') )
+                dummy_edges.append(dummy_edge)
+
+                (block, port) = start_point
+                self.graph_dict.setdefault(block,set()).add(new_vertex_name)
+                self.layer_dict[new_vertex_name] = i
+
             start_point = (new_vertex_name, '_o')
 
         # final connection
