@@ -348,73 +348,68 @@ class Graph_Builder:
             layer -= 1
         return layer
 
-    def _get_dummy_connections(self, connection):
-        """ Build intermediate dummy connections for this long one.
+    def _get_dummy_edges(self, edge):
+        """ Build intermediate dummy edge for this long one.
         This also updates:
          * graph dict
          * layer dict
         """
-        new_connections = []
-
-        source, sink = connection
-        (block1, port1) = source
-        (block2, port2) = sink
-
-        start_layer = self._get_layer(block1)
-        end_layer   = self._get_layer(block2)
+        dummy_edges = []
+        start_layer = self._get_layer(edge.source)
+        end_layer   = self._get_layer(edge.target)
 
         # Remove sink from source connection set
-        self.graph_dict[block1].discard(block2)
+        self.graph_dict[edge.target].discard(edge.source)
 
         if ( end_layer - start_layer ) > 0:
             prefix = '_U'
             layers = range( start_layer + 1, end_layer )
             loopback = False
-            start_point = source
+            start_point = (edge.source, edge.source_port)
         else:
             prefix = '_B'
             layers = range( end_layer, start_layer+1 )
             loopback = True
-            start_point = sink
+            start_point = (edge.target, edge.target_port)
 
         for i in layers:
-            new_vertex_name = '_'.join([prefix, block1, port1, block2, port2, str(i)] )
-            new_conn = ( start_point, (new_vertex_name, '_i') )
-            new_connections.append(new_conn)
+            new_vertex_name = '_'.join([prefix, edge.source, edge.source_port,
+                 edge.target, edge.target_port, str(i)] )
+            dummy_edge = graph.Edge( edge.net, start_point, (new_vertex_name, '_i') )
+            dummy_edges.append(dummy_edge)
 
             (block, port) = start_point
             self.graph_dict.setdefault(block,set()).add(new_vertex_name)
             self.layer_dict[new_vertex_name] = i
-
             start_point = (new_vertex_name, '_o')
 
+        # final connection
         if loopback:
-            new_connections.append( (start_point, source) )
+            end_point = (edge.source, edge.source_port)
         else:
-            new_connections.append( (start_point, sink) )
+            end_point = (edge.target, edge.target_port)
+        dummy_edge = graph.Edge(edge.net, start_point, end_point)
+        dummy_edges.append(dummy_edge)
 
-        self.graph_dict.setdefault(new_vertex_name,set()).add(block2)
-
-        return new_connections
+        self.graph_dict.setdefault(new_vertex_name,set()).add(edge.target)
+        return dummy_edges
 
     def _split_long_edges(self):
         """ Split up all edges which span more than one layer. """
-        new_connections = []
-        for connection in self.connection_list:
-            ( (block1, port1), (block2, port2) ) = connection
-
-            start_layer = self._get_layer(block1)
-            end_layer   = self._get_layer(block2)
+        new_edges = []
+        for edge in self.edge_list:
+            start_layer = self._get_layer(edge.source)
+            end_layer   = self._get_layer(edge.target)
             span = end_layer - start_layer
 
             if span == 1:
-                new_connections.append( connection )
+                new_edges.append( edge )
             else: # we've found a long edge..
-                print "!Found a long edge:", connection
-                dummy_connections = self._get_dummy_connections(connection)
-                new_connections.extend( dummy_connections )
+                print "!Found a long edge:", edge
+                dummy_edges = self._get_dummy_edges(edge)
+                new_edges.extend( dummy_edges )
 
-        self.connection_list = new_connections
+        self.edge_list = new_edges
 
     def _build_special_vertices(self, module):
         """ Build special vertices for layout alg. """
