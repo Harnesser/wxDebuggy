@@ -6,7 +6,7 @@ Take a circuit module and build its Layered Directed Acyclic Graph.
 import lib_pnr_debug as libdb # debug prints only...
 import sugiyama.layered_graph as graph
 
-DEBUG = True
+DEBUG = False
 DEBUG_LAYERING = False
 
 class Graph_Builder:
@@ -14,7 +14,6 @@ class Graph_Builder:
 
     def __init__(self):
         self.module = None
-        self.connection_list = []
         self.edge_list = []
         self.graph_dict = {}
         self.layer_dict = {}
@@ -43,19 +42,6 @@ class Graph_Builder:
                 tmp.append( block_dict[thing] )
             special_vertices.append(tmp)
 
-        # Now for the edge list. Again, this has to be layered.
-        edge_dict = {}
-        for conn in self.connection_list:
-            ( (source, port1), (sink, port2) ) = conn
-            layer = self.layer_dict[source]
-            edge_dict.setdefault(layer, []).append(conn)
-
-        layers = edge_dict.keys()
-        layers.sort()
-        edges = []
-        for layer in layers:
-            edges.append(edge_dict[layer])
-
         # Now for the graph
         g = graph.Graph(self.module.name)
         layer = 0
@@ -64,13 +50,9 @@ class Graph_Builder:
                 g.add_vertex(layer, v)
             layer += 1
 
-        n = 0 # !!!FIXME!!! have to fix net names...
-        print "Something"
-        for source,target in self.connection_list:
-            e = graph.Edge('n%d' %(n), source, target)
-            print e
-            g.add_edge(e)
-            n += 1
+        for edge in self.edge_list:
+            g.add_edge(edge)
+
         g.update()
         return g
 
@@ -80,7 +62,6 @@ class Graph_Builder:
 
         # Extract edges from circuit
         driver_dictionary = self._build_driver_dictionary()
-        self.connection_list = self._get_connection_list(driver_dictionary)
         self.edge_list = self._get_edge_list(driver_dictionary)
 
         #  Now we can build the graph since we've the vetices(instantiations) and
@@ -107,12 +88,12 @@ class Graph_Builder:
         return self.layer_dict
 
     def get_conn_list(self):
-        return self.connection_list
+        return self.edge_list
 
     def show_connections(self, debug=False ):
         if debug:
-            print "\nPoint-to-Point"
-            for connection in self.connection_list:
+            print "\nPoint-to-Point Edge list"
+            for connection in self.edge_list:
                 print "   ", connection
 
     ##
@@ -216,45 +197,6 @@ class Graph_Builder:
                 print "   ", edge
 
         return edge_list
-
-    def _get_connection_list( self, driver_dict):
-        """Determine the connections in the current module
-                port = graph.Port(port_name)
-        This uses the driver_dict to build a connections list.  The driver_dict will
-        contain ((inst,pin),('_net',net)) or (('_net',net),(inst,pin)) and this module
-        builds a connection list in the form ((inst,pin),(inst,pin))
-        """
-
-        point_to_point_connection_list = []
-
-        for driver in driver_dict.keys():
-            driver_inst, driver_name = driver # untuple
-
-            driven_things = driver_dict[ driver ]
-            for net in driven_things:
-                net_inst, net_name = net # untuple
-
-                if net_inst == net_name: # Add output port connections
-                    point_to_point_connection_list.append( (driver,net) )
-
-                if driver_inst == driver_name: # Add input port connections
-                    point_to_point_connection_list.append( (driver, net) )
-
-                if net in driver_dict:
-
-                    sink_list = driver_dict[net]
-                    for sink in sink_list:
-                        sink_inst, sink_name = sink # untuple
-
-                        point_to_point_connection_list.append( (driver, sink) )
-
-
-        if DEBUG:
-            print "\nPoint-to-Point"
-            for connection in point_to_point_connection_list:
-                print "   ",connection
-
-        return point_to_point_connection_list
 
     def _get_graph_dictionary(self, edge_list):
         """Build a graph from the circuit connection list.
