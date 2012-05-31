@@ -168,9 +168,15 @@ class Graph_Builder:
             for driven in driven_things:
                 driven_inst, driven_name = driven # untuple
 
-                # port connections don't have an intermediate net
-                if driven_inst == driven_name or driver_inst == driver_name:
+                # OUTPORT connections don't have an intermediate net
+                if driven_inst == driven_name:
                     net_name = driven_inst
+                    edge = graph.Edge(net_name, driver, driven)
+                    edge_list.append(edge)
+
+                # INPORT connections don't either
+                elif driver_inst == driver_name:
+                    net_name = driver_inst
                     edge = graph.Edge( net_name, driver, driven)
                     edge_list.append(edge)
 
@@ -347,7 +353,6 @@ class Graph_Builder:
             if span == 1:
                 new_edges.append( edge )
             else: # we've found a long edge..
-                print "!Found a long edge:", edge
                 dummy_edges = self._get_dummy_edges(edge)
                 new_edges.extend( dummy_edges )
 
@@ -389,7 +394,6 @@ class Graph_Builder:
                     dummy.add_port( graph.Port('_i', 'left') )
                     dummy.add_port( graph.Port('_o', 'right') )
                     block_dict[vertex] = dummy
-
 
         return block_dict
 

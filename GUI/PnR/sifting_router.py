@@ -30,24 +30,23 @@ class Trace_Router:
             track = 1
             hypernet_dict = {}
             for e in self.G.edges.get(i_layer, []):
-
-                if e not in hypernet_dict:
-                    name = 'conn_%d' %(trace_id)
+                if e.net not in hypernet_dict:
+                    name = 'hypernet_%d' %(trace_id)
                     drawobj = Drawing_Object( name=name,
                         parent=None,
                         label=e.net,
                         obj_type='hypernet' )
 
-                    hnet = hypernet.Hypernet(name)
+                    hnet = hypernet.Hypernet(e.net)
                     hnet.set_track(track)
                     drawobj.set_hypernet(hnet)
 
-                    hypernet_dict[e] = hnet
+                    hypernet_dict[e.net] = hnet
                     self.obj_dict[name] = drawobj
                     track += 1
                     trace_id += 1
                 else:
-                    hnet = hypernet_dict[e]
+                    hnet = hypernet_dict[e.net]
 
                 # add connection to hypernet
                 start_point = self.glue_points[(e.source, e.source_port)]
