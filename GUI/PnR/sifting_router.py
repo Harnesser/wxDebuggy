@@ -23,32 +23,37 @@ class Trace_Router:
         self._build_port_layer_dict()
         self._determine_glue_points()
 
+        #print self.G.display()
+        
         # Build up drawing objects, and their hypernets
-        #  All connections with the same net name will be collated in a
-        # single Hypernet object.
+        #  All connections with the same net name in the same layer will be
+        # collated in a single Hypernet object.
         for i_layer in self.G.edges:
             track = 1
             hypernet_dict = {}
             for e in self.G.edges.get(i_layer, []):
-                if e.net not in hypernet_dict:
+                if e.name not in hypernet_dict:
                     name = 'hypernet_%d' %(trace_id)
                     drawobj = Drawing_Object( name=name,
                         parent=None,
-                        label=e.net,
+                        label=e.name,
                         obj_type='hypernet' )
 
-                    hnet = hypernet.Hypernet(e.net)
+                    hnet = hypernet.Hypernet(e.name)
                     hnet.set_track(track)
                     drawobj.set_hypernet(hnet)
 
-                    hypernet_dict[e.net] = hnet
+                    hypernet_dict[e.name] = hnet
                     self.obj_dict[name] = drawobj
                     track += 1
                     trace_id += 1
                 else:
-                    hnet = hypernet_dict[e.net]
+                    hnet = hypernet_dict[e.name]
 
                 # add connection to hypernet
+                #print "+%d : %s.%s -> %s.%s" % (i_layer, e.source, e.source_port,
+                #    e.target, e.target_port )
+                #print e.source
                 start_point = self.glue_points[(e.source, e.source_port)]
                 end_point   = self.glue_points[(e.target, e.target_port)]
                 hnet.add_connection(start_point, end_point)

@@ -2,6 +2,7 @@
 """ Graph Builder.
 
 Take a circuit module and build its Layered Directed Acyclic Graph.
+
 """
 import lib_pnr_debug as libdb # debug prints only...
 import sugiyama.layered_graph as graph
@@ -301,6 +302,10 @@ class Graph_Builder:
         This also updates:
          * graph dict
          * layer dict
+                 
+        Edge names are uncoupled from the net names that they represent here, but
+        by default, edge.net == edge.name. The name will be changed when inserting
+        dummy edges.
         """
         dummy_edges = []
         start_layer = self._get_layer(edge.source)
@@ -322,10 +327,12 @@ class Graph_Builder:
 
         for i in layers:
             new_vertex_name = '_'.join([prefix, edge.net, str(i)] )
-
+            new_edge_name = '_%s_%i' % (edge.net, i)
+            
             # check if we've already a dummy edge for this net on this layer,
             if self.layer_dict.get(new_vertex_name, i-1) != i:
                 dummy_edge = graph.Edge( edge.net, start_point, (new_vertex_name, '_i') )
+                dummy_edge.name = new_edge_name # name/net uncoupled here
                 dummy_edges.append(dummy_edge)
 
                 (block, port) = start_point
@@ -339,7 +346,9 @@ class Graph_Builder:
             end_point = (edge.source, edge.source_port)
         else:
             end_point = (edge.target, edge.target_port)
+        new_edge_name = '_%s_final' %(edge.net)
         dummy_edge = graph.Edge(edge.net, start_point, end_point)
+        dummy_edge.name = new_edge_name
         dummy_edges.append(dummy_edge)
 
         self.graph_dict.setdefault(new_vertex_name,set()).add(edge.target)

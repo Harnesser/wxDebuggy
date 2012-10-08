@@ -37,7 +37,7 @@ class Hypernet(object):
             self.start_point = start_point
         elif start_point != self.start_point:
             print "Warning: Hypernet connection start co-ordinate doesn't match."""
-            print self.start_point, start_point
+            print "Hypernet:", self.netname, self.start_point, "vs", start_point
             return
             
         self.end_points.append(end_point)

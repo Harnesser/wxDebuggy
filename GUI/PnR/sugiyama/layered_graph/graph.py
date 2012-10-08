@@ -277,7 +277,8 @@ class Graph():
             str_.append('\n## Layer %0d' % (layer))
             for vertex in self.vertices[layer]:
                 str_.append( vertex.display() )
-                
+        str_.append('Edges:')
+        str_.append("%s" % (self.edges))
         return '\n'.join(str_)
         
             
