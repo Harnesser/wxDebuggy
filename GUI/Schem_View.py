@@ -117,7 +117,6 @@ class Schem_View( wx.ScrolledWindow ):
         # Draw Stuff
         dc.BeginDrawing()
         dc.Clear()
-                
         for part in self.drawing_object_dict.values():
             part.Draw(dc,True)
             

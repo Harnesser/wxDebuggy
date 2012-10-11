@@ -47,7 +47,9 @@ class MainWindow(wx.Frame):
         dc.SetPen(wx.Pen(colour))
         iterlines = hedge.ilines()
         sf = 2
+        #print 'Drawing: %s' % (hedge.netname)
         for (x1,y1),(x2,y2) in iterlines:
+            #print '  (%d,%d) -> (%d,%d)' %( x1,y1,x2,y2)
             dc.DrawLine(x1*sf,y1*sf,x2*sf,y2*sf)
         
        

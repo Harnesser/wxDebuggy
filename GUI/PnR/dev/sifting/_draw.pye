@@ -5,8 +5,9 @@ class Buildme(object):
         hnet = hypernet.Hypernet(name)
         for end in ends:
             hnet.add_connection(start, end)
+        hnet.x_origin = 10
         return hnet
-        
+       
     def _build_two_hypernets(self):
         """ Build two hypernets. 
         Expected crossings matrix 
@@ -30,6 +31,9 @@ class Buildme(object):
         return hnets
 bldr = Buildme()
 hedges = bldr._build_three_hypernets()
+del hedges[2]
+#del hedges[0]
+hedges.append( bldr._build_hypernet( 'reacharound', (99,10), [(99,100)] ) )
 
 hedges[0].set_track(1)
 hedges[1].set_track(2)

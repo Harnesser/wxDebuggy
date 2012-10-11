@@ -98,6 +98,17 @@ def _build_crossing_matrix(hypernets):
     for hnet in hypernets:
         netnames.append( hnet.netname )
 
+    # set origin of track axes so we can draw feedback nodes properly
+    x_origin = 100000
+    #print '-----------------------'
+    for hnet in hypernets:
+        if hnet.start_point[0] < x_origin:
+            #print "Info (hnet %s)" % (hnet.netname ),
+            #print "setting a new track origin", hnet.start_point[0]
+            x_origin = hnet.start_point[0]
+    for hnet in hypernets:
+        hnet.x_origin = x_origin
+        
     # initialise the crossing matrix. The cii = 0 is set here
     d1 = {}
     for hn in netnames:

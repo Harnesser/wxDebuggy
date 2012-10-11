@@ -10,9 +10,6 @@ I'll want to do a few things with a hypernet:
   co-ordinates.
 
 """
-
-SEPARATION = 5
-
         
 class Hypernet(object):
     """ Hypernet Class.
@@ -27,8 +24,8 @@ class Hypernet(object):
         
         self.start_point = None
         self.end_points = []
-        self.vertical = self.track * SEPARATION
-       
+        self.x_origin = None
+        
     def add_connection(self, start_point, end_point ):
         """ Add hypernet to connect start_point to end_point.
         All edges for this hypernet must have the same start point. """
@@ -51,9 +48,13 @@ class Hypernet(object):
             return
         self.track = track_num
         
-    def ilines(self):
+    def ilines(self, separation = 5):
         """ Return an iterator to return the lines in the hypernet"""
-        x_vertical = self.track * SEPARATION + self.start_point[0]
+        if self.x_origin is None:
+            print "Warning (hnet %s): " %(self.netname),
+            print "setting a default x_origin for the vertical tracks"
+            self.x_origin = self.start_point[0]
+        x_vertical = (self.track * separation) + self.x_origin
         
         # 1st line is from source out to the vertical
         yield self.start_point, ( x_vertical, self.start_point[1] )
@@ -71,7 +72,7 @@ class Hypernet(object):
     def __str__(self):
         """ Return a string representation of the hypernet. """
         gen = self.ilines()
-        _str = []
+        _str = ['Hypernet: %s (track %d, origin %d)' % (self.netname, self.track, self.x_origin)]
         for line in gen:
             _str.append(str(line))
             
@@ -81,7 +82,7 @@ class Hypernet(object):
         return self.__str__()
   
   
-def count_crossovers( hedge1, hedge2 ):
+def count_crossovers( hedge1, hedge2):
     """ Count the crossovers between two Hypernet. 
     
     What's the brute-force algorithm? Go through each line segment of

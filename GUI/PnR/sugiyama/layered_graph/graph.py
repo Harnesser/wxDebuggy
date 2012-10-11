@@ -26,14 +26,17 @@ class Graph():
 
     def add_edge(self, edge):
         """ Should this be add_connection?
-        Should I figure out which layers this is between?
-        Just put on the same layer as its source vertex ftm
+        Figures out which layer it should be assigned to.
         """
         # do it the long way ftm
         for i_layer, vertices in self.vertices.iteritems():
             for v in vertices:
                 if edge.source == v.name:
-                    self.edges.setdefault(i_layer, []).append(edge)
+                    _port = v.get_port(edge.source_port)
+                    if _port.is_on_left():
+                       self.edges.setdefault(i_layer-1, []).append(edge)
+                    else:
+                        self.edges.setdefault(i_layer, []).append(edge)
                     break
 
 
@@ -239,7 +242,7 @@ class Graph():
             # now we can calculate the crossovers
             lhs_ranks = []
             for target in targets:
-                ranks = [ source_ranks[source] for source in conn_dict.get(target, []) ]
+                ranks = [ source_ranks.get(source, []) for source in conn_dict.get(target, []) ]
                 ranks.sort()
                 for source_rank in ranks:
                     for lhs_rank in lhs_ranks:

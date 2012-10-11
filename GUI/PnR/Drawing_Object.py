@@ -431,6 +431,7 @@ class Drawing_Object:
         """ Draw Orthogonal wires. """
 
         dc.SetPen(wx.Pen('#00DD00', 1, wx.SOLID)) # green pen
+        #print self.hypernet
         for start_point,end_point in self.hypernet.ilines():
             dc.DrawLinePoint( start_point, end_point )  
   

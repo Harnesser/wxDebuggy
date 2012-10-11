@@ -49,3 +49,15 @@ class Test__Sifting(object):
         for hn in hnets:
             tracks[hn.netname] = hn.track
         assert tracks == expected
+        
+    def test__sifting_feedback_hypernet(self):
+        hnets = self._build_two_hypernets()
+        hnets.append( self._build_hypernet('backwards', (80,20), [(80,95)]) )
+        sifting_router.assign_tracks(hnets)
+        
+        tracks = {}
+        for hn in hnets:
+            print hn
+        
+        
+        
